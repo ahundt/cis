@@ -103,6 +103,8 @@ basis_project (
   # --------------------------------------------------------------------------
   # dependencies
   DEPENDS
+    PCL
+	Boost{program_options,filesystem}
     #<dependency>
   OPTIONAL_DEPENDS
     #<optional-dependency>

@@ -41,3 +41,5 @@
 # MATLAB, and Bash.
 
 
+basis_add_executable(cisHW1main.cpp)
+basis_target_link_libraries(cisHW1main ${PCL_LIBRARIES} ${BOOST_LIBRARIES} ${Boost_LIBRARIES})

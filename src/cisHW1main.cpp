@@ -5,6 +5,9 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/tokenizer.hpp>
+#include <sstream>
+#include <fstream>
+#include <iostream>
 
 // Project includes
 #include "parseCSV_CIS_pointCloud.hpp"
@@ -44,11 +47,36 @@ bool readCommandLine(int argc, char* argv[], AlgorithmParams & algorithmParams){
     allOptions.add(generalOptions).add(algorithmOptions);
   
     po::variables_map vmap;
-	
+
+    try
+    {
+      po::store(po::command_line_parser(argc, argv).options(allOptions).run(), vmap);
+      po::notify(vmap);
+    }
+    catch (std::exception& e)
+    {
+      std::cerr << "[Error] " << BOOST_CURRENT_FUNCTION << std::endl
+      << "    " << e.what() << std::endl
+      << std::endl
+      << allOptions << std::endl;
+      return false;
+    }
+  
+    if (vmap.count(CLO_GET_ARG_STR2(CLO_HELP)) || argc < 2)
+    {
+      std::cout << allOptions << std::endl;
+      return false;
+    }
+  
 	parseResponseFiles(vmap,allOptions);
 	
 	po::readOption(vmap,"inputPointCloudFile",algorithmParams.inputPointCloudFile1,optional);
 	
+    if (!algorithmParams.inputPointCloudFile1.empty() && !boost::filesystem::exists(algorithmParams.inputPointCloudFile1) ) {
+      throw std::runtime_error("File "+algorithmParams.inputPointCloudFile1 + " does not exist!");
+    }
+	
+    return false;
 }
 
 
@@ -66,7 +94,10 @@ int main(int argc,char**argv) {
 	AlgorithmParams ap;
 	readCommandLine(argc,argv,ap);
 	
-	parseCSV_CIS_pointCloud(ap.inputPointCloudFile1);
+	std::stringstream ss;
+	ss << std::ifstream( ap.inputPointCloudFile1.c_str() ).rdbuf();
+    
+	csvCIS_pointCloudData firstPointCloud = parseCSV_CIS_pointCloud(ss.str(),true);
 	
 	return 0;
 }

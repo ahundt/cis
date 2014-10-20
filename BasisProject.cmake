@@ -105,6 +105,7 @@ basis_project (
   DEPENDS
     PCL
 	Boost{program_options,filesystem}
+	Eigen3
     #<dependency>
   OPTIONAL_DEPENDS
     #<optional-dependency>

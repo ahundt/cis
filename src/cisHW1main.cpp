@@ -24,7 +24,7 @@ struct AlgorithmData {
 	csvCIS_pointCloudData output1;
 };
 
-struct AlgorithmParams {
+struct ParsedCommandLineCommands {
 	std::string  calbodyPath;
 	std::string  calreadingsPath;
 	std::string  empivotPath;
@@ -32,6 +32,10 @@ struct AlgorithmParams {
 	std::string  output1Path;
 };
 
+/// The user may specify an exact path for a data source, or simply the folder path and filename prefix.
+/// This funciton will detect which option and select the correctly assembled files.
+///
+/// @throws std::runtime_error if none of the options correspond to an actual existing file.
 void assmblePathIfFullPathNotSupplied(std::string dataFolderPath, std::string dataFilenamePrefix, std::string suffix, std::string& dataFilePath){
 	
 	if(boost::filesystem::exists(dataFilePath)) return;
@@ -46,7 +50,8 @@ void assmblePathIfFullPathNotSupplied(std::string dataFolderPath, std::string da
 	
 }
 
-bool readCommandLine(int argc, char* argv[], AlgorithmParams & algorithmParams){
+/// read the command line options from argc,argv and load them into the params object
+bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 
   
     static const bool optional = false; // false means parameters are not required, and therefore optional
@@ -62,9 +67,18 @@ bool readCommandLine(int argc, char* argv[], AlgorithmParams & algorithmParams){
 	
 
     po::options_description algorithmOptions("Algorithm Options");
-    std::string currentPath(boost::filesystem::path( boost::filesystem::current_path() ).string());
   
-    algorithmOptions.add_options()
+  
+    // create algorithm command line options
+    //algorithmOptions.add_options()
+	// todo, add options for configuring algorithms
+	
+    po::options_description dataOptions("Data Options");
+  
+
+    std::string currentPath(boost::filesystem::path( boost::filesystem::current_path() ).string());
+    // create algorithm command line options
+    dataOptions.add_options()
 		    ("dataFolderPath"                ,po::value<std::string>()->default_value(currentPath)       ,"folder containing data files, defaults to current working directory"   ) 
 		  	("dataFilenamePrefix"            ,po::value<std::string>()->default_value("pa1-debug-a"     ),"constant prefix of data filename path"   )
 		  	("dataFileNameSuffix_calbody"    ,po::value<std::string>()->default_value("-calbody.txt"    ),"suffix of data filename path"   )
@@ -72,15 +86,15 @@ bool readCommandLine(int argc, char* argv[], AlgorithmParams & algorithmParams){
 		  	("dataFileNameSuffix_empivot"    ,po::value<std::string>()->default_value("-empivot.txt"    ),"suffix of data filename path"   )
 		  	("dataFileNameSuffix_optpivot"   ,po::value<std::string>()->default_value("-optpivot.txt"   ),"suffix of data filename path"   )
 		  	("dataFileNameSuffix_output1"    ,po::value<std::string>()->default_value("-output1.txt"    ),"suffix of data filename path"   )
-		  	("calbodyPath"    ,po::value<std::string>() , "full path to data txt file")
-		  	("calreadingsPath",po::value<std::string>() , "full path to data txt file")
-		  	("empivotPath"    ,po::value<std::string>() , "full path to data txt file")
-		  	("optpivotPath"   ,po::value<std::string>() , "full path to data txt file")
-		  	("output1Path"    ,po::value<std::string>() , "full path to data txt file")
+		  	("calbodyPath"                   ,po::value<std::string>() , "full path to data txt file")
+		  	("calreadingsPath"               ,po::value<std::string>() , "full path to data txt file")
+		  	("empivotPath"                   ,po::value<std::string>() , "full path to data txt file")
+		  	("optpivotPath"                  ,po::value<std::string>() , "full path to data txt file")
+		  	("output1Path"                   ,po::value<std::string>() , "full path to data txt file")
 			  ;
 
     po::options_description allOptions;
-    allOptions.add(generalOptions).add(algorithmOptions);
+    allOptions.add(generalOptions).add(algorithmOptions).add(dataOptions);
   
     po::variables_map vmap;
 
@@ -106,6 +120,7 @@ bool readCommandLine(int argc, char* argv[], AlgorithmParams & algorithmParams){
   
 	parseResponseFiles(vmap,allOptions);
 	
+	// initalize string params
 	std::string  dataFolderPath
 				,dataFilenamePrefix
 				,dataFileNameSuffix_calbody 
@@ -114,8 +129,9 @@ bool readCommandLine(int argc, char* argv[], AlgorithmParams & algorithmParams){
 				,dataFileNameSuffix_optpivot   
 				,dataFileNameSuffix_output1;   
 		
-	po::readOption(vmap,"dataFolderPath",dataFolderPath,optional);
-	po::readOption(vmap,"dataFilenamePrefix",dataFilenamePrefix,optional);
+	// load up parameter values from the variable map
+	po::readOption(vmap,"dataFolderPath"                   ,dataFolderPath                     ,optional);
+	po::readOption(vmap,"dataFilenamePrefix"               ,dataFilenamePrefix                 ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_calbody"      ,dataFileNameSuffix_calbody         ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_calreadings"  ,dataFileNameSuffix_calreadings     ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_empivot"      ,dataFileNameSuffix_empivot         ,optional);
@@ -123,17 +139,20 @@ bool readCommandLine(int argc, char* argv[], AlgorithmParams & algorithmParams){
 	po::readOption(vmap, "dataFileNameSuffix_output1"      ,dataFileNameSuffix_output1         ,optional);
 	                                                                                           
     
-    po::readOption(vmap,"calbodyPath",algorithmParams.calbodyPath,optional);
-    po::readOption(vmap,"calreadingsPath",algorithmParams.calreadingsPath,optional);
-	po::readOption(vmap,"empivotPath",algorithmParams.empivotPath,optional);
-	po::readOption(vmap,"optpivotPath",algorithmParams.optpivotPath,optional);
-	po::readOption(vmap,"output1Path",algorithmParams.output1Path,optional);
+    po::readOption(vmap,"calbodyPath"                      ,pclp.calbodyPath        ,optional);
+    po::readOption(vmap,"calreadingsPath"                  ,pclp.calreadingsPath    ,optional);
+	po::readOption(vmap,"empivotPath"                      ,pclp.empivotPath        ,optional);
+	po::readOption(vmap,"optpivotPath"                     ,pclp.optpivotPath       ,optional);
+	po::readOption(vmap,"output1Path"                      ,pclp.output1Path        ,optional);
 	
-	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_calbody       ,algorithmParams.calbodyPath);
-	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_calreadings   ,algorithmParams.calreadingsPath);
-	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_empivot       ,algorithmParams.empivotPath);
-	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_optpivot      ,algorithmParams.optpivotPath);
-	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_output1       ,algorithmParams.output1Path);
+	
+	// check if the user supplied a full path, if not assemble a path 
+	// from the default paths and the defualt prefix/suffix combos
+	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_calbody       ,pclp.calbodyPath);
+	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_calreadings   ,pclp.calreadingsPath);
+	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_empivot       ,pclp.empivotPath);
+	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_optpivot      ,pclp.optpivotPath);
+	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_output1       ,pclp.output1Path);
 	
 	
     return false;
@@ -157,18 +176,18 @@ void loadPointCloud(std::string fullFilePath, csvCIS_pointCloudData& pointCloud)
  * @return int 
  */
 int main(int argc,char**argv) {
-	AlgorithmParams ap;
-	readCommandLine(argc,argv,ap);
+	ParsedCommandLineCommands pclp;
+	readCommandLine(argc,argv,pclp);
 	
 	std::stringstream ss;
 	ss << std::ifstream( ap.calbodyPath ).rdbuf();
     
     AlgorithmData ad;
-    loadPointCloud(ap.calbodyPath       ,ad.calbody                    );
-    loadPointCloud(ap.calreadingsPath   ,ad.calreadings                );
-    loadPointCloud(ap.empivotPath       ,ad.empivot                    );
-    loadPointCloud(ap.optpivotPath      ,ad.optpivot                   );
-    loadPointCloud(ap.output1Path       ,ad.output1                    );
+    loadPointCloud(pclp.calbodyPath       ,pclp.calbody                    );
+    loadPointCloud(pclp.calreadingsPath   ,pclp.calreadings                );
+    loadPointCloud(pclp.empivotPath       ,pclp.empivot                    );
+    loadPointCloud(pclp.optpivotPath      ,pclp.optpivot                   );
+    loadPointCloud(pclp.output1Path       ,pclp.output1                    );
 	
 	return 0;
 }

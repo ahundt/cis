@@ -72,11 +72,11 @@ bool readCommandLine(int argc, char* argv[], AlgorithmParams & algorithmParams){
 		  	("dataFileNameSuffix_empivot"    ,po::value<std::string>()->default_value("-empivot.txt"    ),"suffix of data filename path"   )
 		  	("dataFileNameSuffix_optpivot"   ,po::value<std::string>()->default_value("-optpivot.txt"   ),"suffix of data filename path"   )
 		  	("dataFileNameSuffix_output1"    ,po::value<std::string>()->default_value("-output1.txt"    ),"suffix of data filename path"   )
-		  	("calbodyPath"    ,po::value<std::string>() )
-		  	("calreadingsPath",po::value<std::string>() )
-		  	("empivotPath"    ,po::value<std::string>() )
-		  	("optpivotPath"   ,po::value<std::string>() )
-		  	("output1Path"    ,po::value<std::string>() )
+		  	("calbodyPath"    ,po::value<std::string>() , "full path to data txt file")
+		  	("calreadingsPath",po::value<std::string>() , "full path to data txt file")
+		  	("empivotPath"    ,po::value<std::string>() , "full path to data txt file")
+		  	("optpivotPath"   ,po::value<std::string>() , "full path to data txt file")
+		  	("output1Path"    ,po::value<std::string>() , "full path to data txt file")
 			  ;
 
     po::options_description allOptions;

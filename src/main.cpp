@@ -1,6 +1,9 @@
 #include <iostream>
 #include <Eigen/Dense>
 #include <Eigen/SVD>
+#include <Eigen/Eigenvalues>
+#include <vector>
+#include <boost/bind.hpp>
 
 using namespace std;
 
@@ -37,7 +40,69 @@ Eigen::Matrix3d Hmatrix(Eigen::MatrixXd a, Eigen::MatrixXd b)
     return Hsum;
 }
 
-Eigen::Matrix3d Rmatrix(Eigen::Matrix3d Hsum)
+Eigen::Matrix4d Gmatrix(Eigen::Matrix3d H)
+{
+    Eigen::Vector3d delta;
+    delta(0) = H(1,2)-H(2,1);
+    delta(1) = H(2,0)-H(0,2);
+    delta(2) = H(0,1)-H(1,0);
+    Eigen::Matrix4d G;
+    G(0,0)= H.trace();
+    G.block<3,1>(1,0) = delta;
+    G.block<1,3>(0,1) = delta.transpose();
+    G.block<3,3>(1,1) = H+H.transpose()-H.trace()*Eigen::Matrix3d::Identity();
+    return G;
+}
+
+struct comparePairs {
+template <typename K, typename V>
+bool operator()(const std::pair<K,V>& lhs, const std::pair<K,V>& rhs)
+{
+  return lhs.first < rhs.first;
+}
+};
+
+// Need to find the largest eigenvalue and the corresponding eigenvector
+Eigen::Matrix4d EigenMatrix(Eigen::Matrix4d G)
+{
+    Eigen::EigenSolver<Eigen::Matrix4d> es(G);
+    Eigen::Vector4cd EValues = es.eigenvalues();
+    Eigen::Vector4d RealEValues = EValues.real();
+    Eigen::Matrix4cd EVectors = es.eigenvectors();
+    Eigen::Matrix4d RealEVectors = EVectors.real();
+
+
+    std::vector<pair<double,Eigen::Vector4d> > ToSort;
+    for (int i=0; i<4; i++){
+        ToSort.push_back(std::make_pair(RealEValues(i),RealEVectors.block<4,1>(0,i)));
+    }
+    /*
+    std::sort(ToSort.begin(),ToSort.end(),comparePairs());
+    cout << RealEValues << endl << es.eigenvectors() << endl << "Test" << endl;
+    //Eigen::ComplexEigenSolver<Eigen::MatrixXcf> ces(G);
+    //ces.compute(G);
+    //cout << ces.eigenvector(G) << endl;
+    //G.compute();
+    //return es.eigenvectors();
+    */
+}
+
+Eigen::Matrix3d UnitQuaternionToRotation(Eigen::Vector4d q)
+{
+    Eigen::Matrix3d R;
+    R(0,0) = q(0)*q(0)+q(1)*q(1)-q(2)*q(2)-q(3)*q(3);
+    R(0,1) = 2*(q(1)*q(2)-q(0)*q(3));
+    R(0,2) = 2*(q(1)*q(3)+q(0)*q(2));
+    R(1,0) = 2*(q(1)*q(2)+q(0)*q(3));
+    R(1,1) = q(0)*q(0)-q(1)*q(1)+q(2)*q(2)-q(3)*q(3);
+    R(1,2) = 2*(q(2)*q(3)-q(0)*q(1));
+    R(2,0) = 2*(q(1)*q(3)-q(0)*q(2));
+    R(2,1) = 2*(q(2)*q(3)+q(0)*q(1));
+    R(2,2) = q(0)*q(0)-q(1)*q(1)-q(2)*q(2)+q(3)*q(3);
+    return R;
+}
+
+Eigen::Matrix3d ArunsMethod(Eigen::Matrix3d Hsum)
 {
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(Hsum, Eigen::ComputeThinU | Eigen::ComputeThinV);
     Eigen::MatrixXd U = svd.matrixU();
@@ -64,10 +129,15 @@ Eigen::Matrix4d frame(Eigen::MatrixXd a, Eigen::MatrixXd b)
     Eigen::MatrixXd atilda=vectortilda(a);
     Eigen::MatrixXd btilda=vectortilda(b);
     Eigen::Matrix3d H = Hmatrix(atilda,btilda);
-    Eigen::Matrix3d R = Rmatrix(H);
-    Eigen::Vector3d p = bbar-R*abar;
-    Eigen::Matrix4d F = homogeneousmatrix(R,p);
-    return F;
+
+    // Add H to FindLargestEigenVector Function
+    // Add EigenVector to Quaternion to RMatrix Function
+
+    // Eigen::Matrix3d R = Rmatrix(H);
+
+    // Eigen::Vector3d p = bbar-R*abar;
+    // Eigen::Matrix4d F = homogeneousmatrix(R,p);
+    // return F;
 }
 
 int main()
@@ -82,7 +152,18 @@ int main()
      4, 5, 6,
      5, 8, 9;
 
-    Eigen::Matrix4d F = frame(a,b);
-    cout << F << endl;
+    Eigen::Matrix3d H = Hmatrix(a,b);
+    Eigen::Matrix4d G = Gmatrix(H);
+    EigenMatrix(G);
+
+    //int cols = 4;
+    //int rows = 4;
+    //Eigen::MatrixXf G(rows, 2*cols);
+    //Eigen::MatrixXcf X(rows, cols);
+    //X.real() = G;//.leftCols(cols);
+    // X.imag() = G.rightCols(cols);
+
+    // Eigen::Matrix4d F = frame(a,b);
+    cout << H << endl << G << endl;
 
 }

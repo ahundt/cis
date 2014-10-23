@@ -178,16 +178,13 @@ void loadPointCloud(std::string fullFilePath, csvCIS_pointCloudData& pointCloud)
 int main(int argc,char**argv) {
 	ParsedCommandLineCommands pclp;
 	readCommandLine(argc,argv,pclp);
-	
-	std::stringstream ss;
-	ss << std::ifstream( ap.calbodyPath ).rdbuf();
     
     AlgorithmData ad;
-    loadPointCloud(pclp.calbodyPath       ,pclp.calbody                    );
-    loadPointCloud(pclp.calreadingsPath   ,pclp.calreadings                );
-    loadPointCloud(pclp.empivotPath       ,pclp.empivot                    );
-    loadPointCloud(pclp.optpivotPath      ,pclp.optpivot                   );
-    loadPointCloud(pclp.output1Path       ,pclp.output1                    );
+    loadPointCloud(pclp.calbodyPath       ,ad.calbody                    );
+    loadPointCloud(pclp.calreadingsPath   ,ad.calreadings                );
+    loadPointCloud(pclp.empivotPath       ,ad.empivot                    );
+    loadPointCloud(pclp.optpivotPath      ,ad.optpivot                   );
+    loadPointCloud(pclp.output1Path       ,ad.output1                    );
 	
 	return 0;
 }

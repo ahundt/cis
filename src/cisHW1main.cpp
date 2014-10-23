@@ -20,7 +20,7 @@ struct AlgorithmData {
 	csvCIS_pointCloudData calbody;
 	csvCIS_pointCloudData calreadings;
 	csvCIS_pointCloudData empivot;
-	csvCIS_pointCloudData optPivot;
+	csvCIS_pointCloudData optpivot;
 	csvCIS_pointCloudData output1;
 };
 
@@ -139,7 +139,13 @@ bool readCommandLine(int argc, char* argv[], AlgorithmParams & algorithmParams){
     return false;
 }
 
-
+void loadPointCloud(std::string fullFilePath, csvCIS_pointCloudData& pointCloud){
+    
+    std::stringstream ss;
+    ss << std::ifstream( fullFilePath ).rdbuf();
+    
+    pointCloud = parseCSV_CIS_pointCloud(ss.str(),true);
+}
 
 /**************************************************************************/
 /**
@@ -157,7 +163,12 @@ int main(int argc,char**argv) {
 	std::stringstream ss;
 	ss << std::ifstream( ap.calbodyPath ).rdbuf();
     
-	csvCIS_pointCloudData firstPointCloud = parseCSV_CIS_pointCloud(ss.str(),true);
+    AlgorithmData ad;
+    loadPointCloud(ap.calbodyPath       ,ad.calbody                    );
+    loadPointCloud(ap.calreadingsPath   ,ad.calreadings                );
+    loadPointCloud(ap.empivotPath       ,ad.empivot                    );
+    loadPointCloud(ap.optpivotPath      ,ad.optpivot                   );
+    loadPointCloud(ap.output1Path       ,ad.output1                    );
 	
 	return 0;
 }

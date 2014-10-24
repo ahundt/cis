@@ -39,7 +39,7 @@ struct comparePairs {
 template <typename K, typename V>
 bool operator()(const std::pair<K,V>& lhs, const std::pair<K,V>& rhs)
 {
-  return lhs.first < rhs.first;
+  return lhs.first > rhs.first;
 }
 };
 
@@ -48,25 +48,28 @@ bool operator()(const std::pair<K,V>& lhs, const std::pair<K,V>& rhs)
 Eigen::Matrix4d EigenMatrix(Eigen::Matrix4d G)
 {
     Eigen::EigenSolver<Eigen::Matrix4d> es(G);
-    Eigen::Vector4cd EValues = es.eigenvalues();
-    Eigen::Vector4d RealEValues = EValues.real();
-    Eigen::Matrix4cd EVectors = es.eigenvectors();
-    Eigen::Matrix4d RealEVectors = EVectors.real();
+    Eigen::VectorXcd EValues = es.eigenvalues();
+    Eigen::VectorXd RealEValues = EValues.real();
+    Eigen::MatrixXcd EVectors = es.eigenvectors();
+    Eigen::MatrixXd RealEVectorsMatrix = EVectors.real();
 
+    typedef std::vector<pair<double,Eigen::VectorXd> > DVPair;
+    DVPair ToSort;
 
-    std::vector<pair<double,Eigen::Vector4d> > ToSort;
     for (int i=0; i<4; i++){
-        ToSort.push_back(std::make_pair(RealEValues(i),RealEVectors.block<4,1>(0,i)));
+        ToSort.push_back(std::make_pair(RealEValues(i),RealEVectorsMatrix.block<4,1>(0,i)));
     }
-    /*
     std::sort(ToSort.begin(),ToSort.end(),comparePairs());
-    cout << RealEValues << endl << es.eigenvectors() << endl << "Test" << endl;
-    //Eigen::ComplexEigenSolver<Eigen::MatrixXcf> ces(G);
-    //ces.compute(G);
-    //cout << ces.eigenvector(G) << endl;
-    //G.compute();
-    //return es.eigenvectors();
+
+    // For Outputting Ordered Eigenvalues and Vectors
+    /*
+    for (DVPair::iterator begin=ToSort.begin(); begin!=ToSort.end(); ++begin){
+        cout << begin->first << endl;
+        cout << begin->second << endl;
+    }
     */
+
+    return ToSort[0].second;
 }
 
 /// Function for converting unit quaternion to a rotation
@@ -113,18 +116,15 @@ Eigen::Matrix4d frame(Eigen::MatrixXd a, Eigen::MatrixXd b)
 	// average is calculated twice here
     Eigen::Vector3d abar=vectorbar(a);
     Eigen::Vector3d bbar=vectorbar(b);
-    Eigen::MatrixXd atilda=centerPointsOnOrigin(a);
-    Eigen::MatrixXd btilda=centerPointsOnOrigin(b);
+    Eigen::MatrixXd atilda=vectortilda(a);
+    Eigen::MatrixXd btilda=vectortilda(b);
     Eigen::Matrix3d H = Hmatrix(atilda,btilda);
-
-    // Add H to FindLargestEigenVector Function
-    // Add EigenVector to Quaternion to RMatrix Function
-
-    // Eigen::Matrix3d R = Rmatrix(H);
-
-    // Eigen::Vector3d p = bbar-R*abar;
-    // Eigen::Matrix4d F = homogeneousmatrix(R,p);
-    // return F;
+    Eigen::Matrix4d G = Gmatrix(H);
+    Eigen::VectorXd EV = EigenMatrix(G);
+    Eigen::Matrix3d R = UnitQuaternionToRotation(EV);
+    Eigen::Vector3d p = bbar-R*abar;
+    Eigen::Matrix4d F = homogeneousmatrix(R,p);
+    return F;
 }
 
 int main()
@@ -139,18 +139,6 @@ int main()
      4, 5, 6,
      5, 8, 9;
 
-    Eigen::Matrix3d H = Hmatrix(a,b);
-    Eigen::Matrix4d G = Gmatrix(H);
-    EigenMatrix(G);
-
-    //int cols = 4;
-    //int rows = 4;
-    //Eigen::MatrixXf G(rows, 2*cols);
-    //Eigen::MatrixXcf X(rows, cols);
-    //X.real() = G;//.leftCols(cols);
-    // X.imag() = G.rightCols(cols);
-
-    // Eigen::Matrix4d F = frame(a,b);
-    cout << H << endl << G << endl;
-
+    Eigen::Matrix4d F = frame(a,b);
+    cout << F << endl;
 }

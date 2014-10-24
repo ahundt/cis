@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <boost/bind.hpp>
+#include "matrixOperations.hpp"
 
 
 /// creates Hmatrix for Horn's method
@@ -45,7 +46,7 @@ bool operator()(const std::pair<K,V>& lhs, const std::pair<K,V>& rhs)
 
 /// Need to find the largest eigenvalue and the corresponding eigenvector
 /// of the Gmatrix.
-Eigen::Matrix4d EigenMatrix(Eigen::Matrix4d G)
+Eigen::VectorXd EigenMatrix(Eigen::Matrix4d G)
 {
     Eigen::EigenSolver<Eigen::Matrix4d> es(G);
     Eigen::VectorXcd EValues = es.eigenvalues();
@@ -53,7 +54,7 @@ Eigen::Matrix4d EigenMatrix(Eigen::Matrix4d G)
     Eigen::MatrixXcd EVectors = es.eigenvectors();
     Eigen::MatrixXd RealEVectorsMatrix = EVectors.real();
 
-    typedef std::vector<pair<double,Eigen::VectorXd> > DVPair;
+    typedef std::vector<std::pair<double,Eigen::VectorXd> > DVPair;
     DVPair ToSort;
 
     for (int i=0; i<4; i++){
@@ -114,10 +115,10 @@ Eigen::Matrix4d homogeneousmatrix(Eigen::Matrix3d R, Eigen::Vector3d p)
 Eigen::Matrix4d frame(Eigen::MatrixXd a, Eigen::MatrixXd b)
 {
 	// average is calculated twice here
-    Eigen::Vector3d abar=vectorbar(a);
-    Eigen::Vector3d bbar=vectorbar(b);
-    Eigen::MatrixXd atilda=vectortilda(a);
-    Eigen::MatrixXd btilda=vectortilda(b);
+    Eigen::Vector3d abar=averagePoint(a);
+    Eigen::Vector3d bbar=averagePoint(b);
+    Eigen::MatrixXd atilda=centerPointsOnOrigin(a);
+    Eigen::MatrixXd btilda=centerPointsOnOrigin(b);
     Eigen::Matrix3d H = Hmatrix(atilda,btilda);
     Eigen::Matrix4d G = Gmatrix(H);
     Eigen::VectorXd EV = EigenMatrix(G);
@@ -140,5 +141,5 @@ int main()
      5, 8, 9;
 
     Eigen::Matrix4d F = frame(a,b);
-    cout << F << endl;
+    std::cout << F << std::endl;
 }

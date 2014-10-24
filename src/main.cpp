@@ -46,7 +46,9 @@ bool operator()(const std::pair<K,V>& lhs, const std::pair<K,V>& rhs)
 
 /// Need to find the largest eigenvalue and the corresponding eigenvector
 /// of the Gmatrix.
-Eigen::VectorXd EigenMatrix(Eigen::Matrix4d G)
+/// The eigenvector corresponding to the largest eigenvalue is the quaternion of the rotation matrix
+/// @return quaternion representing the rotation
+Eigen::Quaternion<double> EigenMatrix(Eigen::Matrix4d G)
 {
     Eigen::EigenSolver<Eigen::Matrix4d> es(G);
     Eigen::VectorXcd EValues = es.eigenvalues();
@@ -60,6 +62,7 @@ Eigen::VectorXd EigenMatrix(Eigen::Matrix4d G)
     for (int i=0; i<4; i++){
         ToSort.push_back(std::make_pair(RealEValues(i),RealEVectorsMatrix.block<4,1>(0,i)));
     }
+    
     std::sort(ToSort.begin(),ToSort.end(),comparePairs());
 
     // For Outputting Ordered Eigenvalues and Vectors
@@ -69,25 +72,8 @@ Eigen::VectorXd EigenMatrix(Eigen::Matrix4d G)
         cout << begin->second << endl;
     }
     */
-
-    return ToSort[0].second;
-}
-
-/// Function for converting unit quaternion to a rotation
-/// @todo replace with built in eigen call
-Eigen::Matrix3d UnitQuaternionToRotation(Eigen::Vector4d q)
-{
-    Eigen::Matrix3d R;
-    R(0,0) = q(0)*q(0)+q(1)*q(1)-q(2)*q(2)-q(3)*q(3);
-    R(0,1) = 2*(q(1)*q(2)-q(0)*q(3));
-    R(0,2) = 2*(q(1)*q(3)+q(0)*q(2));
-    R(1,0) = 2*(q(1)*q(2)+q(0)*q(3));
-    R(1,1) = q(0)*q(0)-q(1)*q(1)+q(2)*q(2)-q(3)*q(3);
-    R(1,2) = 2*(q(2)*q(3)-q(0)*q(1));
-    R(2,0) = 2*(q(1)*q(3)-q(0)*q(2));
-    R(2,1) = 2*(q(2)*q(3)+q(0)*q(1));
-    R(2,2) = q(0)*q(0)-q(1)*q(1)-q(2)*q(2)+q(3)*q(3);
-    return R;
+    
+    return Eigen::Quaternion<double>(Eigen::Vector4d(ToSort[0].second));
 }
 
 /// @deprecated old aruns method, not as numerically stable as horn's method, which is preferred
@@ -121,8 +107,8 @@ Eigen::Matrix4d frame(Eigen::MatrixXd a, Eigen::MatrixXd b)
     Eigen::MatrixXd btilda=centerPointsOnOrigin(b);
     Eigen::Matrix3d H = Hmatrix(atilda,btilda);
     Eigen::Matrix4d G = Gmatrix(H);
-    Eigen::VectorXd EV = EigenMatrix(G);
-    Eigen::Matrix3d R = UnitQuaternionToRotation(EV);
+    auto EV = EigenMatrix(G);
+    Eigen::Matrix3d R = EV.toRotationMatrix();
     Eigen::Vector3d p = bbar-R*abar;
     Eigen::Matrix4d F = homogeneousmatrix(R,p);
     return F;

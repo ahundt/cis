@@ -4,6 +4,8 @@
 #include <Eigen/Dense>
 #include <Eigen/SVD>
 #include <Eigen/Eigenvalues>
+#include <Eigen/Geometry>
+
 
 
 /// finds the average of all points in x,y,z

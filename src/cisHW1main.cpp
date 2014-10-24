@@ -188,7 +188,7 @@ int main(int argc,char**argv) {
     loadPointCloud(pclp.output1Path       ,ad.output1                    );
 	
     
-    Eigen::Matrix4d F = hornRegistration(ad.calreadings.clouds[1],ad.calbody.clouds[1]);
+    Eigen::Matrix4d F = hornRegistration(ad.calreadings.frames[0][0],ad.calbody.frames[0][0]);
     
     std::cout << F;
     

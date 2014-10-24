@@ -7,6 +7,7 @@
 
 using namespace std;
 
+/// finds the average of all points in x,y,z
 Eigen::VectorXd vectorbar(Eigen::MatrixXd a)
 {
     Eigen::VectorXd ax = a.col(0);
@@ -17,6 +18,8 @@ Eigen::VectorXd vectorbar(Eigen::MatrixXd a)
     return abar;
 }
 
+/// subtracts the average every point in x,y,z
+/// this recenters the point cloud around 0
 Eigen::MatrixXd vectortilda(Eigen::MatrixXd a)
 {
     Eigen::VectorXd abar = vectorbar(a);
@@ -26,6 +29,7 @@ Eigen::MatrixXd vectortilda(Eigen::MatrixXd a)
     return a;
 }
 
+/// creates Hmatrix for Horn's method
 Eigen::Matrix3d Hmatrix(Eigen::MatrixXd a, Eigen::MatrixXd b)
 {
     Eigen::Matrix3d H;
@@ -40,6 +44,7 @@ Eigen::Matrix3d Hmatrix(Eigen::MatrixXd a, Eigen::MatrixXd b)
     return Hsum;
 }
 
+/// creates Gmatrix from Hmatrix using Horn's method
 Eigen::Matrix4d Gmatrix(Eigen::Matrix3d H)
 {
     Eigen::Vector3d delta;
@@ -54,6 +59,8 @@ Eigen::Matrix4d Gmatrix(Eigen::Matrix3d H)
     return G;
 }
 
+/// Standard Library Comparator implementation,
+/// used to sort the eigenvalues and corresponding eigenvector
 struct comparePairs {
 template <typename K, typename V>
 bool operator()(const std::pair<K,V>& lhs, const std::pair<K,V>& rhs)
@@ -62,7 +69,8 @@ bool operator()(const std::pair<K,V>& lhs, const std::pair<K,V>& rhs)
 }
 };
 
-// Need to find the largest eigenvalue and the corresponding eigenvector
+/// Need to find the largest eigenvalue and the corresponding eigenvector
+/// of the Gmatrix.
 Eigen::Matrix4d EigenMatrix(Eigen::Matrix4d G)
 {
     Eigen::EigenSolver<Eigen::Matrix4d> es(G);
@@ -87,6 +95,8 @@ Eigen::Matrix4d EigenMatrix(Eigen::Matrix4d G)
     */
 }
 
+/// Function for converting unit quaternion to a rotation
+/// @todo replace with built in eigen call
 Eigen::Matrix3d UnitQuaternionToRotation(Eigen::Vector4d q)
 {
     Eigen::Matrix3d R;
@@ -102,6 +112,7 @@ Eigen::Matrix3d UnitQuaternionToRotation(Eigen::Vector4d q)
     return R;
 }
 
+/// @deprecated old aruns method, not as numerically stable as horn's method, which is preferred
 Eigen::Matrix3d ArunsMethod(Eigen::Matrix3d Hsum)
 {
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(Hsum, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -113,6 +124,7 @@ Eigen::Matrix3d ArunsMethod(Eigen::Matrix3d Hsum)
     // write return some sort of error if not
 }
 
+/// Create transformation matrix from Rotation R and Translation vector P
 Eigen::Matrix4d homogeneousmatrix(Eigen::Matrix3d R, Eigen::Vector3d p)
 {
     Eigen::Matrix4d F = Eigen::Matrix4d::Identity();
@@ -121,7 +133,7 @@ Eigen::Matrix4d homogeneousmatrix(Eigen::Matrix3d R, Eigen::Vector3d p)
     return F;
 }
 
-
+/// combines above methods
 Eigen::Matrix4d frame(Eigen::MatrixXd a, Eigen::MatrixXd b)
 {
     Eigen::Vector3d abar=vectorbar(a);

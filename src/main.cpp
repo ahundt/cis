@@ -101,11 +101,15 @@ Eigen::Matrix4d homogeneousmatrix(Eigen::Matrix3d R, Eigen::Vector3d p)
 Eigen::Matrix4d frame(Eigen::MatrixXd a, Eigen::MatrixXd b)
 {
 	// average is calculated twice here
-    Eigen::Vector3d abar=averagePoint(a);
-    Eigen::Vector3d bbar=averagePoint(b);
-    Eigen::MatrixXd atilda=centerPointsOnOrigin(a);
-    Eigen::MatrixXd btilda=centerPointsOnOrigin(b);
-    Eigen::Matrix3d H = Hmatrix(atilda,btilda);
+    Eigen::Vector3d abar=a.colwise().mean();
+    Eigen::Vector3d bbar=b.colwise().mean();
+    // subtract the average point coordinate from every
+    // point position to center it on the origin
+    // subtracts the average every point in x,y,z
+    // this recenters the point cloud around 0
+    a.rowwise() -= abar.transpose();
+    b.rowwise() -= bbar.transpose();
+    Eigen::Matrix3d H = Hmatrix(a,b);
     Eigen::Matrix4d G = Gmatrix(H);
     auto EV = EigenMatrix(G);
     Eigen::Matrix3d R = EV.toRotationMatrix();

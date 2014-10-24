@@ -39,6 +39,8 @@ struct csvCIS_pointCloudData {
     /// the number of elements in each "cloud"
 	std::vector<int> firstLine;
     
+    int numFrames;
+    
     /// vector containing each cloud
     std::vector<Eigen::MatrixXd> clouds;
 };
@@ -61,10 +63,20 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
 	std::vector<std::string> firstLineStrings;
 
 	boost::split(firstLineStrings, *begin, boost::is_any_of(", "), boost::token_compress_on);
-	for(std::vector<std::string>::iterator beginFL = firstLineStrings.begin(); beginFL != firstLineStrings.end(); ++beginFL ){
+    int firstLineIndex = 0;
+    for(std::vector<std::string>::iterator beginFL = firstLineStrings.begin();
+        beginFL != firstLineStrings.end(); ++beginFL, ++firstLineIndex ){
 		if(boost::algorithm::contains(*beginFL, std::string("txt"))){
+            // the first 3 numbers are the number of trackers on each object
+            // there are expected to be 3 of these numbers (as opposed to trackers) as of HW1
 			outputData.title = *beginFL;
-		} else {
+        } else if(firstLineIndex == 4) {
+            // the number of Frames containing all the tracker markers,
+            // essentially like timesteps, in each file
+            std::cout << *beginFL <<"\n";
+            outputData.numFrames = boost::lexical_cast<int>(*beginFL);
+            
+        } else {
             std::cout << *beginFL <<"\n";
 			outputData.firstLine.push_back(boost::lexical_cast<int>(*beginFL));
 		}
@@ -109,7 +121,9 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
         } else {
 			// go to next point cloud
 	      	++FirstLineDoubleIterator;
-			outputData.clouds.push_back(Eigen::MatrixXd(*FirstLineDoubleIterator,3));
+            // create a cloud pre-allocated to the correct size
+            Eigen::MatrixXd nextCloud(*FirstLineDoubleIterator,3);
+			outputData.clouds.push_back(nextCloud);
 			++cloudIndex;
             vectorIndex = 0;
 	    }

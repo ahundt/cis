@@ -1,11 +1,14 @@
 #ifndef _PARSE_CSV_CIS_POINTCLOUD_HPP_
 #define _PARSE_CSV_CIS_POINTCLOUD_HPP_
 
+// system includes
+#include <Eigen/Dense>
 #include <vector>
 #include <boost/algorithm/string.hpp>
-#include <pcl/common/projection_matrix.h>
-#include <pcl/point_types.h>
 #include <boost/lexical_cast.hpp>
+
+// project includes
+#include "matrixOperations.hpp"
 
 /// print std::vector<std::string> for debugging
 void printStringVector(std::vector<std::string> sv,std::string description = std::string("")){
@@ -37,7 +40,7 @@ struct csvCIS_pointCloudData {
 	std::vector<int> firstLine;
     
     /// vector containing each cloud
-	std::vector<std::vector<pcl::PointXYZ> > clouds;
+    std::vector<Eigen::MatrixXd> clouds;
 };
 
 /// parse the CIS HW1 point cloud string that was loaded directly from a txt file into a simpler struct
@@ -75,12 +78,13 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
 	std::vector<int> flCounter = outputData.firstLine;
 	std::vector<int>::iterator FirstLineDoubleIterator = flCounter.begin();
     std::size_t cloudIndex = 0;
-    std::vector<pcl::PointXYZ> emptyCloud;
-    outputData.clouds.push_back(emptyCloud);
-		
+    // create a matrix large enough to store all the points for this set
+    // and insert it into the vector
+    outputData.clouds.push_back(Eigen::MatrixXd(*FirstLineDoubleIterator,3));
+    
 	// go through every string
 	/// @todo there is a potential code safety issue here where if the sizes specified in the file don't match up with the length then we could run over the end of arrays.
-	for(; begin != strs.end(); ++begin){
+	for(int vectorIndex = 0; begin != strs.end(); ++begin, ++vectorIndex){
 		if(flCounter.size() == 0){
             throw std::out_of_range("csvCIS_pointCloudData() mismatch between specified number of points and actual");
         }
@@ -98,15 +102,16 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
             
             BOOST_VERIFY(pointStrings.size() == 3);
             
-            pcl::PointXYZ point(trimAndConvertToDouble(pointStrings[0]), trimAndConvertToDouble(pointStrings[1]), trimAndConvertToDouble(pointStrings[2]));
-            outputData.clouds[cloudIndex].push_back(point);
+            Eigen::Vector3d point(trimAndConvertToDouble(pointStrings[0]), trimAndConvertToDouble(pointStrings[1]), trimAndConvertToDouble(pointStrings[2]));
+            outputData.clouds[cloudIndex].block<1,3>(vectorIndex,0)= point;
         
             *FirstLineDoubleIterator--; // decrement point cloud counter for this cloud
         } else {
 			// go to next point cloud
 	      	++FirstLineDoubleIterator;
-			outputData.clouds.push_back(emptyCloud);
+			outputData.clouds.push_back(Eigen::MatrixXd(*FirstLineDoubleIterator,3));
 			++cloudIndex;
+            vectorIndex = 0;
 	    }
 		
 	}

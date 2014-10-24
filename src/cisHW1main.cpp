@@ -12,6 +12,7 @@
 // Project includes
 #include "parseCSV_CIS_pointCloud.hpp"
 #include "parseCommandLineOptions.hpp"
+#include "hornRegistration.hpp"
 
 
 namespace po = boost::program_options;
@@ -186,5 +187,10 @@ int main(int argc,char**argv) {
     loadPointCloud(pclp.optpivotPath      ,ad.optpivot                   );
     loadPointCloud(pclp.output1Path       ,ad.output1                    );
 	
+    
+    Eigen::Matrix4d F = hornRegistration(ad.calreadings.clouds[1],ad.calbody.clouds[1]);
+    
+    std::cout << F;
+    
 	return 0;
 }

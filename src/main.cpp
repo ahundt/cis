@@ -36,7 +36,7 @@ Eigen::Matrix4d Gmatrix(Eigen::Matrix3d H)
 
 /// Standard Library Comparator implementation,
 /// used to sort the eigenvalues and corresponding eigenvector
-struct comparePairs {
+struct SortPairsFirstHighestToLowest {
 template <typename K, typename V>
 bool operator()(const std::pair<K,V>& lhs, const std::pair<K,V>& rhs)
 {
@@ -63,7 +63,7 @@ Eigen::Quaternion<double> EigenMatrix(Eigen::Matrix4d G)
         ToSort.push_back(std::make_pair(RealEValues(i),RealEVectorsMatrix.block<4,1>(0,i)));
     }
     
-    std::sort(ToSort.begin(),ToSort.end(),comparePairs());
+    std::sort(ToSort.begin(),ToSort.end(),SortPairsFirstHighestToLowest());
 
     // For Outputting Ordered Eigenvalues and Vectors
     /*

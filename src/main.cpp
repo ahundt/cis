@@ -1,33 +1,7 @@
 #include <iostream>
-#include <Eigen/Dense>
-#include <Eigen/SVD>
-#include <Eigen/Eigenvalues>
 #include <vector>
 #include <boost/bind.hpp>
 
-using namespace std;
-
-/// finds the average of all points in x,y,z
-Eigen::VectorXd vectorbar(Eigen::MatrixXd a)
-{
-    Eigen::VectorXd ax = a.col(0);
-    Eigen::VectorXd ay = a.col(1);
-    Eigen::VectorXd az = a.col(2);
-    Eigen::Vector3d abar;
-    abar(0) = ax.mean(); abar(1) = ay.mean(); abar(2) = az.mean();
-    return abar;
-}
-
-/// subtracts the average every point in x,y,z
-/// this recenters the point cloud around 0
-Eigen::MatrixXd vectortilda(Eigen::MatrixXd a)
-{
-    Eigen::VectorXd abar = vectorbar(a);
-    for(int j=0; j<3;j++)
-       for(int i=0; i<a.rows();i++)
-           a(i,j)=a(i,j)-abar(j);
-    return a;
-}
 
 /// creates Hmatrix for Horn's method
 Eigen::Matrix3d Hmatrix(Eigen::MatrixXd a, Eigen::MatrixXd b)
@@ -136,10 +110,11 @@ Eigen::Matrix4d homogeneousmatrix(Eigen::Matrix3d R, Eigen::Vector3d p)
 /// combines above methods
 Eigen::Matrix4d frame(Eigen::MatrixXd a, Eigen::MatrixXd b)
 {
+	// average is calculated twice here
     Eigen::Vector3d abar=vectorbar(a);
     Eigen::Vector3d bbar=vectorbar(b);
-    Eigen::MatrixXd atilda=vectortilda(a);
-    Eigen::MatrixXd btilda=vectortilda(b);
+    Eigen::MatrixXd atilda=centerPointsOnOrigin(a);
+    Eigen::MatrixXd btilda=centerPointsOnOrigin(b);
     Eigen::Matrix3d H = Hmatrix(atilda,btilda);
 
     // Add H to FindLargestEigenVector Function

@@ -1,3 +1,6 @@
+#ifndef _PARSE_CSV_CIS_POINTCLOUD_HPP_
+#define _PARSE_CSV_CIS_POINTCLOUD_HPP_
+
 #include <vector>
 #include <boost/algorithm/string.hpp>
 #include <pcl/common/projection_matrix.h>
@@ -110,3 +113,5 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
 	
 	return outputData;
 }
+
+#endif // _PARSE_CSV_CIS_POINTCLOUD_HPP_

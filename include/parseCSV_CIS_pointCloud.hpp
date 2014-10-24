@@ -100,6 +100,7 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
 	// parse remaining lines
 	
 	// need to decrement each point cloud in the file using the number of points specified in the first line
+    /// @bug this isn't accounted for correctly, somehow the values end up huge or negative
 	std::vector<int> trackerCounterVec;
     // start out on a new frame
 	std::vector<int>::iterator currentTrackerPointsRemainingIterator = trackerCounterVec.end();
@@ -154,6 +155,7 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
 	      	++currentTrackerPointsRemainingIterator;
             // create a matrix large enough to store all the points for this tracker
             // and insert it into the vector
+            /// @bug the length isn't accounted for correctly, somehow the values in *currentTrackerPointsRemainingIterato end up huge or negative
             Eigen::MatrixXd nextCloud(*currentTrackerPointsRemainingIterator,3);
 			currentFrameIterator->push_back(nextCloud);
 			if(!isNewFrame) ++trackerDeviceIndex;

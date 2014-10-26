@@ -4,6 +4,12 @@
 #include <exception>
 #include <unistd.h>
 
+#include <iostream>
+#include <vector>
+#include <boost/bind.hpp>
+#include "matrixOperations.hpp"
+#include "hornRegistration.hpp"
+
 int add(int i, int j)
 {
     return i + j;
@@ -15,9 +21,30 @@ BOOST_AUTO_TEST_CASE(simplePass)
 {
 }
 
-BOOST_AUTO_TEST_CASE(checkFailure)
+BOOST_AUTO_TEST_CASE(basicHornRegistration)
 {
-    BOOST_CHECK(add(2, 2) == 4);
+
+    Eigen::Matrix3d a;
+     a << 1, 2, 3,
+      2, 4, 6,
+      3, 6, 9;
+
+      Eigen::Matrix3d b;
+     b << 1, 2, 3,
+      4, 5, 6,
+      5, 8, 9;
+
+     Eigen::Matrix4d hornTform = hornRegistration(a,b);
+     //std::cout << F << std::endl;
+	 
+	 Eigen::Matrix4d manualTform;
+	 manualTform <<
+	 0.970314 , -0.165993 ,  0.175889 ,   1.00135 ,
+	 -0.175889,  -0.983508,  0.0421373,    9.03298,
+	  0.165993, -0.0718232,  -0.983508,    11.8564,
+	         0,          0,          0,          1;
+	 
+    BOOST_CHECK(hornTform.isApprox(manualTform,.01));
 }
 
 BOOST_AUTO_TEST_CASE(multipleCheckFailures)

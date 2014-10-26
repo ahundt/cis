@@ -10,10 +10,10 @@
 // project includes
 #include "matrixOperations.hpp"
 
-void Print (const vector<int>& v){
+void Print (const std::vector<int>& v){
     //vector<int> v;
     for (int i=0; i<v.size();i++){
-        cout << v[i] << endl;
+        std::cout << v[i] << std::endl;
     }
 }
 
@@ -103,10 +103,10 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
     /// @bug this isn't accounted for correctly, somehow the values end up huge or negative
 	std::vector<int> trackerCounterVec;
     // start out on a new frame
-	std::vector<int>::iterator currentTrackerPointsRemainingIterator = trackerCounterVec.end();
+	std::vector<int>::iterator trackerCounterVecPointsRemainingIterator = trackerCounterVec.end();
     std::size_t currentPointIndexInThisTracker = 0;
     std::size_t trackerDeviceIndex = 0;
-    csvCIS_pointCloudData::TrackerFrames::iterator currentFrameIterator;
+    csvCIS_pointCloudData::TrackerFrames::iterator currentFrameIterator(outputData.frames.end());
     
     /// @todo remove isNewFrame, it is confusing
     bool isNewFrame = true;
@@ -129,43 +129,47 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
         // Move to next Frame if needed
         /////////////////////////////////////////
         
-        if(currentTrackerPointsRemainingIterator == trackerCounterVec.end()){
+        if(trackerCounterVecPointsRemainingIterator == trackerCounterVec.end()){
             // done with this frame, move on to next one
             // back to the first tracker device for this new frame
             trackerDeviceIndex = 0;
             
             // create the counters for the next set of trackers
             trackerCounterVec = outputData.firstLine;
-            currentTrackerPointsRemainingIterator = trackerCounterVec.begin();
-            csvCIS_pointCloudData::TrackerDevices tf;
+            trackerCounterVecPointsRemainingIterator = trackerCounterVec.begin();
             
-            // add the next frame to the vector
+            // add the next frame to the vector, which starts out empty
+            csvCIS_pointCloudData::TrackerDevices tf;
             outputData.frames.push_back(tf);
             currentFrameIterator = outputData.frames.end()-1;
             isNewFrame = true;
+            
+            // add the next tracker point cloud to fill out, currently empty
+            Eigen::MatrixXd nextCloud(*trackerCounterVecPointsRemainingIterator,3);
+            currentFrameIterator->push_back(nextCloud);
         }
         
         /////////////////////////////////////////
         // move to next Tracker if needed
         /////////////////////////////////////////
         
-        if(isNewFrame || *currentTrackerPointsRemainingIterator == 0 ) {
-            BOOST_VERIFY(currentTrackerPointsRemainingIterator!=trackerCounterVec.end());
+        if(!isNewFrame && *trackerCounterVecPointsRemainingIterator == 0 ) {
+            BOOST_VERIFY(trackerCounterVecPointsRemainingIterator!=trackerCounterVec.end());
 			// go to next tracker
-	      	++currentTrackerPointsRemainingIterator;
+	      	++trackerCounterVecPointsRemainingIterator;
             // create a matrix large enough to store all the points for this tracker
             // and insert it into the vector
             /// @bug the length isn't accounted for correctly, somehow the values in *currentTrackerPointsRemainingIterato end up huge or negative
-            Eigen::MatrixXd nextCloud(*currentTrackerPointsRemainingIterator,3);
+            Eigen::MatrixXd nextCloud(*trackerCounterVecPointsRemainingIterator,3);
 			currentFrameIterator->push_back(nextCloud);
-			if(!isNewFrame) ++trackerDeviceIndex;
+			++trackerDeviceIndex;
             currentPointIndexInThisTracker = 0;
 	    }
         
         /////////////////////////////////////////
         // Add point to this tracker
         /////////////////////////////////////////
-        if(*currentTrackerPointsRemainingIterator > 0 ){
+        if(*trackerCounterVecPointsRemainingIterator > 0 ){
             // there is data here, load the point in
             std::vector<std::string> pointStrings;
             boost::split( pointStrings, *currentStringLineIterator, boost::is_any_of(","), boost::token_compress_on);
@@ -177,7 +181,7 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
             Eigen::Vector3d point(trimAndConvertToDouble(pointStrings[0]), trimAndConvertToDouble(pointStrings[1]), trimAndConvertToDouble(pointStrings[2]));
             (*currentFrameIterator)[trackerDeviceIndex].block<1,3>(currentPointIndexInThisTracker,0)= point;
             
-            (*currentTrackerPointsRemainingIterator)--; // decrement point cloud counter for this cloud
+            (*trackerCounterVecPointsRemainingIterator)--; // decrement point cloud counter for this cloud
             currentPointIndexInThisTracker++;
         }
 		

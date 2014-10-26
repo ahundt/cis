@@ -75,3 +75,6 @@ endif ()
 # public tests
 # ============================================================================
 
+basis_add_test(cisHW1test.cpp)
+basis_target_link_libraries(cisHW1test ${PCL_LIBRARIES} ${BOOST_LIBRARIES} ${Boost_LIBRARIES})
+

@@ -190,7 +190,7 @@ int main(int argc,char**argv) {
     
     Eigen::Matrix4d F = hornRegistration(ad.calreadings.frames[0][0],ad.calbody.frames[0][0]);
     
-    std::cout << F;
+    std::cout << F << std::endl;
     
 	return 0;
 }

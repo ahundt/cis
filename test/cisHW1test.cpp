@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(basicHornRegistration)
 #endif
 BOOST_AUTO_TEST_CASE(manualHornRegistration)
 {
-    
+    static const bool debug = false;
     
     Eigen::MatrixXd trackerPoints(8,3);
 	trackerPoints <<
@@ -220,30 +220,28 @@ BOOST_AUTO_TEST_CASE(manualHornRegistration)
   		250, 250, 250;
 		
 
-     std::cout << "\n\ntrackerPoints:\n\n" << trackerPoints << std::endl;
-	 
-   	 Eigen::Matrix4d manualTform;
-   	 manualTform <<
-   	 1,  0,  0,    1,
-   	 0,  1,  0,    1,
-   	 0,  0,  1,    1,
-   	 0,  0,  0,    1;
-	 
-	 
-	 Eigen::MatrixXd trackerPointsManTform = trackerPoints;
-	 
-	 trackerPointsManTform.rowwise() += Eigen::Vector3d(1,1,1).transpose();
+    if(debug) std::cout << "\n\ntrackerPoints:\n\n" << trackerPoints << std::endl;
+	
+   	Eigen::Matrix4d manualTform;
+   	manualTform <<
+   	1,  0,  0,    1,
+   	0,  1,  0,    1,
+   	0,  0,  1,    1,
+   	0,  0,  0,    1;
+	
+	
+	Eigen::MatrixXd trackerPointsManTform = trackerPoints;
+	
+	trackerPointsManTform.rowwise() += Eigen::Vector3d(1,1,1).transpose();
     
-    std::cout << "\n\ntrackerPointsManTform:\n\n" << trackerPointsManTform << std::endl;
+    if(debug) std::cout << "\n\ntrackerPointsManTform:\n\n" << trackerPointsManTform << std::endl;
 
-     Eigen::Matrix4d hornTform = hornRegistration(trackerPoints,trackerPointsManTform);
+    Eigen::Matrix4d hornTform = hornRegistration(trackerPoints,trackerPointsManTform);
 	 
-     BOOST_CHECK(manualTform.isApprox(hornTform,tolerance));
-    PrintTwo(manualTform, hornTform,"manualTform:","hornTform:");
+    BOOST_CHECK(manualTform.isApprox(hornTform,tolerance));
+    if(debug) PrintTwo(manualTform, hornTform,"manualTform:","hornTform:");
     
-    std::cout << "\n\n <<<<<<beg<<<<<<<<< \n\n";
     checkHornRegistrationInverses()(trackerPoints,trackerPointsManTform,"trackerPoints","trackerPointsManTform");
-    std::cout << "\n\n <<<<<<end<<<<<<<<< \n\n";
 	
 }
 

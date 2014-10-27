@@ -3,6 +3,9 @@
 
 // system includes
 #include <Eigen/Dense>
+#include <string>
+#include <iostream>
+#include <fstream>
 #include <vector>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>

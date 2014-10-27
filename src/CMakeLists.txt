@@ -40,6 +40,6 @@
 # source code written in other programming languages such as Java, Python, Perl,
 # MATLAB, and Bash.
 
-basis_include_directories(${EIGEN3_INCLUDE_DIR})
+basis_include_directories(${EIGEN3_INCLUDE_DIR} ${Boost_INCLUDE_DIR})
 basis_add_executable(cisHW1main.cpp)
 basis_target_link_libraries(cisHW1main ${PCL_LIBRARIES} ${BOOST_LIBRARIES} ${Boost_LIBRARIES})

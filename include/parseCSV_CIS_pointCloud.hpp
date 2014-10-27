@@ -126,11 +126,11 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
             // the number of Frames containing all the tracker markers,
             // essentially like timesteps, in each file.
             // This is the last number and second to last item in the line, except in the "calbody" case.
-            std::cout << *beginFL <<"\n";
+            if(debug) std::cout << *beginFL <<"\n";
             numFrames = boost::lexical_cast<int>(*beginFL);
             
         } else {
-            std::cout << *beginFL <<"\n";
+            if(debug) std::cout << *beginFL <<"\n";
 			outputData.firstLine.push_back(boost::lexical_cast<int>(*beginFL));
 		}
 	}
@@ -241,12 +241,12 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
 
 
 
-void loadPointCloudFromFile(std::string fullFilePath, csvCIS_pointCloudData& pointCloud){
+void loadPointCloudFromFile(std::string fullFilePath, csvCIS_pointCloudData& pointCloud, bool debug = false){
     
     std::stringstream ss;
     ss << std::ifstream( fullFilePath ).rdbuf();
     
-    pointCloud = parseCSV_CIS_pointCloud(ss.str(),true);
+    pointCloud = parseCSV_CIS_pointCloud(ss.str(),debug);
 }
 
 #endif // _PARSE_CSV_CIS_POINTCLOUD_HPP_

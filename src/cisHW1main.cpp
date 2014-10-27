@@ -1,55 +1,18 @@
 
 // Library includes
-#include <boost/filesystem.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/tokenizer.hpp>
-#include <sstream>
-#include <fstream>
-#include <iostream>
 
 // Project includes
 #include "parseCSV_CIS_pointCloud.hpp"
 #include "parseCommandLineOptions.hpp"
 #include "hornRegistration.hpp"
+#include "PointData.hpp"
 
 
 namespace po = boost::program_options;
-
-struct AlgorithmData {
-	csvCIS_pointCloudData calbody;
-	csvCIS_pointCloudData calreadings;
-	csvCIS_pointCloudData empivot;
-	csvCIS_pointCloudData optpivot;
-	csvCIS_pointCloudData output1;
-};
-
-struct ParsedCommandLineCommands {
-	std::string  calbodyPath;
-	std::string  calreadingsPath;
-	std::string  empivotPath;
-	std::string  optpivotPath;
-	std::string  output1Path;
-};
-
-/// The user may specify an exact path for a data source, or simply the folder path and filename prefix.
-/// This funciton will detect which option and select the correctly assembled files.
-///
-/// @throws std::runtime_error if none of the options correspond to an actual existing file.
-void assmblePathIfFullPathNotSupplied(std::string dataFolderPath, std::string dataFilenamePrefix, std::string suffix, std::string& dataFilePath){
-	
-	if(boost::filesystem::exists(dataFilePath)) return;
-	
-	if (dataFilePath.empty() || !boost::filesystem::exists(dataFilePath) ) {
-		dataFilePath = dataFolderPath+dataFilenamePrefix+suffix;
-    }
-	
-	if (dataFilePath.empty() || !boost::filesystem::exists(dataFilePath) ) {
-      throw std::runtime_error("File "+dataFilePath + " does not exist!");
-    }
-	
-}
 
 /// read the command line options from argc,argv and load them into the params object
 bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){

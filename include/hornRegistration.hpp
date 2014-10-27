@@ -4,11 +4,15 @@
 #include "matrixOperations.hpp"
 
 /// creates Hmatrix for Horn's method
+/// @see {Rigid3D3DCalculations.pdf slide 17's more detailed explanation alongside Arun's method
+///      and slide 25 (horn's) for this step as part of Horn's Method}
 Eigen::Matrix3d Hmatrix(Eigen::MatrixXd a, Eigen::MatrixXd b)
 {
+    BOOST_VERIFY(a.cols()==b.cols());
     Eigen::Matrix3d H;
     Eigen::Matrix3d Hsum = Eigen::Matrix3d::Zero(3,3);
-    for (int k=0; k<a.cols(); k++){
+    //std::cout << "\n\na.cols()="<<a.rows()<<"\n\n";
+    for (int k=0; k<a.rows(); k++){
         for(int i=0; i<3; i++)
             for(int j=0; j<3; j++){
                 H(i,j)=a(k,i)*b(k,j);
@@ -19,6 +23,8 @@ Eigen::Matrix3d Hmatrix(Eigen::MatrixXd a, Eigen::MatrixXd b)
 }
 
 /// creates Gmatrix from Hmatrix using Horn's method
+/// aka the Quaternion Method for Rotation R
+/// @see Rigid3D3DCalculations.pdf slide 25
 Eigen::Matrix4d Gmatrix(Eigen::Matrix3d H)
 {
     Eigen::Vector3d delta;
@@ -26,10 +32,12 @@ Eigen::Matrix4d Gmatrix(Eigen::Matrix3d H)
     delta(1) = H(2,0)-H(0,2);
     delta(2) = H(0,1)-H(1,0);
     Eigen::Matrix4d G;
-    G(0,0)= H.trace();
+    double traceH = H.trace();
+    G(0,0)= traceH;
     G.block<3,1>(1,0) = delta;
     G.block<1,3>(0,1) = delta.transpose();
-    G.block<3,3>(1,1) = H+H.transpose()-H.trace()*Eigen::Matrix3d::Identity();
+    G.block<3,3>(1,1) = H+H.transpose()-traceH*Eigen::Matrix3d::Identity();
+    //std::cout << "\n\nG:\n\n" << G << "\n\n";
     return G;
 }
 
@@ -43,9 +51,13 @@ bool operator()(const std::pair<K,V>& lhs, const std::pair<K,V>& rhs)
 }
 };
 
-/// Need to find the largest eigenvalue and the corresponding eigenvector
-/// of the Gmatrix.
-/// The eigenvector corresponding to the largest eigenvalue is the quaternion of the rotation matrix
+/// Need to find the largest eigenvalue and the
+/// corresponding eigenvector of the Gmatrix.
+/// The eigenvector corresponding to the largest
+/// eigenvalue is the quaternion of the rotation matrix
+///
+/// @see Rigid3D3DCalculations.pdf slide 25
+///
 /// @return quaternion representing the rotation
 Eigen::Quaternion<double> EigenMatrix(Eigen::Matrix4d G)
 {
@@ -53,6 +65,7 @@ Eigen::Quaternion<double> EigenMatrix(Eigen::Matrix4d G)
     Eigen::VectorXcd EValues = es.eigenvalues();
     Eigen::VectorXd RealEValues = EValues.real();
     Eigen::MatrixXcd EVectors = es.eigenvectors();
+    std::cout << "\n\nEVectors:\n\n" << EVectors << "\n\n";
     Eigen::MatrixXd RealEVectorsMatrix = EVectors.real();
 
     typedef std::vector<std::pair<double,Eigen::VectorXd> > DVPair;
@@ -65,14 +78,22 @@ Eigen::Quaternion<double> EigenMatrix(Eigen::Matrix4d G)
     std::sort(ToSort.begin(),ToSort.end(),SortPairsFirstHighestToLowest());
 
     // For Outputting Ordered Eigenvalues and Vectors
-    /*
+    int i =0;
     for (DVPair::iterator begin=ToSort.begin(); begin!=ToSort.end(); ++begin){
-        cout << begin->first << endl;
-        cout << begin->second << endl;
+        
+        std::cout << "\n\nEval/Quat " << i << " :\n\n"
+                  << begin->first << "\n\n"
+                  << begin->second << "\n\n";
+        ++i;
     }
-    */
+    /// reorder for insertion into eigen @see http://eigen.tuxfamily.org/dox/classEigen_1_1Quaternion.html
+    Eigen::Vector4d wxyz(ToSort[0].second);
+    Eigen::Vector4d xyzw(wxyz[1],wxyz[2],wxyz[3],wxyz[0]);
+    std::cout << "\n\nQuaternion:\n\n" << Eigen::Vector4d(ToSort[0].second)
+              << "\n\nQuatAsRot:\n\n"  << Eigen::Quaternion<double>(xyzw).toRotationMatrix()
+              << "\n\n";
 
-    return Eigen::Quaternion<double>(Eigen::Vector4d(ToSort[0].second));
+    return Eigen::Quaternion<double>(xyzw);
 }
 
 /// @deprecated old aruns method, not as numerically stable as horn's method, which is preferred
@@ -103,21 +124,33 @@ Eigen::Matrix4d homogeneousmatrix(Eigen::Matrix3d R, Eigen::Vector3d p)
 /// @param CloudB the second input cloud for which to find a transform
 ///
 /// Both input clouds are expected to be 3 dimensions wide and n dimensions long
-Eigen::Matrix4d hornRegistration(Eigen::MatrixXd CloudA, Eigen::MatrixXd CloudB)
+Eigen::Matrix4d hornRegistration(const Eigen::MatrixXd& CloudA, const Eigen::MatrixXd& CloudB)
 {
-	// average is calculated twice here
+	// average the point clouds
     Eigen::Vector3d abar=CloudA.colwise().mean();
     Eigen::Vector3d bbar=CloudB.colwise().mean();
+    // leave out but still compile this code
+    std::cout << "\n\nabar:\n\n" << abar
+              << "\n\nbbar:\n\n" << bbar
+              << "\n\nCloudA:\n\n" << CloudA
+              << "\n\nCloudB:\n\n" << CloudB
+              << "\n\n";
     // subtract the average point coordinate from every
     // point position to center it on the origin
     // subtracts the average every point in x,y,z
     // this recenters the point cloud around 0
-    CloudA.rowwise() -= abar.transpose();
-    CloudB.rowwise() -= bbar.transpose();
-    Eigen::Matrix3d H = Hmatrix(CloudA,CloudB);
+    // @see Rigid3D3DCalculations.pdf slide 4 for this step
+    Eigen::MatrixXd CloudAMoved = CloudA;
+    Eigen::MatrixXd CloudBMoved = CloudB;
+    CloudAMoved.rowwise() -= abar.transpose();
+    CloudBMoved.rowwise() -= bbar.transpose();
+    Eigen::Matrix3d H = Hmatrix(CloudAMoved,CloudBMoved);
     Eigen::Matrix4d G = Gmatrix(H);
     auto EV = EigenMatrix(G);
     Eigen::Matrix3d R = EV.toRotationMatrix();
+    
+    std::cout << "\n\nR:\n\n" << R
+              << "\n\n";
     Eigen::Vector3d p = bbar-R*abar;
     Eigen::Matrix4d F = homogeneousmatrix(R,p);
     return F;

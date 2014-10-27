@@ -66,6 +66,26 @@ void visitEachTracker(const csvCIS_pointCloudData::TrackerFrames& tf1,const csvC
     
 }
 
+
+/// useful for going over calbody and calreadings, where there is one instance of calbody and many instances of calreadings
+template<typename Visitor>
+void visitSecondTrackerRepeatedly(const csvCIS_pointCloudData::TrackerFrames& tf1,const csvCIS_pointCloudData::TrackerFrames& tf2,Visitor v){
+    
+    for(auto frameIt1 = tf1.begin(); frameIt1 != tf1.end(); ++frameIt1)
+    {
+        for(auto frameIt2 = tf2.begin(); frameIt2 != tf2.end(); ++frameIt2)
+        {
+            auto trackerIt3 = frameIt1->begin();
+            auto trackerIt4 = frameIt2->begin();
+            for(; trackerIt3 != frameIt1->end() && trackerIt4 != frameIt2->end(); ++trackerIt3, ++trackerIt4)
+            {
+                v(*trackerIt3,*trackerIt4);
+            }
+        }
+    }
+    
+}
+
 BOOST_AUTO_TEST_SUITE(VariantsSuite)
 
 BOOST_AUTO_TEST_CASE(simplePass)
@@ -246,29 +266,42 @@ BOOST_AUTO_TEST_CASE(manualHornRegistration)
 }
 
 
-/// useful for going over calbody and calreadings, where there is one instance of calbody and many instances of calreadings
-template<typename Visitor>
-void visitSecondTrackerRepeatedly(const csvCIS_pointCloudData::TrackerFrames& tf1,const csvCIS_pointCloudData::TrackerFrames& tf2,Visitor v){
-    
-    for(auto frameIt1 = tf1.begin(); frameIt1 != tf1.end(); ++frameIt1)
-    {
-        for(auto frameIt2 = tf2.begin(); frameIt2 != tf2.end(); ++frameIt2)
-        {
-            auto trackerIt3 = frameIt1->begin();
-            auto trackerIt4 = frameIt2->begin();
-            for(; trackerIt3 != frameIt1->end() && trackerIt4 != frameIt2->end(); ++trackerIt3, ++trackerIt4)
-            {
-                v(*trackerIt3,*trackerIt4);
-            }
-        }
-    }
-    
-}
-
-
 BOOST_AUTO_TEST_CASE(testDebugData)
 {
-    AlgorithmData ad(assembleHW1AlgorithmData(relativeDataPath,pa1debuga));
+    AlgorithmData ad;
+    
+    // a
+    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debuga);
+    visitEachTracker(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
+    visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
+    
+    // b
+    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debugb);
+    visitEachTracker(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
+    visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
+    
+    // c
+    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debugc);
+    visitEachTracker(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
+    visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
+    
+    // d
+    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debugd);
+    visitEachTracker(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
+    visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
+    
+    // e
+    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debuge);
+    visitEachTracker(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
+    visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
+    
+    // f
+    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debugf);
+    visitEachTracker(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
+    visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
+    
+    // g
+    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debugg);
     visitEachTracker(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
     visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
 }

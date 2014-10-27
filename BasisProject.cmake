@@ -103,7 +103,7 @@ basis_project (
   # --------------------------------------------------------------------------
   # dependencies
   DEPENDS
-    PCL
+  #  PCL
 	Boost{program_options,filesystem,unit_test_framework}
 	Eigen3
     #<dependency>

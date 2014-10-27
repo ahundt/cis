@@ -10,6 +10,7 @@
 #include "matrixOperations.hpp"
 #include "hornRegistration.hpp"
 #include "PointData.hpp"
+#include "PivotCalibration.hpp"
 
 static const double tolerance = 0.01l;
 
@@ -195,35 +196,6 @@ BOOST_AUTO_TEST_CASE(HMatrixGMatrix)
 
 }
 
-#if 0
-BOOST_AUTO_TEST_CASE(basicHornRegistration)
-{
-
-    Eigen::Matrix3d a;
-     a << 1, 2, 3,
-      2, 4, 6,
-      3, 6, 9;
-
-      Eigen::Matrix3d b;
-     b << 1, 2, 3,
-      4, 5, 6,
-      5, 8, 9;
-
-     Eigen::Matrix4d hornTform = hornRegistration(a,b);
-     //std::cout << F << std::endl;
-	 
-	 Eigen::Matrix4d manualTform;
-	 manualTform <<
-	 0.970314 , -0.165993 ,  0.175889 ,   1.00135 ,
-	 -0.175889,  -0.983508,  0.0421373,    9.03298,
-	  0.165993, -0.0718232,  -0.983508,    11.8564,
-	         0,          0,          0,          1;
-	 
-    BOOST_CHECK(hornTform.isApprox(manualTform,tolerance));
-	
-	
-}
-#endif
 BOOST_AUTO_TEST_CASE(manualHornRegistration)
 {
     static const bool debug = false;
@@ -266,6 +238,7 @@ BOOST_AUTO_TEST_CASE(manualHornRegistration)
 }
 
 
+
 BOOST_AUTO_TEST_CASE(testDebugData)
 {
     AlgorithmData ad;
@@ -306,6 +279,20 @@ BOOST_AUTO_TEST_CASE(testDebugData)
     visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
 }
 
+
+BOOST_AUTO_TEST_CASE(pivotCalibrationTest)
+{
+    AlgorithmData ad;
+    
+    // a
+    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debuga);
+    
+    csvCIS_pointCloudData::TrackerFrames trackerIndexedData = swapIndexing(ad.empivot.frames);
+    Eigen::VectorXd result = pivotCalibration(trackerIndexedData[0]);
+    
+
+    
+}
 
 BOOST_AUTO_TEST_CASE(multipleCheckFailures)
 {

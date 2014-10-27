@@ -252,4 +252,21 @@ void loadPointCloudFromFile(std::string fullFilePath, csvCIS_pointCloudData& poi
     pointCloud = parseCSV_CIS_pointCloud(ss.str(),debug);
 }
 
+
+/// Swap indexing order of vector of vectors, so if it is row major the returned vv will be column major.
+/// @todo this is pretty inefficient, but the lengthts can vary. Maybe store the data differently
+template<typename T>
+const std::vector<std::vector<T> > swapIndexing(const std::vector<std::vector<T> >& uv){
+    std::vector<std::vector<T> > vu;
+    for(auto uvi : uv){
+        vu.push_back(std::vector<T>());
+        auto vuBI = std::back_inserter(*(vu.end()-1));
+        for(auto vi :uvi){
+            *vuBI = vi;
+            ++vuBI;
+        }
+    }
+    return vu;
+}
+
 #endif // _PARSE_CSV_CIS_POINTCLOUD_HPP_

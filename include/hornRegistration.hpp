@@ -61,7 +61,7 @@ Eigen::Quaternion<double> EigenMatrix(Eigen::Matrix4d G)
     for (int i=0; i<4; i++){
         ToSort.push_back(std::make_pair(RealEValues(i),RealEVectorsMatrix.block<4,1>(0,i)));
     }
-    
+
     std::sort(ToSort.begin(),ToSort.end(),SortPairsFirstHighestToLowest());
 
     // For Outputting Ordered Eigenvalues and Vectors
@@ -71,7 +71,7 @@ Eigen::Quaternion<double> EigenMatrix(Eigen::Matrix4d G)
         cout << begin->second << endl;
     }
     */
-    
+
     return Eigen::Quaternion<double>(Eigen::Vector4d(ToSort[0].second));
 }
 
@@ -82,9 +82,8 @@ Eigen::Matrix3d ArunsMethod(Eigen::Matrix3d Hsum)
     Eigen::MatrixXd U = svd.matrixU();
     Eigen::Matrix3d R = svd.matrixV()*U.transpose();
     double det = R.determinant();
-    // if (det == 1)
-        return R;
-    // write return some sort of error if not
+    if (det == -1) std::cout << "Reflection" << std::endl;
+    return R;
 }
 
 /// Create transformation matrix from Rotation R and Translation vector P

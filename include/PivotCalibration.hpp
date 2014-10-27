@@ -16,24 +16,29 @@ Eigen::MatrixXd registrationToFirstCloud(const TrackerCloudRange& tcr,bool debug
 	for(auto tcIt = std::begin(tcr); tcIt!=std::end(tcr); ++tcIt, i+=HtransformSize){
 		output.block<HtransformSize,HtransformSize>(i,0) = hornRegistration(*tcIt,*trackerCoordSysIt);
     }
-    std::cout << "\n\nregistrationToFirstCloudOutput:\n\n" << output << "\n\n";
+    
+    if(debug) std::cout << "\n\nregistrationToFirstCloudOutput:\n\n" << output << "\n\n";
+    
     return output;
 }
 
 /// @return std::pair<Eigen::MatrixXd,Eigen::VectorXd> containing 3*numTransforms x 6 [Rotation,-I] matrix and 3*numTransforms x 1 position offset translation matrix p
 std::pair<Eigen::MatrixXd,Eigen::VectorXd> transformToRandMinusIandPMatrices(const Eigen::MatrixXd& transforms,bool debug = false) {
+    static const std::size_t HtransformSize = 4;
+    static const std::size_t RotSize = 3;
+    
 	std::size_t transformRows = transforms.rows();
 	std::size_t transformCount = transformRows/4;
 	std::pair<Eigen::MatrixXd,Eigen::VectorXd> output;
-	output.first.resize(transformCount*3,6);
-	output.second.resize(transformCount*3);
+	output.first.resize(transformCount*RotSize,6);
+	output.second.resize(transformCount*RotSize);
     
 	
-	for(std::size_t transformRow = 0, outputRow = 0; transformRow < transformRows; transformRow+=4,outputRow+=3){
+	for(std::size_t transformRow = 0, outputRow = 0; transformRow < transformRows; transformRow+=HtransformSize,outputRow+=RotSize){
         
-	    output.first.block<3,3>(outputRow,0) = transforms.block<3,3>(transformRow,0);
-	    output.first.block<3,3>(outputRow,3) = -Eigen::Matrix3d::Identity();
-		output.second.block<3,1>(outputRow,0) = transforms.block<3,1>(transformRow,3);
+	    output.first.block<RotSize,RotSize>(outputRow,0) = transforms.block<RotSize,RotSize>(transformRow,0);
+	    output.first.block<RotSize,RotSize>(outputRow,RotSize) = -Eigen::Matrix3d::Identity();
+		output.second.block<RotSize,1>(outputRow,0) = transforms.block<RotSize,1>(transformRow,RotSize);
 	}
     
     if(debug){

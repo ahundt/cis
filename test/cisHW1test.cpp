@@ -289,7 +289,7 @@ BOOST_AUTO_TEST_CASE(pivotCalibrationTest)
     
     csvCIS_pointCloudData::TrackerDevices trackerIndexedData = concat(ad.empivot.frames);
     
-    Print(trackerIndexedData,true,"trackerIndexedData:");
+    //Print(trackerIndexedData,true,"trackerIndexedData:");
     
     // we know there is only one tracker in this data, so do the calibration for it.
     Eigen::VectorXd result = pivotCalibration(trackerIndexedData);

@@ -5,7 +5,18 @@
 #include <iterator>
 #include "hornRegistration.hpp"
 
-/// @todo make registration function a template param
+/// @brief Register an STL range of tracker clouds to the first cloud in the set. Runs hornRegistration
+///        on each point cloud against the other point clouds within the set.
+///
+/// @param tcr C++ Range of n point clouds containing tx3 Eigen::MatrixXd point clouds.
+///
+/// The first 4x4 matrix component returned will be I, because it is comparing against itself,
+/// the subsequent matrices will be transforms from their coordinate system to the first matrix
+/// coordinate system.
+///
+/// @return Eigen::MatrixXd Set of transforms in a combined (4*n)x4 matrix.
+///
+/// @todo make registration function a template param, rather than requiring hornRegistration
 template<typename TrackerCloudRange>
 Eigen::MatrixXd registrationToFirstCloud(const TrackerCloudRange& tcr,bool debug = false){
     static const std::size_t HtransformSize = 4;
@@ -22,6 +33,8 @@ Eigen::MatrixXd registrationToFirstCloud(const TrackerCloudRange& tcr,bool debug
     return output;
 }
 
+/// @brief Split stacked transforms into stacked [Rotation,-I] matrices and stacked Position Matrices P so this is a
+///
 /// @return std::pair<Eigen::MatrixXd,Eigen::VectorXd> containing 3*numTransforms x 6 [Rotation,-I] matrix and 3*numTransforms x 1 position offset translation matrix p
 std::pair<Eigen::MatrixXd,Eigen::VectorXd> transformToRandMinusIandPMatrices(const Eigen::MatrixXd& transforms,bool debug = false) {
     static const std::size_t HtransformSize = 4;
@@ -49,7 +62,11 @@ std::pair<Eigen::MatrixXd,Eigen::VectorXd> transformToRandMinusIandPMatrices(con
     return output;
 }
 
+/// Run SVD on the stack of matrices containing [R,-I] against the positions p
+/// and solve for the common endpoint of the tracker device.
 /// @pre must be at least 3 input RIp values (really [R,-I],p)
+///
+/// @return Eigen::VectorXd of size 6, containing ???????? @todo
 Eigen::VectorXd SVDSolve(const std::pair<Eigen::MatrixXd, Eigen::VectorXd>& RIp)
 {
     BOOST_VERIFY(RIp.first.rows()>9);
@@ -63,6 +80,8 @@ Eigen::VectorXd SVDSolve(const std::pair<Eigen::MatrixXd, Eigen::VectorXd>& RIp)
 /// @todo explain return type
 /// @todo figure otu what result of SVDSolve really means
 /// @todo make registration function a template (and regular) parameter that passes through to registrationToFirstCloud
+///
+/// @return Eigen::VectorXd of size 6, containing ????????
 template<typename TrackerCloudRange>
 Eigen::VectorXd pivotCalibration(const TrackerCloudRange& tcr,bool debug = false){
     BOOST_VERIFY(std::distance(std::begin(tcr),std::end(tcr))>2);

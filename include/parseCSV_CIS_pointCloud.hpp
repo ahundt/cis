@@ -239,4 +239,14 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
 	return outputData;
 }
 
+
+
+void loadPointCloudFromFile(std::string fullFilePath, csvCIS_pointCloudData& pointCloud){
+    
+    std::stringstream ss;
+    ss << std::ifstream( fullFilePath ).rdbuf();
+    
+    pointCloud = parseCSV_CIS_pointCloud(ss.str(),true);
+}
+
 #endif // _PARSE_CSV_CIS_POINTCLOUD_HPP_

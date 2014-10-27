@@ -159,14 +159,6 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
     return false;
 }
 
-void loadPointCloud(std::string fullFilePath, csvCIS_pointCloudData& pointCloud){
-    
-    std::stringstream ss;
-    ss << std::ifstream( fullFilePath ).rdbuf();
-    
-    pointCloud = parseCSV_CIS_pointCloud(ss.str(),true);
-}
-
 /**************************************************************************/
 /**
  * @brief Main function 
@@ -181,11 +173,11 @@ int main(int argc,char**argv) {
 	readCommandLine(argc,argv,pclp);
     
     AlgorithmData ad;
-    loadPointCloud(pclp.calbodyPath       ,ad.calbody                    );
-    loadPointCloud(pclp.calreadingsPath   ,ad.calreadings                );
-    loadPointCloud(pclp.empivotPath       ,ad.empivot                    );
-    loadPointCloud(pclp.optpivotPath      ,ad.optpivot                   );
-    loadPointCloud(pclp.output1Path       ,ad.output1                    );
+    loadPointCloudFromFile(pclp.calbodyPath       ,ad.calbody                    );
+    loadPointCloudFromFile(pclp.calreadingsPath   ,ad.calreadings                );
+    loadPointCloudFromFile(pclp.empivotPath       ,ad.empivot                    );
+    loadPointCloudFromFile(pclp.optpivotPath      ,ad.optpivot                   );
+    loadPointCloudFromFile(pclp.output1Path       ,ad.output1                    );
 	
     
     Eigen::Matrix4d F = hornRegistration(ad.calreadings.frames[0][0],ad.calbody.frames[0][0]);

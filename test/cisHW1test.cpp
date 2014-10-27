@@ -12,6 +12,7 @@
 #include "PointData.hpp"
 #include "PivotCalibration.hpp"
 
+static const bool debug = true;
 static const double tolerance = 0.01l;
 
 static const std::string relativeDataPath("PA1-2/");
@@ -279,23 +280,48 @@ BOOST_AUTO_TEST_CASE(testDebugData)
     visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
 }
 
+void testOnePivotCalibration(std::string relativeDataPath,std::string datapathsuffix){
+    
+    if (debug) {
+        std::cout << "testing " <<relativeDataPath<<datapathsuffix<<"\n";
+        std::cout << "===============================================\n\n";
+    }
+    
+    AlgorithmData ad;
+    csvCIS_pointCloudData::TrackerDevices trackerIndexedData;
+    
+    // Note: we know there is only one tracker in this data
+    //       so we can run concat to combine the vectors and
+    //       and do the calibration for it.
+    
+    // a
+    ad = assembleHW1AlgorithmData(relativeDataPath,datapathsuffix);
+    trackerIndexedData = concat(ad.empivot.frames);
+    Eigen::VectorXd result = pivotCalibration(trackerIndexedData);
+    Eigen::Vector3d checkResultFirst = result.block<3,1>(0,0);
+    Eigen::Vector3d checkResultSecond = result.block<3,1>(3,0);
+    Eigen::Vector3d checkOutput = ad.output1.frames[0][0].block<1,3>(0,0).transpose();
+    
+    BOOST_CHECK(checkResultFirst.isApprox(checkOutput,tolerance));
+    
+    if (debug) {
+        std::cout << "\n\nresult:\n\n" << result << "\n\n";
+        std::cout << "\n\ncheckresult FULL:\n\n" << result << "\n\n";
+        std::cout << "\n\ncheckresult FIRST:\n\n" << checkResultFirst << "\n\ncheckresult SECOND:\n\n" << checkResultSecond << "\n\ncheckoutput:\n\n" << checkOutput << "\n\n";
+    }
+};
 
 BOOST_AUTO_TEST_CASE(pivotCalibrationTest)
 {
-    AlgorithmData ad;
-    
-    // c
-    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debugc);
-    
-    csvCIS_pointCloudData::TrackerDevices trackerIndexedData = concat(ad.empivot.frames);
+    testOnePivotCalibration(relativeDataPath, pa1debuga);
+    testOnePivotCalibration(relativeDataPath, pa1debugb);
+    testOnePivotCalibration(relativeDataPath, pa1debugc);
+    testOnePivotCalibration(relativeDataPath, pa1debugd);
+    testOnePivotCalibration(relativeDataPath, pa1debuge);
+    testOnePivotCalibration(relativeDataPath, pa1debugf);
+    testOnePivotCalibration(relativeDataPath, pa1debugg);
     
     //Print(trackerIndexedData,true,"trackerIndexedData:");
-    
-    // we know there is only one tracker in this data, so do the calibration for it.
-    Eigen::VectorXd result = pivotCalibration(trackerIndexedData);
-    
-    std::cout << "\n\nresult:\n\n" << result << "\n\n";
-    
 }
 
 BOOST_AUTO_TEST_CASE(multipleCheckFailures)

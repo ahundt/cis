@@ -60,6 +60,7 @@ Eigen::VectorXd SVDSolve(const std::pair<Eigen::MatrixXd, Eigen::VectorXd>& RIp)
 
 /// perform pivotCalibration
 /// @pre there must be at least three frames to process
+/// @todo explain return type
 /// @todo figure otu what result of SVDSolve really means
 /// @todo make registration function a template (and regular) parameter that passes through to registrationToFirstCloud
 template<typename TrackerCloudRange>

@@ -13,10 +13,14 @@
 // project includes
 #include "matrixOperations.hpp"
 
-void Print (const std::vector<int>& v){
-    //vector<int> v;
+template<typename T>
+void Print (const std::vector<T>& v, bool newline = true, std::string description = std::string("")){
+    if(!description.empty()) std::cout << description;
+    if(newline) std::cout << "\n";
+    
     for (int i=0; i<v.size();i++){
         std::cout << v[i] << std::endl;
+        if(newline) std::cout << "\n"; // this will print all the contents of *features*
     }
 }
 
@@ -268,5 +272,17 @@ const std::vector<std::vector<T> > swapIndexing(const std::vector<std::vector<T>
     }
     return vu;
 }
+
+/// @brief combine a vector<vector<T> > into a single vector<T>
+template<typename T>
+const std::vector<T> concat(const std::vector<std::vector<T> >& uv){
+    std::vector<T> u;
+    for(auto uvi : uv){
+        u.insert(u.end(), uvi.begin(), uvi.end());
+    }
+    return u;
+}
+
+
 
 #endif // _PARSE_CSV_CIS_POINTCLOUD_HPP_

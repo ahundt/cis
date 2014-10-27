@@ -284,13 +284,17 @@ BOOST_AUTO_TEST_CASE(pivotCalibrationTest)
 {
     AlgorithmData ad;
     
-    // a
-    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debuga);
+    // c
+    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debugc);
     
-    csvCIS_pointCloudData::TrackerFrames trackerIndexedData = swapIndexing(ad.empivot.frames);
-    Eigen::VectorXd result = pivotCalibration(trackerIndexedData[0]);
+    csvCIS_pointCloudData::TrackerDevices trackerIndexedData = concat(ad.empivot.frames);
     
-
+    Print(trackerIndexedData,true,"trackerIndexedData:");
+    
+    // we know there is only one tracker in this data, so do the calibration for it.
+    Eigen::VectorXd result = pivotCalibration(trackerIndexedData);
+    
+    std::cout << "\n\nresult:\n\n" << result << "\n\n";
     
 }
 

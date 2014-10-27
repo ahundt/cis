@@ -20,3 +20,10 @@
 ##############################################################################
 
 basis_install_directory ("." "${INSTALL_DATA_DIR}")
+
+# REMOVE THE FOLLOWING LINES IF IT HAS BEEN A WHILE 2014-10-26
+#basis_get_target_property(HW1_TEST_TARGET_LOCATION TARGET cisHW1test PROPERTY LOCATION )
+#message(STATUS <<<<<<<<<<${HW1_TEST_TARGET_LOCATION})
+#basis_get_filename_component(HW1_TEST_TARGET_LOCATION_DIR ${HW1_TEST_TARGET_LOCATION} DIRECTORY)
+
+#file(COPY PA1-2 DESTINATION ${HW1_TEST_TARGET_LOCATION_DIR})

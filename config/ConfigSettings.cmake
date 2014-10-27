@@ -35,3 +35,9 @@ endif ()
 # ============================================================================
 
 set (DATA_DIR_CONFIG "${INSTALL_DATA_DIR}")
+
+# REMOVE THE FOLLOWING LINES IF IT HAS BEEN A WHILE 2014-10-26
+#if(NOT CMAKE_INSTALL_PREFIX)
+	# default cmake install dir
+#  set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install)
+#endif()

@@ -35,7 +35,7 @@ Eigen::MatrixXd registrationToFirstCloud(const TrackerCloudRange& tcr,bool debug
 
 // Assumes the inverse of the homogeneous matrix of tcr2 needs to be taken
 template<typename TrackerCloudRange>
-Eigen::MatrixXd registrationToTwoClouds(const TrackerCloudRange& tcr1, const TrackerCloudRange& tcr2, bool debug = false){
+Eigen::MatrixXd registrationToTwoSeriallyLinkedClouds(const TrackerCloudRange& tcr1, const TrackerCloudRange& tcr2, bool debug = false){
     static const std::size_t HtransformSize = 4;
 	Eigen::MatrixXd output(std::distance(std::begin(tcr1),std::end(tcr1))*HtransformSize,HtransformSize);
 	auto trackerCoordSysIt1 = std::begin(tcr1);
@@ -43,12 +43,17 @@ Eigen::MatrixXd registrationToTwoClouds(const TrackerCloudRange& tcr1, const Tra
 	/// @todo eliminate finding registration on itself for first loop
     std::size_t i = 0;
 	for(auto tcIt1 = std::begin(tcr1), tcIt2 = std::begin(tcr2); tcIt1!=std::end(tcr1); ++tcIt1, ++tcIt2, i+=HtransformSize){
-        Eigen::MatrixXd Ftcr2 = hornRegistration(*tcIt2,*trackerCoordSysIt2);
-        Eigen::MatrixXd Ftrc2inv = homogeneousInverse(Ftcr2);
-		output.block<HtransformSize,HtransformSize>(i,0) = Ftrc2inv*hornRegistration(*tcIt1,*trackerCoordSysIt1);
+        Eigen::MatrixXd Ftcr2inv = hornRegistration(*trackerCoordSysIt2,*tcIt2);
+        Eigen::MatrixXd Ftcr = hornRegistration(*tcIt1,*trackerCoordSysIt1);
+        output.block<HtransformSize,HtransformSize>(i,0) = Ftcr2inv*Ftcr;
+        if(debug){
+            std::cout << "\n\nFtrc2inv:\n\n" << Ftcr2inv << "\n\nFtcr:\n\n" << Ftcr << "\n\n";
+        }
     }
 
-    if(debug) std::cout << "\n\nregistrationToFirstCloudOutput:\n\n" << output << "\n\n";
+    if(debug) {
+        std::cout << "\n\nregistrationToFirstCloudOutput:\n\n" << output << "\n\n";
+    }
 
     return output;
 }
@@ -128,7 +133,7 @@ template<typename TrackerCloudRange>
 Eigen::VectorXd pivotCalibrationTwoSystems(const TrackerCloudRange& tcr, const TrackerCloudRange& tcr2,bool debug = false){
     BOOST_VERIFY(std::distance(std::begin(tcr),std::end(tcr))>2);
     BOOST_VERIFY(std::distance(std::begin(tcr2),std::end(tcr2))>2);
-    Eigen::MatrixXd transforms = registrationToTwoClouds(tcr, tcr2, debug);
+    Eigen::MatrixXd transforms = registrationToTwoSeriallyLinkedClouds(tcr, tcr2, debug);
     std::pair<Eigen::MatrixXd,Eigen::VectorXd> RIp = transformToRandMinusIandPMatrices(transforms, debug);
     //if(debug) std::cout << "\n\nRI:\n\n" << RIp.first << "\n\np:\n\n" << RIp.second << "\n\n";
     return SVDSolve(RIp,debug);

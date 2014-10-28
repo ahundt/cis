@@ -400,7 +400,7 @@ BOOST_AUTO_TEST_CASE(PivotCalibration){
 
 BOOST_AUTO_TEST_CASE(pivotCalibrationTest)
 {
-    testOnePivotCalibration(relativeDataPath, pa1debuga, pa1debuga,debug);
+    testOnePivotCalibration(relativeDataPath, pa1debuga);
     testOnePivotCalibration(relativeDataPath, pa1debugb);
     testOnePivotCalibration(relativeDataPath, pa1debugc);
     testOnePivotCalibration(relativeDataPath, pa1debugd);

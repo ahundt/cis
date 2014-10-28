@@ -71,7 +71,7 @@ Eigen::VectorXd SVDSolve(const std::pair<Eigen::MatrixXd, Eigen::VectorXd>& RIp,
     BOOST_VERIFY(RIp.first.rows()>9);
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(RIp.first, Eigen::ComputeThinU | Eigen::ComputeThinV);
     Eigen::VectorXd X = svd.solve(-RIp.second);
-    if(true) std::cout << "\n\nSVDSolve - p:\n\n" << X << "\n\n";
+    if(debug) std::cout << "\n\nSVDSolve - p:\n\n" << X << "\n\n";
     return X;
 }
 

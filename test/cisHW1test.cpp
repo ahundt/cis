@@ -329,10 +329,10 @@ BOOST_AUTO_TEST_CASE(solveForCExpected)
             transformEM.setIdentity();
             transformEM.matrix() = transformsOptcoordtoTrackerLocation[i].block<4,4>(0,0);
             
-            cExpected.push_back(transformEM*transformOpt*Eigen::Vector3d(ad.calreadings.frames[0][2].row(j).transpose()));
+            cExpected.push_back((transformEM*transformOpt*Eigen::Vector3d(ad.calreadings.frames[0][2].row(j).transpose())).transpose());
         }
     }
-    std::cout << cExpected.size() << "\n\n";
+    std::cout << "\n\nsolveForCExpected\n\n" << cExpected.size() << "\n\n";
     std::cout << "\n\n" << cExpected[0] << "\n\n";
 }
 

@@ -1,12 +1,16 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE CISHW1Test
+
+// system includes
 #include <boost/test/unit_test.hpp>
 #include <exception>
 #include <unistd.h>
-
+#include <boost/math/constants/constants.hpp>
 #include <iostream>
 #include <vector>
 #include <boost/bind.hpp>
+
+// local includes
 #include "matrixOperations.hpp"
 #include "hornRegistration.hpp"
 #include "PointData.hpp"
@@ -280,9 +284,53 @@ BOOST_AUTO_TEST_CASE(testDebugData)
     visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
 }
 
+
+
+void testOnePivotCalibration(csvCIS_pointCloudData::TrackerDevices trackerIndexedData, Eigen::Vector3d checkOutput, std::string description = "") {
+    Eigen::VectorXd result = pivotCalibration(trackerIndexedData);
+    Eigen::Vector3d checkResultFirst = result.block<3,1>(0,0);
+    Eigen::Vector3d checkResultSecond = result.block<3,1>(3,0);
+    
+    // note: isApprox is known to break near zero
+    BOOST_CHECK(checkResultFirst.isApprox(checkOutput,tolerance) || (checkResultFirst - checkOutput).norm() < tolerance);
+    
+    if (!(checkResultFirst.isApprox(checkOutput,tolerance) || (checkResultFirst - checkOutput).norm() < tolerance)) {
+        std::cout << "\n\n" << description << "\n\n";
+        std::cout << "\n\nresult:\n\n" << result << "\n\n";
+        std::cout << "\n\ncheckresult FULL:\n\n" << result << "\n\n";
+        std::cout << "\n\ncheckresult FIRST:\n\n" << checkResultFirst << "\n\ncheckresult SECOND:\n\n" << checkResultSecond << "\n\ncheckoutput:\n\n" << checkOutput << "\n\n";
+    }
+};
+
+void testOnePivotCalibration(std::string relativeDataPath,std::string datapathsuffix, std::string description = ""){
+    
+    if (debug) {
+        std::cout << "testing " <<relativeDataPath<<datapathsuffix<<"\n";
+        std::cout << "===============================================\n\n";
+    }
+    
+    if(description.empty()) description = datapathsuffix;
+    
+    AlgorithmData ad;
+    csvCIS_pointCloudData::TrackerDevices trackerIndexedData;
+    
+    // Note: we know there is only one tracker in this data
+    //       so we can run concat to combine the vectors and
+    //       and do the calibration for it.
+    
+    // a
+    ad = assembleHW1AlgorithmData(relativeDataPath,datapathsuffix);
+    trackerIndexedData = concat(ad.empivot.frames);
+    
+    Eigen::Vector3d checkOutput = ad.output1.frames[0][0].block<1,3>(0,0).transpose();
+    
+    testOnePivotCalibration(trackerIndexedData, checkOutput, description);
+    
+}
+
 BOOST_AUTO_TEST_CASE(PivotCalibration){
 
-    csvCIS_pointCloudData::TrackerDevices Clouds;
+    csvCIS_pointCloudData::TrackerDevices clouds;
 
     Eigen::MatrixXd probePointsTest(5,3);
 	probePointsTest <<
@@ -292,7 +340,7 @@ BOOST_AUTO_TEST_CASE(PivotCalibration){
   		  2,   3,   0,
   		 -2,   3,   0;
 
-    Clouds.push_back(probePointsTest);
+    clouds.push_back(probePointsTest);
 
 	probePointsTest <<
   		  1,   0,   0,
@@ -301,7 +349,7 @@ BOOST_AUTO_TEST_CASE(PivotCalibration){
   		  3,   2,   0,
   		  3,  -2,   0;
 
-    Clouds.push_back(probePointsTest);
+    clouds.push_back(probePointsTest);
 
 	probePointsTest <<
   		  0,  -1,   0,
@@ -310,7 +358,7 @@ BOOST_AUTO_TEST_CASE(PivotCalibration){
   		  2,  -3,   0,
   		 -2,  -3,   0;
 
-    Clouds.push_back(probePointsTest);
+    clouds.push_back(probePointsTest);
 
 	probePointsTest <<
          -1,   0,   0,
@@ -319,56 +367,37 @@ BOOST_AUTO_TEST_CASE(PivotCalibration){
          -3,   2,   0,
          -3,  -2,   0;
 
-    Clouds.push_back(probePointsTest);
+    clouds.push_back(probePointsTest);
 
-    Eigen::VectorXd result = pivotCalibration(trackerIndexedData);
-    Eigen::Vector3d checkResultFirst = result.block<3,1>(0,0);
-    Eigen::Vector3d checkResultSecond = result.block<3,1>(3,0);
-    Eigen::Vector3d checkOutput = ad.output1.frames[0][0].block<1,3>(0,0).transpose();
+    testOnePivotCalibration(clouds, Eigen::Vector3d(0,0,0), "manualAtZero");
 
-    BOOST_CHECK(checkResultFirst.isApprox(checkOutput,tolerance));
-
-    if (debug) {
-        std::cout << "\n\nresult:\n\n" << result << "\n\n";
-        std::cout << "\n\ncheckresult FULL:\n\n" << result << "\n\n";
-        std::cout << "\n\ncheckresult FIRST:\n\n" << checkResultFirst << "\n\ncheckresult SECOND:\n\n" << checkResultSecond << "\n\ncheckoutput:\n\n" << checkOutput << "\n\n";
+    Eigen::Affine3d transform;
+    
+    // Define a translation of 2.5 meters on the x axis.
+    transform.translation() << 2.5, 0.0, 0.0;
+    
+    //double theta = 0;//boost::math::constants::pi<double>();
+    // The same rotation matrix as before; tetha radians arround Z axis
+    //transform.rotate (Eigen::AngleAxisd (theta, Eigen::Vector3d::UnitZ()));
+    
+    for (auto&& tracker : clouds) {
+        for(int i = 0; i < tracker.rows(); i++){
+            // translate all of the points using an Homogenous transform matrix
+            tracker.row(i) = (transform*Eigen::Vector3d(tracker.row(i).transpose())).transpose();
+            
+            
+            //Eigen::Vector3d v3d(0,0,0);
+            //std::cout << tracker.row(i) << " - before " << i << "\n";
+            //tracker.row(i) = (transform*Eigen::Vector3d(tracker.row(i).transpose())).transpose();
+            //std::cout << tracker.row(i) << " - after  " << i << "\n";
+            //std::cout << v3d << " - before " << i << "\n";
+            //Eigen::Vector3d v3d2 = transform*v3d;
+            //std::cout << v3d2 << " - after  " << i << "\n";
+        }
     }
-
-
+    
+    testOnePivotCalibration(clouds, Eigen::Vector3d(2.5,0,0),"translated x by 2.5");
 }
-
-void testOnePivotCalibration(std::string relativeDataPath,std::string datapathsuffix){
-
-    if (debug) {
-        std::cout << "testing " <<relativeDataPath<<datapathsuffix<<"\n";
-        std::cout << "===============================================\n\n";
-    }
-
-
-
-    AlgorithmData ad;
-    csvCIS_pointCloudData::TrackerDevices trackerIndexedData;
-
-    // Note: we know there is only one tracker in this data
-    //       so we can run concat to combine the vectors and
-    //       and do the calibration for it.
-
-    // a
-    ad = assembleHW1AlgorithmData(relativeDataPath,datapathsuffix);
-    trackerIndexedData = concat(ad.empivot.frames);
-    Eigen::VectorXd result = pivotCalibration(trackerIndexedData);
-    Eigen::Vector3d checkResultFirst = result.block<3,1>(0,0);
-    Eigen::Vector3d checkResultSecond = result.block<3,1>(3,0);
-    Eigen::Vector3d checkOutput = ad.output1.frames[0][0].block<1,3>(0,0).transpose();
-
-    BOOST_CHECK(checkResultFirst.isApprox(checkOutput,tolerance));
-
-    if (debug) {
-        std::cout << "\n\nresult:\n\n" << result << "\n\n";
-        std::cout << "\n\ncheckresult FULL:\n\n" << result << "\n\n";
-        std::cout << "\n\ncheckresult FIRST:\n\n" << checkResultFirst << "\n\ncheckresult SECOND:\n\n" << checkResultSecond << "\n\ncheckoutput:\n\n" << checkOutput << "\n\n";
-    }
-};
 
 BOOST_AUTO_TEST_CASE(pivotCalibrationTest)
 {

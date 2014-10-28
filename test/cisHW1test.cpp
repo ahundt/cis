@@ -344,27 +344,64 @@ void testTwoPivotCalibration(std::string relativeDataPath,std::string datapathsu
     ad = assembleHW1AlgorithmData(relativeDataPath,datapathsuffix);
     trackerIndexedData = swapIndexing(ad.optpivot.frames);
     if(debug){
-        Print(trackerIndexedData[0],true,"trackerIndexedData0");
-        Print(trackerIndexedData[1],true,"trackerIndexedData1");
+        Print(trackerIndexedData[0],true,"emTrackerIndexedData0"); // em tracker
+        Print(trackerIndexedData[1],true,"opticalProbeIndexedData1"); // optical probe
     }
-    Eigen::VectorXd result = pivotCalibrationTwoSystems(trackerIndexedData[0],trackerIndexedData[1],debug);
-    Eigen::Vector3d checkResultFirst = result.block<3,1>(0,0);
-    Eigen::Vector3d checkResultSecond = result.block<3,1>(3,0);
-    Eigen::Vector3d checkOutput = ad.output1.estOpticalPostPos;
+    Eigen::VectorXd optProbePivotPtAndCalInOptCoord = pivotCalibration(trackerIndexedData[1],debug);
+    if(debug) std::cout << "\n\ntestTwoPivot - p:\n\n" << optProbePivotPtAndCalInOptCoord << "\n\n";
+    Eigen::Vector3d optProbeCalInOptCoord = optProbePivotPtAndCalInOptCoord.block<3,1>(0,0);
+    Eigen::Vector3d optProbePivotPtInOptCoord = optProbePivotPtAndCalInOptCoord.block<3,1>(3,0);
+    
+    Eigen::VectorXd emTrackerPivotPtAndCalInOptCoord = pivotCalibration(trackerIndexedData[0],debug);
+    Eigen::Vector3d emCalInOptCoord = emTrackerPivotPtAndCalInOptCoord.block<3,1>(0,0);
+    Eigen::Vector3d emTrackerPivotPtInOptCoord = emTrackerPivotPtAndCalInOptCoord.block<3,1>(3,0);
+    //Eigen::VectorXd result = pivotCalibrationTwoSystems(trackerIndexedData[0],trackerIndexedData[1],debug);
+    
+    
+    Eigen::MatrixXd dcloud = registrationToFirstCloud(trackerIndexedData[0]);
+    
+    Eigen::MatrixXd hcloud = registrationToFirstCloud(trackerIndexedData[1]);
+    
+    Eigen::Affine3d FDinv;
+    //FDinv.matrix() = homogeneousInverse(FD);
+    //FDinv.matrix() = Eigen::Matrix4d(FD.block<4,4>(0,0));
+    
+    Eigen::Vector3d optPivotPtInEMCoord = FDinv*optProbePivotPtInOptCoord;
+    
+    Eigen::Vector3d groundTruthOptPivotPtInEMCoord = ad.output1.estOpticalPostPos;
 
-    BOOST_CHECK(isWithinTolerance(checkResultSecond,checkOutput));
+    BOOST_CHECK(isWithinTolerance(optPivotPtInEMCoord,groundTruthOptPivotPtInEMCoord));
 
-    if (!isWithinTolerance(checkResultSecond,checkOutput)) {
-        std::cout << "\n\nresult:\n\n" << result << "\n\n";
-        std::cout << "\n\ncheckresult FULL:\n\n" << result << "\n\n";
-        std::cout << "\n\ncheckresult FIRST:\n\n" << checkResultFirst << "\n\ncheckresult SECOND:\n\n" << checkResultSecond << "\n\ncheckoutput:\n\n" << checkOutput << "\n\n";
+    if (!isWithinTolerance(optPivotPtInEMCoord,groundTruthOptPivotPtInEMCoord)) {
+        std::cout << "\n\noptProbePivotPtInOptCoord:\n\n" << optProbePivotPtInOptCoord << "\n\n";
+        std::cout << "\n\ngroundTruthOptPivotPtInEMCoord:\n\n" << groundTruthOptPivotPtInEMCoord << "\n\n";
+        std::cout << "\n\nemTrackerPivotPtInOptCoord:\n\n" << emTrackerPivotPtInOptCoord << "\n\n";
+        //std::cout << "\n\FD:\n\n" << FD << "\n\n";
+        //std::cout << "\n\FH:\n\n" << FH << "\n\n";
     }
 };
 
-BOOST_AUTO_TEST_CASE(PivotCalibration){
+// Make a custom cloud with this pattern,
+// 4 v shapes of 5 points centered around 0,0
+// all pointing towards the center.
+// This is to be used and transformed as a test
+// of the calibration algorihtms.
+//
+//              \  |  /
+//             \ \ | / /
+//              \ \|/ /
+//               \ | /
+//    -------------|-------------
+//               / | \
+//              / /|\ \
+//             / / | \ \
+//              /  |  \
 
+
+csvCIS_pointCloudData::TrackerDevices makeCustomClouds(){
+    
     csvCIS_pointCloudData::TrackerDevices clouds;
-
+    
     Eigen::MatrixXd probePointsTest(5,3);
     probePointsTest <<
     0,   1,   0,
@@ -372,62 +409,96 @@ BOOST_AUTO_TEST_CASE(PivotCalibration){
     -1,   2,   0,
     2,   3,   0,
     -2,   3,   0;
-
+    
     clouds.push_back(probePointsTest);
-
+    
     probePointsTest <<
     1,   0,   0,
     2,   1,   0,
     2,  -1,   0,
     3,   2,   0,
     3,  -2,   0;
-
+    
     clouds.push_back(probePointsTest);
-
+    
     probePointsTest <<
     0,  -1,   0,
     1,  -2,   0,
     -1,  -2,   0,
     2,  -3,   0,
     -2,  -3,   0;
-
+    
     clouds.push_back(probePointsTest);
-
+    
     probePointsTest <<
     -1,   0,   0,
     -2,   1,   0,
     -2,  -1,   0,
     -3,   2,   0,
     -3,  -2,   0;
-
+    
     clouds.push_back(probePointsTest);
+    
+    return clouds;
+}
+
+BOOST_AUTO_TEST_CASE(PivotCalibration){
+
+    csvCIS_pointCloudData::TrackerDevices clouds = makeCustomClouds();
 
 
     //Print(clouds,true, "clouds1");
 
     testOnePivotCalibration(clouds, Eigen::Vector3d(0,0,0), "manualAtZero");
-
+    
+    
+    ////////////////////////////////////////////////////
+    // transform clouds for a translation test
     Eigen::Affine3d transform;
-
+    
     transform.setIdentity();
-
+    
     // Define a translation of 2.5 meters on the x axis.
     transform.translation() << 2.5, 0.0, 0.0;
-
+    
     double theta = 0;//boost::math::constants::pi<double>();
     // The same rotation matrix as before; tetha radians arround Z axis
     transform.rotate (Eigen::AngleAxisd (theta, Eigen::Vector3d::UnitZ()));
-
+    
     for (auto&& tracker : clouds) {
         for(int i = 0; i < tracker.rows(); i++){
             // translate all of the points using an Homogenous transform matrix
             tracker.row(i) = (transform*Eigen::Vector3d(tracker.row(i).transpose())).transpose();
         }
     }
-
+    
     //Print(clouds,true, "clouds2");
-
+    
     testOnePivotCalibration(clouds, Eigen::Vector3d(2.5,0,0),"translated x by 2.5");
+    
+    
+    ////////////////////////////////////////////////////
+    // initialize clouds again for a different rotation and translation transform
+    clouds = makeCustomClouds();
+    
+    transform.setIdentity();
+    // Define a translation of 2.5 meters on the x axis.
+    transform.translation() << 2.5, 0.0, 0.0;
+    
+    theta = boost::math::constants::pi<double>()/4;
+    // The same rotation matrix as before; tetha radians arround Z axis
+    transform.rotate (Eigen::AngleAxisd (theta, Eigen::Vector3d::UnitZ()));
+    
+    for (auto&& tracker : clouds) {
+        for(int i = 0; i < tracker.rows(); i++){
+            // translate all of the points using an Homogenous transform matrix
+            tracker.row(i) = (transform*Eigen::Vector3d(tracker.row(i).transpose())).transpose();
+        }
+    }
+    
+    //Print(clouds,true, "clouds3");
+    
+    testOnePivotCalibration(clouds, transform*Eigen::Vector3d(0,0,0),"translated x by 2.5, rotated by pi/4");
 }
 
 BOOST_AUTO_TEST_CASE(pivotCalibrationTest)

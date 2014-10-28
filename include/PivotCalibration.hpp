@@ -117,7 +117,10 @@ Eigen::VectorXd pivotCalibration(const TrackerCloudRange& tcr,bool debug = false
 
     std::pair<Eigen::MatrixXd,Eigen::VectorXd> RIp = transformToRandMinusIandPMatrices(transforms,debug);
     //if(debug) std::cout << "\n\nRI - pivotCalibration:\n\n" << RIp.first << "\n\np - pivotCalibration:\n\n" << RIp.second << "\n\n";
-    return SVDSolve(RIp,debug);
+   
+    Eigen::VectorXd X =  SVDSolve(RIp,debug);
+    if(debug) std::cout << "\n\npivotCalibration - p:\n\n" << X << "\n\n";
+    return X;
 }
 
 /// perform pivotCalibration of Optical Probe in terms of the EM Coordinate System

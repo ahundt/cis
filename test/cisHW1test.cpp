@@ -61,13 +61,15 @@ struct checkHornRegistrationInverses{
 };
 
 struct getHornRegistrationMatrix{
-    getHornRegistrationMatrix():m_matrixvectorP(new std::vector<Eigen::MatrixXd>){}
+    getHornRegistrationMatrix():m_matrixvectorP(new std::vector<Eigen::MatrixXd>()){}
     void operator()(const Eigen::MatrixXd& trackerPerspective1, const Eigen::MatrixXd& trackerPerspective2){
         Eigen::Matrix4d F = hornRegistration(trackerPerspective1,trackerPerspective2);
+        m_matrixvectorP->push_back(Eigen::MatrixXd(F));
     }
     boost::shared_ptr<std::vector<Eigen::MatrixXd>> m_matrixvectorP;
 };
 
+/// visits both trackers simultaneously, if either reaches the end it moves on to the next section
 template<typename Visitor>
 void visitEachTracker(const csvCIS_pointCloudData::TrackerFrames& tf1,const csvCIS_pointCloudData::TrackerFrames& tf2,Visitor v){
 
@@ -303,11 +305,17 @@ BOOST_AUTO_TEST_CASE(solveForCExpected)
     // a
     std::vector<Eigen::Matrix4d> transformsEMcoordtoTrackerLocation;
     std::vector<Eigen::Matrix4d> transformsOptcoordtoTrackerLocation;
-    for (int i = 0; i< ad.calbody.size(); ++i)
-    {
-        transformsEMcoordtoTrackerLocation = hornRegistration(ad.calreadings[0][i],ad.calbody[i]);
-        transformsOptcoordtoTrackerLocation = hornRegistration(ad.calreadings[1][i],ad.calbody[i]);
-        Eigen::MatrixXd Cexpected[i,0] = transformsEMcoordtoTrackerLocation*transformsOptcoordtoTrackerLocation*ad.calreadings[2][i];
+    
+    
+    //visitSecondTrackerRepeatedly(ad.calreadings.frames,ad.calbody.frames,
+    for (int i = 0; i< ad.calreadings.frames.size(); ++i){
+        for(int j = 0; j < ad.calreadings.frames[i].size(); ++j){
+            
+            transformsEMcoordtoTrackerLocation.push_back(hornRegistration(ad.calreadings.frames[i][j],ad.calbody.frames[0][i]));
+            transformsOptcoordtoTrackerLocation.push_back(hornRegistration(ad.calreadings.frames[i][j],ad.calbody.frames[0][i]));
+            //Eigen::MatrixXd Cexpected[i,0] = transformsEMcoordtoTrackerLocation*transformsOptcoordtoTrackerLocation*ad.calreadings.frames[2][i];
+            
+        }
     }
 
 }

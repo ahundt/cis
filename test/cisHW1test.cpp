@@ -60,6 +60,13 @@ struct checkHornRegistrationInverses{
     }
 };
 
+struct getHornRegistrationMatrix{
+    getHornRegistrationMatrix():m_matrixvectorP(new std::vector<Eigen::MatrixXd>){}
+    void operator()(const Eigen::MatrixXd& trackerPerspective1, const Eigen::MatrixXd& trackerPerspective2){
+        Eigen::Matrix4d F = hornRegistration(trackerPerspective1,trackerPerspective2);
+    }
+    boost::shared_ptr<std::vector<Eigen::MatrixXd>> m_matrixvectorP;
+};
 
 template<typename Visitor>
 void visitEachTracker(const csvCIS_pointCloudData::TrackerFrames& tf1,const csvCIS_pointCloudData::TrackerFrames& tf2,Visitor v){
@@ -288,7 +295,16 @@ BOOST_AUTO_TEST_CASE(testDebugData)
     visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
 }
 
+BOOST_AUTO_TEST_CASE(solveForCExpected)
+{
+    AlgorithmData ad;
 
+    // a
+    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debuga);
+    visitEachTracker(ad.calbody.frames, ad.calreadings.frames, std::vector<Eigen::MatrixXd> FD = getHornRegistrationMatrix());
+    visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, std::vector<Eigen::MatrixXd> FA = getHornRegistrationMatrix());
+
+}
 
 void testOnePivotCalibration(csvCIS_pointCloudData::TrackerDevices trackerIndexedData, Eigen::Vector3d checkOutput, std::string description = "", bool debug = false) {
     Eigen::VectorXd result = pivotCalibration(trackerIndexedData,debug);

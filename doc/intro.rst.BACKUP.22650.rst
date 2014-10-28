@@ -16,11 +16,16 @@ Andrew Hundt and Alex Strickland Computer Integrated Surgery 600.445 Coursework 
 Introduction
 ============
 
-<<<<<<< HEAD
-The purpose of the assignment was to develop an algorithm for a 3D point set to 3D point set registration and a pivot calibration.  The problem involved a stereotactic navigation system and an electromagnetic positional tracking device.  Tracking markers were placed on objects so the optical tracking device and an electromagnetic tracking device could measure the 3D positions of objects in space relative to measuring base units.  These objects were then registered so that they could be related in the same coordinate frames.  Pivot calibration posts were placed in the system so pivot calibration could be performed and the 3D position of two different probes could be tracked throughout the system.  The diagram below from the assignment document gives a visual description of the system.
-=======
-The purpose of the assignment was to develop an algorithm for a 3D point set to 3D point set registration and a pivot calibration.  The problem involved a stereo tactic navigation system and an electromagnetic positional tracking device.  Tracking markers were placed on objects so the optical tracking device and an electromagnetic tracking device could measure the 3D positions of objects in space relative to measuring base units.  These objects were then registered so that they could be related in the same coordinate frames.  Pivot calibration posts were placed in the system so pivot calibration could be performed and the 3D position of two different probes could be tracked throughout the system.  The diagram below gives a visual description of the system.
->>>>>>> FETCH_HEAD
+The purpose of the assignment was to develop an algorithm for a 3D point set to 3D point set registration and a pivot
+calibration. 
+
+The problem involved a stereo tactic navigation system and an electromagnetic positional tracking device. Tracking markers
+were placed on objects so the optical tracking device and an electromagnetic tracking device could measure the 3D positions of objects
+in space relative to measuring base units. These objects were then registered so that they could be related in the same coordinate
+frames. Pivot calibration posts were placed in the system so pivot calibration could be performed and the 3D position of two different
+probes could be tracked throughout the system.
+
+The diagram below from the assignment document gives a visual description of the system.
 
 .. image:: static/CIS_PA1_AssignmentPicture.png
 

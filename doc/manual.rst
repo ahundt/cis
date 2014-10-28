@@ -8,9 +8,9 @@
     :maxdepth: 2
 
     features
-	people
-    quickstart
-    howto
-    help
-	reference
-	install
+	people.rst
+    quickstart.rst
+    howto/readDataFormat.rst
+    help.rst
+	reference.rst
+	install.rst

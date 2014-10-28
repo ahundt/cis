@@ -40,8 +40,18 @@ Next a pivot calibration algorithm was created which used both the parser and ho
 Structure of the Program
 ========================
 
+The most important files include:
 
 
+===============================   =============================================================================================
+File name                         Description
+===============================   =============================================================================================
+**hornRegistration.hpp**          Functions for implemention Horn's method of Point Cloud to Point Cloud registration.
+**PivotCalibration.hpp**          Functions for implementing Pivot Calibration.
+**cisHW1test.cpp**                An extensive set of unit tests for the library.
+**cisHW1main.cpp**                Main executable source, contains cmdline parsing code and produces output data.
+**parseCSV_CIS_pointCloud.hpp**   File parsing functions.
+===============================   =============================================================================================
 
 
 Results and Discussion

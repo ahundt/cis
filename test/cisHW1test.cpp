@@ -432,38 +432,6 @@ void testOnePivotCalibration(std::string relativeDataPath,std::string datapathsu
 };
 
 void testTwoPivotCalibration(std::string relativeDataPath,std::string datapathsuffix){
-
-    if (debug) {
-        std::cout << "testing " <<relativeDataPath<<datapathsuffix<<"\n";
-        std::cout << "===============================================\n\n";
-    }
-
-
-
-    AlgorithmData ad;
-    csvCIS_pointCloudData::TrackerDevices trackerIndexedData;
-
-    // Note: we know there is only one tracker in this data
-    //       so we can run concat to combine the vectors and
-    //       and do the calibration for it.
-
-    // a
-    ad = assembleHW1AlgorithmData(relativeDataPath,datapathsuffix);
-    trackerIndexedData = swapIndexing(ad.optpivot.frames);
-    Eigen::VectorXd result = pivotCalibrationTwoSystems(trackerIndexedData[0],trackerIndexedData[1]);
-    Eigen::Vector3d checkResultFirst = result.block<3,1>(0,0);
-    Eigen::Vector3d checkResultSecond = result.block<3,1>(3,0);
-    Eigen::Vector3d checkOutput = ad.output1.frames[0][0].block<1,3>(0,0).transpose();
-
-    BOOST_CHECK(checkResultFirst.isApprox(checkOutput,tolerance));
-
-    if (debug) {
-        std::cout << "\n\nresult:\n\n" << result << "\n\n";
-        std::cout << "\n\ncheckresult FULL:\n\n" << result << "\n\n";
-        std::cout << "\n\ncheckresult FIRST:\n\n" << checkResultFirst << "\n\ncheckresult SECOND:\n\n" << checkResultSecond << "\n\ncheckoutput:\n\n" << checkOutput << "\n\n";
-    }
-};
-
 BOOST_AUTO_TEST_CASE(pivotCalibrationTest)
 {
     testOnePivotCalibration(relativeDataPath, pa1debuga);

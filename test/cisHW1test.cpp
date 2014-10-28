@@ -305,19 +305,25 @@ BOOST_AUTO_TEST_CASE(solveForCExpected)
     // a
     std::vector<Eigen::Matrix4d> transformsEMcoordtoTrackerLocation;
     std::vector<Eigen::Matrix4d> transformsOptcoordtoTrackerLocation;
-    
-    
+
+
     //visitSecondTrackerRepeatedly(ad.calreadings.frames,ad.calbody.frames,
     for (int i = 0; i< ad.calreadings.frames.size(); ++i){
         for(int j = 0; j < ad.calreadings.frames[i].size(); ++j){
-            
-            transformsEMcoordtoTrackerLocation.push_back(hornRegistration(ad.calreadings.frames[i][j],ad.calbody.frames[0][j]));
+
+            transformsEMcoordtoTrackerLocation.push_back(homogeneousInverse(hornRegistration(ad.calreadings.frames[i][j],ad.calbody.frames[0][j])));
             transformsOptcoordtoTrackerLocation.push_back(hornRegistration(ad.calreadings.frames[i][j],ad.calbody.frames[0][j]));
-            //Eigen::MatrixXd Cexpected[i,0] = transformsEMcoordtoTrackerLocation*transformsOptcoordtoTrackerLocation*ad.calreadings.frames[2][i];
-            
         }
     }
 
+    std::vector<std::vector<Eigen::Matrix4d>> cExpected;
+    for (int i = 0; i< ad.calreadings.frames.size(); ++i){
+        for (int j = 0; j < ad.calreadings.frames[0][2].rows(); ++j){
+            Eigen::MatrixXd Cexpected[j] = transformsEMcoordtoTrackerLocation[i]*transformsOptcoordtoTrackerLocation[i]*ad.calreadings.frames[0][2].row(j);
+        }
+    }
+
+    cout << "\n\n" << "Cexpected[0][0] << "\n\n";
 }
 
 void testOnePivotCalibration(csvCIS_pointCloudData::TrackerDevices trackerIndexedData, Eigen::Vector3d checkOutput, std::string description = "", bool debug = false) {

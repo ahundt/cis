@@ -35,6 +35,12 @@ int add(int i, int j)
     return i + j;
 }
 
+
+template<typename T>
+bool isWithinTolerance(const T& result, const T& groundTruth, double toleranceVal = tolerance){
+    return (result.isApprox(groundTruth,toleranceVal) || (result - groundTruth).norm() < toleranceVal);
+}
+
 template<typename T>
 void PrintTwo(T& tp1, T& tp2, std::string p1 = std::string("p1:"), std::string p2 = std::string("p2:")){
 
@@ -242,8 +248,6 @@ BOOST_AUTO_TEST_CASE(manualHornRegistration)
 
 }
 
-
-
 BOOST_AUTO_TEST_CASE(testDebugData)
 {
     AlgorithmData ad;
@@ -292,9 +296,9 @@ void testOnePivotCalibration(csvCIS_pointCloudData::TrackerDevices trackerIndexe
     Eigen::Vector3d checkResultSecond = result.block<3,1>(3,0);
 
     // note: isApprox is known to break near zero
-    BOOST_CHECK(checkResultFirst.isApprox(checkOutput,tolerance) || (checkResultSecond - checkOutput).norm() < tolerance);
+    BOOST_CHECK(isWithinTolerance(checkResultSecond,checkOutput));
 
-    if (!(checkResultFirst.isApprox(checkOutput,tolerance) || (checkResultSecond - checkOutput).norm() < tolerance)) {
+    if (!isWithinTolerance(checkResultSecond,checkOutput)) {
         std::cout << "\n\n" << description << "\n\n";
         std::cout << "===============================================\n\n";
         std::cout << "\n\nresult:\n\n" << result << "\n\n";
@@ -303,14 +307,12 @@ void testOnePivotCalibration(csvCIS_pointCloudData::TrackerDevices trackerIndexe
     }
 };
 
-void testOnePivotCalibration(std::string relativeDataPath,std::string datapathsuffix, std::string description = "", bool debug = false){
+void testOnePivotCalibration(std::string relativeDataPath,std::string datapathsuffix, bool debug = false){
 
     if (debug) {
         std::cout << "testing " <<relativeDataPath<<datapathsuffix<<"\n";
         std::cout << "===============================================\n\n";
     }
-
-    if(description.empty()) description = datapathsuffix;
 
     AlgorithmData ad;
     csvCIS_pointCloudData::TrackerDevices trackerIndexedData;
@@ -325,32 +327,30 @@ void testOnePivotCalibration(std::string relativeDataPath,std::string datapathsu
 
     Eigen::Vector3d checkOutput = ad.output1.estElectromagneticPostPos;
 
-    testOnePivotCalibration(trackerIndexedData, checkOutput, description,debug);
+    testOnePivotCalibration(trackerIndexedData, checkOutput, datapathsuffix,debug);
 
 }
 
-void testTwoPivotCalibration(std::string relativeDataPath,std::string datapathsuffix, std::string description = "", bool debug = false){
+void testTwoPivotCalibration(std::string relativeDataPath,std::string datapathsuffix, bool debug = false){
 
     if (debug) {
         std::cout << "testing " <<relativeDataPath<<datapathsuffix<<"\n";
         std::cout << "===============================================\n\n";
     }
 
-    if(description.empty()) description = datapathsuffix;
-
     AlgorithmData ad;
     csvCIS_pointCloudData::TrackerFrames trackerIndexedData;
 
     ad = assembleHW1AlgorithmData(relativeDataPath,datapathsuffix);
     trackerIndexedData = swapIndexing(ad.optpivot.frames);
-    Eigen::VectorXd result = pivotCalibrationTwoSystems(trackerIndexedData[0],trackerIndexedData[1]);
+    Eigen::VectorXd result = pivotCalibrationTwoSystems(trackerIndexedData[0],trackerIndexedData[1],debug);
     Eigen::Vector3d checkResultFirst = result.block<3,1>(0,0);
     Eigen::Vector3d checkResultSecond = result.block<3,1>(3,0);
     Eigen::Vector3d checkOutput = ad.output1.estOpticalPostPos;
 
-    BOOST_CHECK(checkResultSecond.isApprox(checkOutput,tolerance));
+    BOOST_CHECK(isWithinTolerance(checkResultSecond,checkOutput));
 
-    if (debug) {
+    if (!isWithinTolerance(checkResultSecond,checkOutput)) {
         std::cout << "\n\nresult:\n\n" << result << "\n\n";
         std::cout << "\n\ncheckresult FULL:\n\n" << result << "\n\n";
         std::cout << "\n\ncheckresult FIRST:\n\n" << checkResultFirst << "\n\ncheckresult SECOND:\n\n" << checkResultSecond << "\n\ncheckoutput:\n\n" << checkOutput << "\n\n";
@@ -440,13 +440,13 @@ BOOST_AUTO_TEST_CASE(pivotCalibrationTest)
 
 BOOST_AUTO_TEST_CASE(pivot2CalibrationTest)
 {
-    testTwoPivotCalibration(relativeDataPath, pa1debuga);
-    testTwoPivotCalibration(relativeDataPath, pa1debugb);
-    testTwoPivotCalibration(relativeDataPath, pa1debugc);
-    testTwoPivotCalibration(relativeDataPath, pa1debugd);
-    testTwoPivotCalibration(relativeDataPath, pa1debuge);
-    testTwoPivotCalibration(relativeDataPath, pa1debugf);
-    testTwoPivotCalibration(relativeDataPath, pa1debugg);
+    testTwoPivotCalibration(relativeDataPath, pa1debuga, debug);
+    testTwoPivotCalibration(relativeDataPath, pa1debugb, debug);
+    testTwoPivotCalibration(relativeDataPath, pa1debugc, debug);
+    testTwoPivotCalibration(relativeDataPath, pa1debugd, debug);
+    testTwoPivotCalibration(relativeDataPath, pa1debuge, debug);
+    testTwoPivotCalibration(relativeDataPath, pa1debugf, debug);
+    testTwoPivotCalibration(relativeDataPath, pa1debugg, debug);
     //Print(trackerIndexedData,true,"trackerIndexedData:");
 }
 

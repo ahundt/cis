@@ -110,26 +110,6 @@ Eigen::Matrix3d ArunsMethod(Eigen::Matrix3d Hsum)
     return R;
 }
 
-/// Create transformation matrix from Rotation R and Translation vector P
-Eigen::Matrix4d homogeneousmatrix(Eigen::Matrix3d R, Eigen::Vector3d p)
-{
-    Eigen::Matrix4d F = Eigen::Matrix4d::Identity();
-    F.block<3,3>(0,0) = R;
-    F.block<3,1>(0,3) = p;
-    return F;
-}
-
-/// Computes the inverse of the transformation matrix
-Eigen::MatrixXd homogeneousInverse(const Eigen::MatrixXd& F)
-{
-    Eigen::MatrixXd Finv = Eigen::Matrix4d::Identity();
-    Eigen::Matrix3d R = F.block<3,3>(0,0);
-    Eigen::Matrix3d Rtrans = R.transpose();
-    Finv.block<3,3>(0,0) = Rtrans;
-    Finv.block<3,1>(0,3) = -Rtrans*F.block<3,1>(0,3);
-    return Finv;
-}
-
 /// Performs Horn Method of registration
 ///
 /// @see http://people.csail.mit.edu/bkph/papers/Absolute_Orientation.pdf

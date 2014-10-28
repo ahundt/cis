@@ -128,8 +128,8 @@ Eigen::VectorXd pivotCalibrationTwoSystems(const TrackerCloudRange& tcr, const T
     BOOST_VERIFY(std::distance(std::begin(tcr2),std::end(tcr2))>2);
     Eigen::MatrixXd transforms = registrationToTwoClouds(tcr, tcr2, debug);
     std::pair<Eigen::MatrixXd,Eigen::VectorXd> RIp = transformToRandMinusIandPMatrices(transforms, debug);
-    if(debug) std::cout << "\n\nRI:\n\n" << RIp.first << "\n\np:\n\n" << RIp.second << "\n\n";
-    return SVDSolve(RIp);
+    //if(debug) std::cout << "\n\nRI:\n\n" << RIp.first << "\n\np:\n\n" << RIp.second << "\n\n";
+    return SVDSolve(RIp,debug);
 }
 
 

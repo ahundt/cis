@@ -37,4 +37,27 @@ Eigen::Matrix<Scalar, 3, 1> transform(const Eigen::Transform<Scalar, 3, Eigen::A
 }
 }
 
+/// @todo provide instructions to replace this with eigen built in functionality
+/// Create transformation matrix from Rotation R and Translation vector P
+Eigen::Matrix4d homogeneousmatrix(Eigen::Matrix3d R, Eigen::Vector3d p)
+{
+    Eigen::Matrix4d F = Eigen::Matrix4d::Identity();
+    F.block<3,3>(0,0) = R;
+    F.block<3,1>(0,3) = p;
+    return F;
+}
+
+/// @todo provide instructions to replace this with eigen built in functionality
+/// Computes the inverse of the transformation matrix
+Eigen::MatrixXd homogeneousInverse(const Eigen::MatrixXd& F)
+{
+    Eigen::MatrixXd Finv = Eigen::Matrix4d::Identity();
+    Eigen::Matrix3d R = F.block<3,3>(0,0);
+    Eigen::Matrix3d Rtrans = R.transpose();
+    Finv.block<3,3>(0,0) = Rtrans;
+    Finv.block<3,1>(0,3) = -Rtrans*F.block<3,1>(0,3);
+    return Finv;
+}
+
+
 #endif // _MATRIX_OPERATIONS_HPP_

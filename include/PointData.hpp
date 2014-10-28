@@ -50,7 +50,7 @@ static const std::string dataFileNameSuffix_empivot("empivot.txt");
 static const std::string dataFileNameSuffix_optpivot("optpivot.txt");
 static const std::string dataFileNameSuffix_output1("output1.txt");
 
-AlgorithmData assembleHW1AlgorithmData(std::string datafolderpath, std::string dataFilenamePrefix){
+AlgorithmData assembleHW1AlgorithmData(std::string datafolderpath, std::string dataFilenamePrefix, bool debug = false){
     ParsedCommandLineCommands pclp;
     // check if the user supplied a full path, if not assemble a path
     // from the default paths and the defualt prefix/suffix combos
@@ -62,11 +62,11 @@ AlgorithmData assembleHW1AlgorithmData(std::string datafolderpath, std::string d
     
     
     AlgorithmData ad;
-    loadPointCloudFromFile(pclp.calbodyPath       ,ad.calbody                    );
-    loadPointCloudFromFile(pclp.calreadingsPath   ,ad.calreadings                );
-    loadPointCloudFromFile(pclp.empivotPath       ,ad.empivot                    );
-    loadPointCloudFromFile(pclp.optpivotPath      ,ad.optpivot                   );
-    loadPointCloudFromFile(pclp.output1Path       ,ad.output1                    );
+    loadPointCloudFromFile(pclp.calbodyPath       ,ad.calbody                    ,debug);
+    loadPointCloudFromFile(pclp.calreadingsPath   ,ad.calreadings                ,debug);
+    loadPointCloudFromFile(pclp.empivotPath       ,ad.empivot                    ,debug);
+    loadPointCloudFromFile(pclp.optpivotPath      ,ad.optpivot                   ,debug);
+    loadPointCloudFromFile(pclp.output1Path       ,ad.output1                    ,debug);
     
     return ad;
     

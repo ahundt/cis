@@ -7,6 +7,6 @@ Read the Data format
 
 The following image illustrates the basics of the input testing data format.
 
-.. image:: ../DataFileFormatDescription.png
+.. image:: ../static/DataFileFormatDescription.png
     :width: 400pt
 

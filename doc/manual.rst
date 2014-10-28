@@ -8,8 +8,9 @@
     :maxdepth: 2
 
     features
+	people
     quickstart
     howto
     help
+	reference
 	install
-    people

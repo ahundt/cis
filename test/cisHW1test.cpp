@@ -286,8 +286,8 @@ BOOST_AUTO_TEST_CASE(testDebugData)
 
 
 
-void testOnePivotCalibration(csvCIS_pointCloudData::TrackerDevices trackerIndexedData, Eigen::Vector3d checkOutput, std::string description = "") {
-    Eigen::VectorXd result = pivotCalibration(trackerIndexedData);
+void testOnePivotCalibration(csvCIS_pointCloudData::TrackerDevices trackerIndexedData, Eigen::Vector3d checkOutput, std::string description = "", bool debug = false) {
+    Eigen::VectorXd result = pivotCalibration(trackerIndexedData,debug);
     Eigen::Vector3d checkResultFirst = result.block<3,1>(0,0);
     Eigen::Vector3d checkResultSecond = result.block<3,1>(3,0);
     
@@ -296,13 +296,14 @@ void testOnePivotCalibration(csvCIS_pointCloudData::TrackerDevices trackerIndexe
     
     if (!(checkResultFirst.isApprox(checkOutput,tolerance) || (checkResultFirst - checkOutput).norm() < tolerance)) {
         std::cout << "\n\n" << description << "\n\n";
+        std::cout << "===============================================\n\n";
         std::cout << "\n\nresult:\n\n" << result << "\n\n";
         std::cout << "\n\ncheckresult FULL:\n\n" << result << "\n\n";
         std::cout << "\n\ncheckresult FIRST:\n\n" << checkResultFirst << "\n\ncheckresult SECOND:\n\n" << checkResultSecond << "\n\ncheckoutput:\n\n" << checkOutput << "\n\n";
     }
 };
 
-void testOnePivotCalibration(std::string relativeDataPath,std::string datapathsuffix, std::string description = ""){
+void testOnePivotCalibration(std::string relativeDataPath,std::string datapathsuffix, std::string description = "", bool debug = false){
     
     if (debug) {
         std::cout << "testing " <<relativeDataPath<<datapathsuffix<<"\n";
@@ -324,7 +325,7 @@ void testOnePivotCalibration(std::string relativeDataPath,std::string datapathsu
     
     Eigen::Vector3d checkOutput = ad.output1.frames[0][0].block<1,3>(0,0).transpose();
     
-    testOnePivotCalibration(trackerIndexedData, checkOutput, description);
+    testOnePivotCalibration(trackerIndexedData, checkOutput, description,debug);
     
 }
 
@@ -368,17 +369,26 @@ BOOST_AUTO_TEST_CASE(PivotCalibration){
          -3,  -2,   0;
 
     clouds.push_back(probePointsTest);
+    
+    
+    Print(clouds,true, "clouds1");
 
-    testOnePivotCalibration(clouds, Eigen::Vector3d(0,0,0), "manualAtZero");
+    testOnePivotCalibration(clouds, Eigen::Vector3d(0,0,0), "manualAtZero",debug);
+    
+    Eigen::MatrixXd transforms = registrationToFirstCloud(clouds,debug);
 
     Eigen::Affine3d transform;
+    
+    transform.setIdentity();
     
     // Define a translation of 2.5 meters on the x axis.
     transform.translation() << 2.5, 0.0, 0.0;
     
-    //double theta = 0;//boost::math::constants::pi<double>();
+    double theta = 0;//boost::math::constants::pi<double>();
     // The same rotation matrix as before; tetha radians arround Z axis
-    //transform.rotate (Eigen::AngleAxisd (theta, Eigen::Vector3d::UnitZ()));
+    transform.rotate (Eigen::AngleAxisd (theta, Eigen::Vector3d::UnitZ()));
+    
+    std::cout << "\n\n2.5 0 0 HTRANSFORM:\n\n" << transform.linear() << "\n\n";
     
     for (auto&& tracker : clouds) {
         for(int i = 0; i < tracker.rows(); i++){
@@ -386,17 +396,19 @@ BOOST_AUTO_TEST_CASE(PivotCalibration){
             tracker.row(i) = (transform*Eigen::Vector3d(tracker.row(i).transpose())).transpose();
             
             
-            //Eigen::Vector3d v3d(0,0,0);
+           // Eigen::Vector3d v3d(1,1,1);
             //std::cout << tracker.row(i) << " - before " << i << "\n";
             //tracker.row(i) = (transform*Eigen::Vector3d(tracker.row(i).transpose())).transpose();
             //std::cout << tracker.row(i) << " - after  " << i << "\n";
             //std::cout << v3d << " - before " << i << "\n";
-            //Eigen::Vector3d v3d2 = transform*v3d;
+            //Eigen::Vector3d v3d2 = (transform*v3d).transpose();
             //std::cout << v3d2 << " - after  " << i << "\n";
         }
     }
     
-    testOnePivotCalibration(clouds, Eigen::Vector3d(2.5,0,0),"translated x by 2.5");
+    Print(clouds,true, "clouds2");
+    
+    testOnePivotCalibration(clouds, Eigen::Vector3d(2.5,0,0),"translated x by 2.5",debug);
 }
 
 BOOST_AUTO_TEST_CASE(pivotCalibrationTest)

@@ -28,7 +28,7 @@ Eigen::MatrixXd registrationToFirstCloud(const TrackerCloudRange& tcr,bool debug
 		output.block<HtransformSize,HtransformSize>(i,0) = hornRegistration(*tcIt,*trackerCoordSysIt);
     }
     
-    if(debug) std::cout << "\n\nregistrationToFirstCloudOutput:\n\n" << output << "\n\n";
+    if(debug) std::cout << "\n\ntransforms - registrationToFirstCloudOutput:\n\n" << output << "\n\n";
     
     return output;
 }
@@ -55,8 +55,7 @@ std::pair<Eigen::MatrixXd,Eigen::VectorXd> transformToRandMinusIandPMatrices(con
 	}
     
     if(debug){
-        std::cout << "\n\ntransformToRandMinusIandPMatricesOutput\n\n";
-        std::cout << "\n\nRI:\n\n" << output.first << "\n\np:\n\n" << output.second << "\n\n";
+        std::cout << "\n\nRI - transformToRandMinusIandPMatrices:\n\n" << output.first << "\n\np - transformToRandMinusIandPMatrices:\n\n" << output.second << "\n\n";
     }
 	
     return output;
@@ -86,8 +85,10 @@ template<typename TrackerCloudRange>
 Eigen::VectorXd pivotCalibration(const TrackerCloudRange& tcr,bool debug = false){
     BOOST_VERIFY(std::distance(std::begin(tcr),std::end(tcr))>2);
     Eigen::MatrixXd transforms = registrationToFirstCloud(tcr,debug);
+    //if(debug) std::cout << "\n\ntransforms - pivotCalibration:\n\n" << transforms << "\n\n";
+
     std::pair<Eigen::MatrixXd,Eigen::VectorXd> RIp = transformToRandMinusIandPMatrices(transforms,debug);
-    if(debug) std::cout << "\n\nRI:\n\n" << RIp.first << "\n\np:\n\n" << RIp.second << "\n\n";
+    //if(debug) std::cout << "\n\nRI - pivotCalibration:\n\n" << RIp.first << "\n\np - pivotCalibration:\n\n" << RIp.second << "\n\n";
     return SVDSolve(RIp);
 }
 

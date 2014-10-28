@@ -66,21 +66,23 @@ std::pair<Eigen::MatrixXd,Eigen::VectorXd> transformToRandMinusIandPMatrices(con
 /// @pre must be at least 3 input RIp values (really [R,-I],p)
 ///
 /// @return Eigen::VectorXd of size 6, containing ???????? @todo
-Eigen::VectorXd SVDSolve(const std::pair<Eigen::MatrixXd, Eigen::VectorXd>& RIp)
+Eigen::VectorXd SVDSolve(const std::pair<Eigen::MatrixXd, Eigen::VectorXd>& RIp, bool debug = false)
 {
     BOOST_VERIFY(RIp.first.rows()>9);
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(RIp.first, Eigen::ComputeThinU | Eigen::ComputeThinV);
     Eigen::VectorXd X = svd.solve(-RIp.second);
+    if(true) std::cout << "\n\nSVDSolve - p:\n\n" << X << "\n\n";
     return X;
 }
 
-/// perform pivotCalibration
+/// perform pivotCalibration, utilizing a series of tracker frames rotated around a single pivot
+/// point to determine the distance from the tracker frames to the pivot point.
+///
+/// @param tcr A C++ Range of tracker clouds defined as Eigen::MatrixXd, with 3xn points per tracker.
 /// @pre there must be at least three frames to process
-/// @todo explain return type
-/// @todo figure otu what result of SVDSolve really means
 /// @todo make registration function a template (and regular) parameter that passes through to registrationToFirstCloud
 ///
-/// @return Eigen::VectorXd of size 6, containing ????????
+/// @return Eigen::VectorXd of size 6, the first 3 scalars are the probe tip location, the last 3 scalars are the pivot point of the probe. Both are relative to the em tracker frame.
 template<typename TrackerCloudRange>
 Eigen::VectorXd pivotCalibration(const TrackerCloudRange& tcr,bool debug = false){
     BOOST_VERIFY(std::distance(std::begin(tcr),std::end(tcr))>2);
@@ -89,7 +91,7 @@ Eigen::VectorXd pivotCalibration(const TrackerCloudRange& tcr,bool debug = false
 
     std::pair<Eigen::MatrixXd,Eigen::VectorXd> RIp = transformToRandMinusIandPMatrices(transforms,debug);
     //if(debug) std::cout << "\n\nRI - pivotCalibration:\n\n" << RIp.first << "\n\np - pivotCalibration:\n\n" << RIp.second << "\n\n";
-    return SVDSolve(RIp);
+    return SVDSolve(RIp,debug);
 }
 
 #endif // _PIVOT_CALIBRATION_HPP_

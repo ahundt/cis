@@ -292,9 +292,9 @@ void testOnePivotCalibration(csvCIS_pointCloudData::TrackerDevices trackerIndexe
     Eigen::Vector3d checkResultSecond = result.block<3,1>(3,0);
     
     // note: isApprox is known to break near zero
-    BOOST_CHECK(checkResultFirst.isApprox(checkOutput,tolerance) || (checkResultFirst - checkOutput).norm() < tolerance);
+    BOOST_CHECK(checkResultFirst.isApprox(checkOutput,tolerance) || (checkResultSecond - checkOutput).norm() < tolerance);
     
-    if (!(checkResultFirst.isApprox(checkOutput,tolerance) || (checkResultFirst - checkOutput).norm() < tolerance)) {
+    if (!(checkResultFirst.isApprox(checkOutput,tolerance) || (checkResultSecond - checkOutput).norm() < tolerance)) {
         std::cout << "\n\n" << description << "\n\n";
         std::cout << "===============================================\n\n";
         std::cout << "\n\nresult:\n\n" << result << "\n\n";
@@ -323,7 +323,7 @@ void testOnePivotCalibration(std::string relativeDataPath,std::string datapathsu
     ad = assembleHW1AlgorithmData(relativeDataPath,datapathsuffix);
     trackerIndexedData = concat(ad.empivot.frames);
     
-    Eigen::Vector3d checkOutput = ad.output1.frames[0][0].block<1,3>(0,0).transpose();
+    Eigen::Vector3d checkOutput = ad.output1.estElectromagneticPostPos;
     
     testOnePivotCalibration(trackerIndexedData, checkOutput, description,debug);
     
@@ -371,11 +371,9 @@ BOOST_AUTO_TEST_CASE(PivotCalibration){
     clouds.push_back(probePointsTest);
     
     
-    Print(clouds,true, "clouds1");
+    //Print(clouds,true, "clouds1");
 
-    testOnePivotCalibration(clouds, Eigen::Vector3d(0,0,0), "manualAtZero",debug);
-    
-    Eigen::MatrixXd transforms = registrationToFirstCloud(clouds,debug);
+    testOnePivotCalibration(clouds, Eigen::Vector3d(0,0,0), "manualAtZero");
 
     Eigen::Affine3d transform;
     
@@ -388,39 +386,27 @@ BOOST_AUTO_TEST_CASE(PivotCalibration){
     // The same rotation matrix as before; tetha radians arround Z axis
     transform.rotate (Eigen::AngleAxisd (theta, Eigen::Vector3d::UnitZ()));
     
-    std::cout << "\n\n2.5 0 0 HTRANSFORM:\n\n" << transform.linear() << "\n\n";
-    
     for (auto&& tracker : clouds) {
         for(int i = 0; i < tracker.rows(); i++){
             // translate all of the points using an Homogenous transform matrix
             tracker.row(i) = (transform*Eigen::Vector3d(tracker.row(i).transpose())).transpose();
-            
-            
-           // Eigen::Vector3d v3d(1,1,1);
-            //std::cout << tracker.row(i) << " - before " << i << "\n";
-            //tracker.row(i) = (transform*Eigen::Vector3d(tracker.row(i).transpose())).transpose();
-            //std::cout << tracker.row(i) << " - after  " << i << "\n";
-            //std::cout << v3d << " - before " << i << "\n";
-            //Eigen::Vector3d v3d2 = (transform*v3d).transpose();
-            //std::cout << v3d2 << " - after  " << i << "\n";
         }
     }
     
-    Print(clouds,true, "clouds2");
+    //Print(clouds,true, "clouds2");
     
-    testOnePivotCalibration(clouds, Eigen::Vector3d(2.5,0,0),"translated x by 2.5",debug);
+    testOnePivotCalibration(clouds, Eigen::Vector3d(2.5,0,0),"translated x by 2.5");
 }
 
 BOOST_AUTO_TEST_CASE(pivotCalibrationTest)
 {
-    testOnePivotCalibration(relativeDataPath, pa1debuga);
+    testOnePivotCalibration(relativeDataPath, pa1debuga, pa1debuga,debug);
     testOnePivotCalibration(relativeDataPath, pa1debugb);
     testOnePivotCalibration(relativeDataPath, pa1debugc);
     testOnePivotCalibration(relativeDataPath, pa1debugd);
     testOnePivotCalibration(relativeDataPath, pa1debuge);
     testOnePivotCalibration(relativeDataPath, pa1debugf);
     testOnePivotCalibration(relativeDataPath, pa1debugg);
-
     //Print(trackerIndexedData,true,"trackerIndexedData:");
 }
 

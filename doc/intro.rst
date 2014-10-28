@@ -16,11 +16,7 @@ Andrew Hundt and Alex Strickland Computer Integrated Surgery 600.445 Coursework 
 Introduction
 ============
 
-<<<<<<< HEAD
 The purpose of the assignment was to develop an algorithm for a 3D point set to 3D point set registration and a pivot calibration.  The problem involved a stereotactic navigation system and an electromagnetic positional tracking device.  Tracking markers were placed on objects so the optical tracking device and an electromagnetic tracking device could measure the 3D positions of objects in space relative to measuring base units.  These objects were then registered so that they could be related in the same coordinate frames.  Pivot calibration posts were placed in the system so pivot calibration could be performed and the 3D position of two different probes could be tracked throughout the system.  The diagram below from the assignment document gives a visual description of the system.
-=======
-The purpose of the assignment was to develop an algorithm for a 3D point set to 3D point set registration and a pivot calibration.  The problem involved a stereo tactic navigation system and an electromagnetic positional tracking device.  Tracking markers were placed on objects so the optical tracking device and an electromagnetic tracking device could measure the 3D positions of objects in space relative to measuring base units.  These objects were then registered so that they could be related in the same coordinate frames.  Pivot calibration posts were placed in the system so pivot calibration could be performed and the 3D position of two different probes could be tracked throughout the system.  The diagram below gives a visual description of the system.
->>>>>>> FETCH_HEAD
 
 .. image:: static/CIS_PA1_AssignmentPicture.png
 
@@ -80,28 +76,54 @@ the unit tests, main, and any external libraries that choose to use these utilit
 Each function includes substantial doxygen documentation explaining its purpose and usage. This documentation
 can be viewed inline with the source code, or via a generated html sphinx + doxygen website generated using CMake.  Here is a list of the most important functions used in the program is a brief description of each of them.
 
-========================   ====================================================================================
-Function name                  Description
-========================   ====================================================================================
-Hmatrix   				   Computes a sum of the products H matrix given a set of two cloud points
-Gmatrix					   Computes a sum of the differences of the given H matrix
-EigenMatrix         	   Computes the eigenvalues and corresponding eigenvectors from a given G matrix.  It 
-						   outputs a rotation matrix corresponding to the unit quaternion of the largest 
-						   positive eigenvalue
-homogeneousmatrix          Creates a 4x4 homogeneous matrix from a derived rotational matrix and translational 
-						   vector
-hornRegistration           Computes the homogeneous transformation matrix F given a set of two cloud points.  
-						   It is comprised of the various functions listed above
-homogeneousInverse		   Computes the inverse of a given homogeneous matrix 
-registrationToFirstCloud   Parses the data and runs the hornRegistration function for pivot calibration
-transformToRandMinusIan-   Creates the A and b components of the form Ax=b for singular value decomposition.
-dPMatrices                 A is of the form [R|-I] while b is of the form [-p] where R is the stack of 
-						   rotational matrices of the F transformation matrices, I is stack of 3x3 identity 
-						   matrices, and p is the stack of the translational vectors of the F transformation 
-						   matrices.
-SVDSolve				   Computes the x of the least squares problem Ax=b using singular value decomposition
-						   when the stack of matrices in given.
-========================   ====================================================================================
+
+Important Functions and Descriptions
+------------------------------------
+
+**EigenMatrix()**         	   
+
+Computes the eigenvalues and corresponding eigenvectors from a given G matrix.  It 
+outputs a rotation matrix corresponding to the unit quaternion of the largest 
+positive eigenvalue
+
+**homogeneousmatrix()**          
+
+Creates a 4x4 homogeneous matrix from a derived rotational matrix and translational vector
+
+**hornRegistration()**
+
+Computes the homogeneous transformation matrix F given a set of two cloud points.  
+It is comprised of the various functions listed above
+
+**homogeneousInverse()**		   
+
+Computes the inverse of a given homogeneous matrix 
+
+**registrationToFirstCloud()**   
+
+Parses the data and runs the hornRegistration function for pivot calibration
+
+**transformToRandMinusIandPMatrices()**   
+
+Creates the A and b components of the form Ax=b for singular value decomposition.
+A is of the form [R|-I] while b is of the form [-p] where R is the stack of 
+rotational matrices of the F transformation matrices, I is stack of 3x3 identity 
+matrices, and p is the stack of the translational vectors of the F transformation 
+matrices.
+
+**SVDSolve()**				   
+
+Computes the x of the least squares problem Ax=b using singular value decomposition
+when the stack of matrices in given.
+
+
+**Hmatrix()**   			
+	
+Computes a sum of the products H matrix given a set of two cloud points
+
+**Gmatrix()**					  
+ 
+Computes a sum of the differences of the given H matrix
 
 
 Results and Discussion

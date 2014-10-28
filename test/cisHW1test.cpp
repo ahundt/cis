@@ -301,6 +301,7 @@ BOOST_AUTO_TEST_CASE(testDebugData)
 BOOST_AUTO_TEST_CASE(solveForCExpected)
 {
     AlgorithmData ad;
+    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debuga);
 
     // a
     std::vector<Eigen::Matrix4d> transformsEMcoordtoTrackerLocation;
@@ -319,10 +320,19 @@ BOOST_AUTO_TEST_CASE(solveForCExpected)
     std::vector<Eigen::MatrixXd> cExpected;
     for (int i = 0; i< ad.calreadings.frames.size(); ++i){
         for (int j = 0; j < ad.calreadings.frames[0][2].rows(); ++j){
-            cExpected.push_back(transformsEMcoordtoTrackerLocation[i]*transformsOptcoordtoTrackerLocation[i]*ad.calreadings.frames[0][2].row(j).transpose());
+            
+            Eigen::Affine3d transformEM;
+            transformEM.setIdentity();
+            transformEM.matrix() = transformsEMcoordtoTrackerLocation[i].block<4,4>(0,0);
+            
+            Eigen::Affine3d transformOpt;
+            transformEM.setIdentity();
+            transformEM.matrix() = transformsOptcoordtoTrackerLocation[i].block<4,4>(0,0);
+            
+            cExpected.push_back(transformEM*transformOpt*Eigen::Vector3d(ad.calreadings.frames[0][2].row(j).transpose()));
         }
     }
-
+    std::cout << cExpected.size() << "\n\n";
     std::cout << "\n\n" << cExpected[0] << "\n\n";
 }
 
@@ -432,7 +442,7 @@ void testTwoPivotCalibration(std::string relativeDataPath,std::string datapathsu
 //              / /|\ \
 //             / / | \ \
 //              /  |  \
-
+//
 
 csvCIS_pointCloudData::TrackerDevices makeCustomClouds(){
 

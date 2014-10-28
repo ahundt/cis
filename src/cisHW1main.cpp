@@ -140,8 +140,8 @@ void outputCISCSV(std::ostream ostr, const std::string& outputName = "NAME-OUTPU
     
     for (auto&& vTrackers : vvFrames) {
         for(auto && tracker : vTrackers) {
-            std::size_t cols = tracker.cols();
-            for(std::size_t i = 0; i < cols; ++i) {
+            std::size_t rows = tracker.rows();
+            for(std::size_t i = 0; i < rows; ++i) {
                 ostr
                 << optProbe.block<1,3>(i,2) << "," << optProbe.block<1,1>(i,2) << "," << optProbe.block<1,1>(i,2) << "\n";
             }

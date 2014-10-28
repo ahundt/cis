@@ -84,11 +84,12 @@ basis_project (
   # meta-data
   NAME             "CIS"
   VERSION          "0.0.0"
-  AUTHORS          "Andrew Hundt"
+  AUTHORS          "Andrew Hundt and Alex Strickland"
                    #<author>
   DESCRIPTION      "Andrew Hundt and Alex Strickland Computer Integrated Surgery 600.445 Coursework Repository"
   # Note: VENDOR will also be part of the default installation path
-  VENDOR           #<vendor>
+  VENDOR           "Andrew Hundt and Alex Strickland"
+                   #<vendor>
   PROVIDER_NAME    #Andrew Hundt and Alex Strickland
   PROVIDER_LOGO    #<provider-logo>
   PROVIDER_WEBSITE "http://www.<vendor>.com/CIS"
@@ -97,7 +98,7 @@ basis_project (
   DIVISION_WEBSITE #<division-website>
   COPYRIGHT        "2014 Andrew Hundt and Alex Strickland"
   LICENSE          "See COPYING file for license information."
-  CONTACT          "Andrew Hundt and Alex Strickland <CIS@<vendor>.com>"
+  CONTACT          "Andrew Hundt <ahundt@jhu.edu> and Alex Strickland <astrick3@jhu.edu>"
   TEMPLATE         "basis/1.1"
   
   # --------------------------------------------------------------------------

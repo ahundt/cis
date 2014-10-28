@@ -35,6 +35,7 @@ We developed our algorithm using C++.  The Eigen library was used as a Cartesian
 INSERT GRAPHIC
 
 Once the data was parsed, two matrices containing marker positions in different coordinate frames was put in the function hornRegistration to determine the corresponding transformation matrix between the two frames.  The first step of the hornRegistration was to find the two centroids of two 3D marker positions and subtract it from each marker position using functions in the Eigen library.  The next step was to put these values in a function that would create a 3x3 H matrix.  Once this was done, the H matrix could be put in a separate function that would calculate the 4x4 G matrix.  The eigenvalues and the corresponding eigenvectors of the G matrix were next calculated by using functions of the Eigen library.  A vector of each eigenvalue and the corresponding eigenvector was then created so that the eigenvalues could be sorted to find the most positive eigenvalue and its corresponding eigenvector which represented the unit quaternion of the rotation.  Next, the 3x3 rotation matrix was created by an Eigen function that converted a unit quaternion into the corresponding rotation matrix.  Finally, the translation vector between the two centroids was calculated and a 4x4 homogeneous transformation matrix was created by using another function that takes a rotation matrix and a translation vector and outputs the corresponding transformation matrix.
+
 Next a pivot calibration algorithm was created which used both the parser and hornRegistration algorithms.  First, the tracker data was parsed in separate matrices which corresponded to each frame of tracked data.  Each matrix of frame was compared to the original matrix frame using the hornRegistration function and the corresponding homogeneous transformation matrix was found.  The rotational component of each frame was put into an Eigen matrix and the translational component of each frame was put into an Eigen vector with the form described in the mathematical approach above.  The function of JacobiSVD of the Eigen library was then used to solve the least squares vector between the rotational matrix and translation vectors.  The least squares vector contained approximated orientation of the probe and the position of the probe tip.
 
 Structure of the Program
@@ -42,17 +43,18 @@ Structure of the Program
 
 The most important files include:
 
+========================   ====================================================================================
+File name                  Description
+========================   ====================================================================================
+**hornRegistration.hpp**   Functions for implemention Horn's method of Point Cloud to Point Cloud registration.
+**PivotCalibration.hpp**   Functions for implementing Pivot Calibration.
+**cisHW1test.cpp**         An extensive set of unit tests for the library.
+**cisHW1main.cpp**         Main executable source, contains cmdline parsing code and produces output data.
+**parseCSV...**            File parsing functions are in **parseCSV_CIS_pointCloud.hpp**.
+========================   ====================================================================================
 
-===============================   =============================================================================================
-File name                         Description
-===============================   =============================================================================================
-**hornRegistration.hpp**          Functions for implemention Horn's method of Point Cloud to Point Cloud registration.
-**PivotCalibration.hpp**          Functions for implementing Pivot Calibration.
-**cisHW1test.cpp**                An extensive set of unit tests for the library.
-**cisHW1main.cpp**                Main executable source, contains cmdline parsing code and produces output data.
-**parseCSV_CIS_pointCloud.hpp**   File parsing functions.
-===============================   =============================================================================================
-
+The software is structured as a set of header only libraries in the include folder, which are utilized by
+the unit tests, main, and any external libraries that choose to use these utilities.
 
 Results and Discussion
 ======================

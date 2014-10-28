@@ -11,15 +11,3 @@ Software Development
 
 - Andrew Hundt
 - Alex Strickland
-
-
-Contributors
-------------
-
-- Names of the contributors
-
-
-Advisors
---------
-
-- Name of the advisor

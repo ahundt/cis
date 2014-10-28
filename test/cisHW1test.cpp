@@ -211,10 +211,10 @@ BOOST_AUTO_TEST_CASE(manualHornRegistration)
     0,   0, 250,
     0, 250,   0,
     0, 250, 250,
-  		250,   0,   0,
-  		250,   0, 250,
-  		250, 250,   0,
-  		250, 250, 250;
+    250,   0,   0,
+    250,   0, 250,
+    250, 250,   0,
+    250, 250, 250;
 
 
     if(debug) std::cout << "\n\ntrackerPoints:\n\n" << trackerPoints << std::endl;

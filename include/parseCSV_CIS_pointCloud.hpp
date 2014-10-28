@@ -263,11 +263,11 @@ template<typename T>
 const std::vector<std::vector<T> > swapIndexing(const std::vector<std::vector<T> >& uv){
     std::vector<std::vector<T> > vu;
     for(auto uvi : uv){
-        vu.push_back(std::vector<T>());
-        auto vuBI = std::back_inserter(*(vu.end()-1));
+        int i = 0;
         for(auto vi :uvi){
-            *vuBI = vi;
-            ++vuBI;
+            if(i == vu.size()) vu.push_back(std::vector<T>());
+            vu[i].push_back(vi);
+            ++i;
         }
     }
     return vu;

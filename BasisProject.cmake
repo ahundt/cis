@@ -1,5 +1,5 @@
 # ===============================================================================
-# Copyright (c) 2014 <provider-name>
+# Copyright (c) 2014 Andrew Hundt and Alex Strickland
 # All rights reserved.
 #
 # See COPYING file for license information.
@@ -89,15 +89,15 @@ basis_project (
   DESCRIPTION      "Andrew Hundt and Alex Strickland Computer Integrated Surgery 600.445 Coursework Repository"
   # Note: VENDOR will also be part of the default installation path
   VENDOR           #<vendor>
-  PROVIDER_NAME    #<provider-name>
+  PROVIDER_NAME    #Andrew Hundt and Alex Strickland
   PROVIDER_LOGO    #<provider-logo>
   PROVIDER_WEBSITE "http://www.<vendor>.com/CIS"
   DIVISION_NAME    #<division-name>
   DIVISION_LOGO    #<division-logo>
   DIVISION_WEBSITE #<division-website>
-  COPYRIGHT        "2014 <provider-name>"
+  COPYRIGHT        "2014 Andrew Hundt and Alex Strickland"
   LICENSE          "See COPYING file for license information."
-  CONTACT          "<provider-name> <CIS@<vendor>.com>"
+  CONTACT          "Andrew Hundt and Alex Strickland <CIS@<vendor>.com>"
   TEMPLATE         "basis/1.1"
   
   # --------------------------------------------------------------------------

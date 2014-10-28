@@ -1,5 +1,5 @@
 # ============================================================================
-# Copyright (c) 2014 <provider-name>
+# Copyright (c) 2014 Andrew Hundt and Alex Strickland
 # All rights reserved.
 #
 # See COPYING file for license information.

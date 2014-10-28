@@ -32,9 +32,11 @@ Build Dependencies
 
 The following software has to be installed (if not optional).
 
-Package          | Version | Description
----------------- | ------- | --------------------------------------------------------
-[CMake BASIS][1] | >= 3.0  | A meta-project which makes it easy to create sharable software and libraries that work together.
+Package          | Version    | Description
+---------------- | ---------- | --------------------------------------------------------
+[CMake BASIS][1] | >= 3.0     | A meta-project which makes it easy to create sharable software and libraries that work together.
+Eigen            | >= 3.0     | A linear algebra library.
+Boost            | >= 1.50.0  | A collection of general use C++ libraries.
 
 
 
@@ -77,7 +79,7 @@ of the [BASIS how-to guide on software installation][2].
 
 Please refer to this guide first if you are uncertain about above steps or
 have problems to build, test, or install the software on your system.
-If this guide does not help you resolve the issue, please contact <provider-name> <CIS@<vendor>.com>.
+If this guide does not help you resolve the issue, please contact Andrew Hundt and Alex Strickland <CIS@<vendor>.com>.
 In case of failing tests, please attach the output of the following command:
 
     $ ctest -V >& test.log
@@ -89,13 +91,16 @@ configure the build and installation of this software are documented.
 CMake Options
 -------------
 
-(no additional CMake options considered by this package)
+To enable unit testing and build the documentation use the following command:
 
+    ccmake ..
 
-Advanced CMake Options
-----------------------
+We also suggest the following flags:
 
-(no additional advanced CMake options considered by this package)
+ BUILD_DOCUMENTATION              ON
+ BUILD_EXAMPLE                    OFF
+ BUILD_TESTING                    ON
+ 
 
 
 

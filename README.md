@@ -1,14 +1,10 @@
 Introduction
 ============
 
-Introduce your software package here and describe its purpose. This section
-is very similar to an abstract of a scientific article. The focus here is,
-however, on the software, not the mathematics. Cite any of your publications
-which are related to this software package here as \[1] and add a reference
-to the References section at the end of this file.
 
-* \[1] Authors, Title, Journal (Year)
-* \[2] Authors, Title, Journal (Year)
+The purpose of the assignment was to develop an algorithm for a 3D point set to 3D point set registration and a pivot calibration.  The problem involved a stereotactic navigation system and an electromagnetic positional tracking device.  Tracking markers were placed on objects so the optical tracking device and an electromagnetic tracking device could measure the 3D positions of objects in space relative to measuring base units.  These objects were then registered so that they could be related in the same coordinate frames.  Pivot calibration posts were placed in the system so pivot calibration could be performed and the 3D position of two different probes could be tracked throughout the system. Resources utilized include \[1].
+
+* \[1] Horn, Closed-form solution of absolute orientation using unit quaternions, Optical Society of America (1987)
 
 
 
@@ -16,7 +12,7 @@ to the References section at the end of this file.
 License
 =======
 
-Copyright (c) 2014 <provider-name> <br />
+Copyright (c) 2014 Andrew Hundt and Alex Strickland <br />
 
 See COPYING file for license information.
 

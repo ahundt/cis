@@ -10,6 +10,7 @@ Software Development
 --------------------
 
 - Andrew Hundt
+- Alex Strickland
 
 
 Contributors

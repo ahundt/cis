@@ -34,7 +34,7 @@ Clone the `Git <http://git-scm.com/>`__ repository from `GitHub <https://github.
     
     mkdir -p ~/local/src
     cd ~/local/src
-    git clone https://github.com/schuhschuh/cis.git
+    git clone https://github.com/ahundt/cis
     cd cis
     
 or :doc:`download` a pre-packaged ``.tar.gz`` of the latest release and unpack it using the following command:
@@ -105,16 +105,6 @@ Using the Bourne Again SHell (bash):
     export CIS_EXAMPLE_DIR="~/local/share/basis/example"
 
 
-Create an Example
------------------
-
-Create an example using CIS:
-
-.. code-block:: bash
-    
-    voluptate --velit esse --cillum dolore --eu
-
-
 
 Test the Example
 ~~~~~~~~~~~~~~~~
@@ -126,7 +116,17 @@ id est laborum.
 
 .. code-block:: bash
     
-    ipsum --in molestie
+	./cisHW1main --dataFilenamePrefix pa1-debug-a --dataFolderPath /Users/athundt/source/cis/data/PA1-2/
+
+
+	PivotCalibration result for pa1-debug-a-empivot.txt:
+
+	197.115
+	192.677
+	192.437
+	197.113
+	192.677
+	192.434
 
 
 Next Steps

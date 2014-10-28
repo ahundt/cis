@@ -3,13 +3,10 @@
 Features
 ========
 
-**Lorem ipsum**
+**Horn Registration**
 
-- dolor sit amet, consectetur adipisicing elit . 
-- sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+- Point cloud to point cloud transformations . 
 
-**Ut enim**
+**Pivot calibrations**
 
-- ad minim veniam, quis nostrud exercitation
-- ullamco laboris nisi ut aliquip ex ea commodo consequat
-- Duis aute irure dolor in reprehenderit
+- Pivot calibrations allow a coordinate system to be established with respect to existing data and the world frame.

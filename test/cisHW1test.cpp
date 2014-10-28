@@ -15,6 +15,7 @@
 #include "hornRegistration.hpp"
 #include "PointData.hpp"
 #include "PivotCalibration.hpp"
+#include "PointEstimation.hpp"
 
 static const bool debug = true;
 static const double tolerance = 0.01l;
@@ -304,38 +305,10 @@ BOOST_AUTO_TEST_CASE(solveForCExpected)
     ad = assembleHW1AlgorithmData(relativeDataPath,pa1debuga);
 
     // a
-    std::vector<Eigen::Matrix4d> transformsEMcoordtoTrackerLocation;
-    std::vector<Eigen::Matrix4d> transformsOptcoordtoTrackerLocation;
+	std::vector<Eigen::MatrixXd> cExpected = estimateCExpected(ad.calreadings.frames,ad.calbody.frames,debug);
 
 
-    //visitSecondTrackerRepeatedly(ad.calreadings.frames,ad.calbody.frames,
-    for (int i = 0; i< ad.calreadings.frames.size(); ++i){
-        for(int j = 0; j < ad.calreadings.frames[i].size(); ++j){
-
-            transformsEMcoordtoTrackerLocation.push_back(homogeneousInverse(hornRegistration(ad.calreadings.frames[i][j],ad.calbody.frames[0][j])));
-            transformsOptcoordtoTrackerLocation.push_back(hornRegistration(ad.calreadings.frames[i][j],ad.calbody.frames[0][j]));
-        }
-    }
-
-    std::cout << "\n\n" << "EMTransformMatrix\n\n";Print(transformsEMcoordtoTrackerLocation);
-    std::cout << "\n\n" << "OptTransformMatrix\n\n"; Print(transformsOptcoordtoTrackerLocation);
-    
-    std::vector<Eigen::MatrixXd> cExpected;
-    for (int i = 0; i< ad.calreadings.frames.size(); ++i){
-        for (int j = 0; j < ad.calreadings.frames[0][2].rows(); ++j){
-            
-            Eigen::Affine3d transformEM;
-            transformEM.setIdentity();
-            transformEM.matrix() = transformsEMcoordtoTrackerLocation[i].block<4,4>(0,0);
-            
-            Eigen::Affine3d transformOpt;
-            transformEM.setIdentity();
-            transformEM.matrix() = transformsOptcoordtoTrackerLocation[i].block<4,4>(0,0);
-            
-            cExpected.push_back((transformEM*transformOpt*Eigen::Vector3d(ad.calreadings.frames[0][2].row(j).transpose())).transpose());
-        }
-    }
-    std::cout << "\n\nsolveForCExpected\n\n" << cExpected.size() << "\n\n";
+       std::cout << "\n\nsolveForCExpected\n\n" << cExpected.size() << "\n\n";
     for (int i = 0; i<10; i++)
         std::cout << cExpected[i] << "\n\n";
 }

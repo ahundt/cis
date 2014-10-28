@@ -95,7 +95,7 @@ To enable unit testing and build the documentation use the following command:
 
     ccmake ..
 
-We also suggest the following flags:
+We also suggest the following CMake flags, defined with -DFLAG=ON:
 
  BUILD_DOCUMENTATION              ON
  BUILD_EXAMPLE                    OFF

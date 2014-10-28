@@ -339,7 +339,7 @@ void testTwoPivotCalibration(std::string relativeDataPath,std::string datapathsu
     
     
     AlgorithmData ad;
-    csvCIS_pointCloudData::TrackerDevices trackerIndexedData;
+    csvCIS_pointCloudData::TrackerFrames trackerIndexedData;
     
     // Note: we know there is only one tracker in this data
     //       so we can run concat to combine the vectors and

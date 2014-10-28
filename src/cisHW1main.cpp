@@ -148,15 +148,15 @@ int main(int argc,char**argv) {
     
     ///////////////////////////////////////////
     // print pivot calibration data of empivot
-    
-    csvCIS_pointCloudData::TrackerDevices trackerIndexedData;
-    // Note: we know there is only one tracker in this data
-    //       so we can run concat to combine the vectors and
-    //       and do the calibration for it.
-    trackerIndexedData = concat(ad.empivot.frames);
-    Eigen::VectorXd result = pivotCalibration(trackerIndexedData,pclp.debug);
-    std::cout << "\n\nPivotCalibration result for " << ad.empivot.title << ":\n\n" << result << "\n\n";
-    
+    if(!ad.empivot.frames.empty()){
+		csvCIS_pointCloudData::TrackerDevices trackerIndexedData;
+		// Note: we know there is only one tracker in this data
+		//       so we can run concat to combine the vectors and
+		//       and do the calibration for it.
+		trackerIndexedData = concat(ad.empivot.frames);
+		Eigen::VectorXd result = pivotCalibration(trackerIndexedData,pclp.debug);
+		std::cout << "\n\nPivotCalibration result for " << ad.empivot.title << ":\n\n" << result << "\n\n";
+	}
     
 	return 0;
 }

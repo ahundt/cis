@@ -127,6 +127,30 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
     return false;
 }
 
+
+
+
+/// Produce an output CIS CSV file
+void outputCISCSV(std::ostream ostr, const std::string& outputName = "NAME-OUTPUT-1.TXT", const Eigen::Vector3d & emProbe, const Eigen::Vector3d & optProbe, const csvCIS_pointCloudData::TrackerFrames & vvFrames){
+    
+    ostr
+    << vvFrames[0].size() << "," << vvFrames.size() << "," << outputName << "\n"
+    << emProbe.block<1,1>(0,0) << "," << emProbe.block<1,1>(1,0) << "," << emProbe.block<2,1>(2,0) << "\n"
+    << optProbe.block<1,1>(0,0) << "," << optProbe.block<1,1>(1,0) << "," << optProbe.block<1,1>(2,0) << "\n";
+    
+    for (auto&& vTrackers : vvFrames) {
+        for(auto && tracker : vTrackers) {
+            std::size_t cols = tracker.cols();
+            for(std::size_t i = 0; i < cols; ++i) {
+                ostr
+                << optProbe.block<1,3>(i,2) << "," << optProbe.block<1,1>(i,2) << "," << optProbe.block<1,1>(i,2) << "\n";
+            }
+            
+        }
+    }
+    
+}
+
 /**************************************************************************/
 /**
  * @brief Main function 

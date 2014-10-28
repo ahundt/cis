@@ -5,6 +5,7 @@
 #include <Eigen/Dense>
 #include <string>
 #include <iostream>
+#include <ostream>
 #include <fstream>
 #include <vector>
 #include <boost/algorithm/string.hpp>
@@ -255,7 +256,6 @@ void loadPointCloudFromFile(std::string fullFilePath, csvCIS_pointCloudData& poi
     
     pointCloud = parseCSV_CIS_pointCloud(ss.str(),debug);
 }
-
 
 /// Swap indexing order of vector of vectors, so if it is row major the returned vv will be column major.
 /// @todo this is pretty inefficient, but the lengthts can vary. Maybe store the data differently

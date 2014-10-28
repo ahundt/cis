@@ -11,4 +11,5 @@
     quickstart
     howto
     help
+	install
     people

@@ -141,12 +141,14 @@ or move on to the various :doc:`How-to Guides <howto>`.
 
 .. _Tutorials:
 
-Advanced Tutorials
+Advanced Information
 ==================
 
-The advanced tutorial slides give a more in-depth introduction to CIS and
-its use including in-depth information and references to further documentation. For a less
-comprehensive tutorial-like introduction, please refer to the :ref:`FirstSteps` above.
+For advanced documentation, please see the doxygen API documentation, unit tests, software manual. If you cannot view
+these files and documents, they are visible as inline source code documentation and and restructured text files
+found in the /doc folder.  
+
+For a less comprehensive tutorial-like introduction, please refer to the :ref:`FirstSteps` above.
 
 .. ref links are required for the PDF version as the download directive in
    this case does not translate to a hyperlink, but text only.

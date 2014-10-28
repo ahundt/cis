@@ -62,7 +62,19 @@ the unit tests, main, and any external libraries that choose to use these utilit
 Each function includes substantial doxygen documentation explaining its purpose and usage. This documentation
 can be viewed inline with the source code, or via a generated html sphinx + doxygen website generated using CMake.  Here is a list of the most important functions used in the program is a brief description of each of them.
 
+Hmatrix -> computes a sum of the products H matrix given a set of two cloud points
 
+Gmatrix -> computes a sum of the differences of the given H matrix
+
+EigenMatrix -> computes the eigenvalues and corresponding eigenvectors from a given G matrix.  it outputs a rotation matrix corresponding to the unit quaternion of the largest positive eigenvalue
+
+homogeneousmatrix -> creates a 4x4 homogeneous matrix from a derived rotational matrix and translational vector
+
+hornRegistration -> computes the homogeneous transformation matrix F given a set of two cloud points.  it is comprised of the functions listed above
+
+homogeneousInverse -> computes the inverse of a given homogeneous matrix 
+
+registrationToFirstCloud ->
 
 Results and Discussion
 ======================

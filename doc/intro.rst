@@ -62,19 +62,29 @@ the unit tests, main, and any external libraries that choose to use these utilit
 Each function includes substantial doxygen documentation explaining its purpose and usage. This documentation
 can be viewed inline with the source code, or via a generated html sphinx + doxygen website generated using CMake.  Here is a list of the most important functions used in the program is a brief description of each of them.
 
-Hmatrix -> computes a sum of the products H matrix given a set of two cloud points
+========================   ====================================================================================
+Function name                  Description
+========================   ====================================================================================
+Hmatrix   				   Computes a sum of the products H matrix given a set of two cloud points
+Gmatrix					   Computes a sum of the differences of the given H matrix
+EigenMatrix         	   Computes the eigenvalues and corresponding eigenvectors from a given G matrix.  It 
+						   outputs a rotation matrix corresponding to the unit quaternion of the largest 
+						   positive eigenvalue
+homogeneousmatrix          Creates a 4x4 homogeneous matrix from a derived rotational matrix and translational 
+						   vector
+hornRegistration           Computes the homogeneous transformation matrix F given a set of two cloud points.  
+						   It is comprised of the various functions listed above
+homogeneousInverse		   Computes the inverse of a given homogeneous matrix 
+registrationToFirstCloud   Parses the data and runs the hornRegistration function for pivot calibration
+transformToRandMinusIan-   Creates the A and b components of the form Ax=b for singular value decomposition.
+dPMatrices                 A is of the form [R|-I] while b is of the form [-p] where R is the stack of 
+						   rotational matrices of the F transformation matrices, I is stack of 3x3 identity 
+						   matrices, and p is the stack of the translational vectors of the F transformation 
+						   matrices.
+SVDSolve				   Computes the x of the least squares problem Ax=b using singular value decomposition
+						   when the stack of matrices in given.
+========================   ====================================================================================
 
-Gmatrix -> computes a sum of the differences of the given H matrix
-
-EigenMatrix -> computes the eigenvalues and corresponding eigenvectors from a given G matrix.  it outputs a rotation matrix corresponding to the unit quaternion of the largest positive eigenvalue
-
-homogeneousmatrix -> creates a 4x4 homogeneous matrix from a derived rotational matrix and translational vector
-
-hornRegistration -> computes the homogeneous transformation matrix F given a set of two cloud points.  it is comprised of the functions listed above
-
-homogeneousInverse -> computes the inverse of a given homogeneous matrix 
-
-registrationToFirstCloud ->
 
 Results and Discussion
 ======================

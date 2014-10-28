@@ -81,7 +81,7 @@ Eigen::Quaternion<double> EigenMatrix(Eigen::Matrix4d G,bool debug = false)
 	if(debug){
 		int i =0;
 		for (DVPair::iterator begin=ToSort.begin(); begin!=ToSort.end(); ++begin){
-        
+
 			std::cout << "\n\nEval/Quat " << i << " :\n\n"
 				<< begin->first << "\n\n"
 					<< begin->second << "\n\n";
@@ -117,6 +117,17 @@ Eigen::Matrix4d homogeneousmatrix(Eigen::Matrix3d R, Eigen::Vector3d p)
     F.block<3,3>(0,0) = R;
     F.block<3,1>(0,3) = p;
     return F;
+}
+
+/// Computes the inverse of the transformation matrix
+Eigen::MatrixXd homogeneousInverse(const Eigen::MatrixXd& F)
+{
+    Eigen::MatrixXd Finv = Eigen::Matrix4d::Identity();
+    Eigen::Matrix3d R = F.block<3,3>(0,0);
+    Eigen::Matrix3d Rtrans = R.transpose();
+    Finv.block<3,3>(0,0) = Rtrans;
+    Finv.block<3,1>(0,3) = -Rtrans*F.block<3,1>(0,3);
+    return Finv;
 }
 
 /// Performs Horn Method of registration

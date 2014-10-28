@@ -117,11 +117,13 @@ Eigen::VectorXd pivotCalibration(const TrackerCloudRange& tcr,bool debug = false
 
 /// perform pivotCalibration of Optical Probe in terms of the EM Coordinate System
 /// @pre there must be at least three frames to process
-/// @todo explain return type
-/// @todo figure otu what result of SVDSolve really means
+///
+/// @param tcr A C++ Range of tracker clouds defined as Eigen::MatrixXd, with 3xn points per tracker.
+/// @param tcr2 A C++ Range of tracker clouds defined as Eigen::MatrixXd, with 3xn points per tracker.
+/// @pre there must be at least three frames to process
 /// @todo make registration function a template (and regular) parameter that passes through to registrationToFirstCloud
 ///
-/// @return Eigen::VectorXd of size 6, containing ????????
+/// @return Eigen::VectorXd of size 6, the first 3 scalars are the probe tip location, the last 3 scalars are the pivot point of the probe. Both are relative to the em tracker frame.
 template<typename TrackerCloudRange>
 Eigen::VectorXd pivotCalibrationTwoSystems(const TrackerCloudRange& tcr, const TrackerCloudRange& tcr2,bool debug = false){
     BOOST_VERIFY(std::distance(std::begin(tcr),std::end(tcr))>2);

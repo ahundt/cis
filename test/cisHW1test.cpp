@@ -343,6 +343,10 @@ void testTwoPivotCalibration(std::string relativeDataPath,std::string datapathsu
 
     ad = assembleHW1AlgorithmData(relativeDataPath,datapathsuffix);
     trackerIndexedData = swapIndexing(ad.optpivot.frames);
+    if(debug){
+        Print(trackerIndexedData[0],true,"trackerIndexedData0");
+        Print(trackerIndexedData[1],true,"trackerIndexedData1");
+    }
     Eigen::VectorXd result = pivotCalibrationTwoSystems(trackerIndexedData[0],trackerIndexedData[1],debug);
     Eigen::Vector3d checkResultFirst = result.block<3,1>(0,0);
     Eigen::Vector3d checkResultSecond = result.block<3,1>(3,0);

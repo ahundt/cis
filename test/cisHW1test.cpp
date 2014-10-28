@@ -317,6 +317,9 @@ BOOST_AUTO_TEST_CASE(solveForCExpected)
         }
     }
 
+    std::cout << "\n\n" << "EMTransformMatrix\n\n";Print(transformsEMcoordtoTrackerLocation);
+    std::cout << "\n\n" << "OptTransformMatrix\n\n"; Print(transformsOptcoordtoTrackerLocation);
+    
     std::vector<Eigen::MatrixXd> cExpected;
     for (int i = 0; i< ad.calreadings.frames.size(); ++i){
         for (int j = 0; j < ad.calreadings.frames[0][2].rows(); ++j){
@@ -333,7 +336,8 @@ BOOST_AUTO_TEST_CASE(solveForCExpected)
         }
     }
     std::cout << "\n\nsolveForCExpected\n\n" << cExpected.size() << "\n\n";
-    std::cout << "\n\n" << cExpected[0] << "\n\n";
+    for (int i = 0; i<10; i++)
+        std::cout << cExpected[i] << "\n\n";
 }
 
 void testOnePivotCalibration(csvCIS_pointCloudData::TrackerDevices trackerIndexedData, Eigen::Vector3d checkOutput, std::string description = "", bool debug = false) {

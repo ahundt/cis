@@ -56,11 +56,13 @@ File name                  Description
 The software is structured as a set of header only libraries in the include folder, which are utilized by
 the unit tests, main, and any external libraries that choose to use these utilities.
 
+Each function includes substantial doxygen documentation explaining its purpose and usage. This documentation
+can be viewed inline with the source code, or via a generated html sphinx + doxygen website generated using CMake.
+
 Results and Discussion
 ======================
 
-Table of unknown results
-========================
+We implemented a battery of unit tests to verify the basic functions and ensure they are running correctly. We have been able to ensure that point cloud to point cloud registration is working correctly. We tested the input data set as well, ensuring that we were within the given tolerance range.
 
 Status of results
 ======================

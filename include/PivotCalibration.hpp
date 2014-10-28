@@ -42,7 +42,7 @@ Eigen::MatrixXd registrationToTwoClouds(const TrackerCloudRange& tcr1, const Tra
 	auto trackerCoordSysIt2 = std::begin(tcr2);
 	/// @todo eliminate finding registration on itself for first loop
     std::size_t i = 0;
-	for(auto tcIt1 = std::begin(tcr1), auto tcIt2 = std::begin(tcr2); tcIt1!=std::end(tcr1); ++tcIt1, ++tcIt2, i+=HtransformSize){
+	for(auto tcIt1 = std::begin(tcr1), tcIt2 = std::begin(tcr2); tcIt1!=std::end(tcr1); ++tcIt1, ++tcIt2, i+=HtransformSize){
         Eigen::MatrixXd Ftcr2 = hornRegistration(*tcIt2,*trackerCoordSysIt2);
         Eigen::MatrixXd Ftrc2inv = homogeneousInverse(Ftcr2);
 		output.block<HtransformSize,HtransformSize>(i,0) = Ftrc2inv*hornRegistration(*tcIt1,*trackerCoordSysIt1);

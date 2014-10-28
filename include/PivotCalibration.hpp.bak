@@ -42,7 +42,7 @@ Eigen::MatrixXd registrationToTwoClouds(const TrackerCloudRange& tcr1, const Tra
 	auto trackerCoordSysIt2 = std::begin(tcr2);
 	/// @todo eliminate finding registration on itself for first loop
     std::size_t i = 0;
-	for(auto tcIt1 = std::begin(tcr1), auto tcIt2 = std::begin(tcr2); tcIt1!=std::end(tcr1); ++tcIt1, ++tcIt2, i+=HtransformSize){
+	for(auto tcIt1 = std::begin(tcr1), tcIt2 = std::begin(tcr2); tcIt1!=std::end(tcr1); ++tcIt1, ++tcIt2, i+=HtransformSize){
         Eigen::MatrixXd Ftcr2 = hornRegistration(*tcIt2,*trackerCoordSysIt2);
         Eigen::MatrixXd Ftrc2inv = homogeneousInverse(Ftcr2);
 		output.block<HtransformSize,HtransformSize>(i,0) = Ftrc2inv*hornRegistration(*tcIt1,*trackerCoordSysIt1);
@@ -66,19 +66,19 @@ std::pair<Eigen::MatrixXd,Eigen::VectorXd> transformToRandMinusIandPMatrices(con
 	std::pair<Eigen::MatrixXd,Eigen::VectorXd> output;
 	output.first.resize(transformCount*RotSize,6);
 	output.second.resize(transformCount*RotSize);
-    
-	
+
+
 	for(std::size_t transformRow = 0, outputRow = 0; transformRow < transformRows; transformRow+=HtransformSize,outputRow+=RotSize){
-        
+
 	    output.first.block<RotSize,RotSize>(outputRow,0) = transforms.block<RotSize,RotSize>(transformRow,0);
 	    output.first.block<RotSize,RotSize>(outputRow,RotSize) = -Eigen::Matrix3d::Identity();
 		output.second.block<RotSize,1>(outputRow,0) = transforms.block<RotSize,1>(transformRow,RotSize);
 	}
-    
+
     if(debug){
         std::cout << "\n\nRI - transformToRandMinusIandPMatrices:\n\n" << output.first << "\n\np - transformToRandMinusIandPMatrices:\n\n" << output.second << "\n\n";
     }
-	
+
     return output;
 }
 
@@ -131,7 +131,5 @@ Eigen::VectorXd pivotCalibrationTwoSystems(const TrackerCloudRange& tcr, const T
     if(debug) std::cout << "\n\nRI:\n\n" << RIp.first << "\n\np:\n\n" << RIp.second << "\n\n";
     return SVDSolve(RIp);
 }
-
-
 
 #endif // _PIVOT_CALIBRATION_HPP_

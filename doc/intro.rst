@@ -14,13 +14,13 @@ Overview
 Andrew Hundt and Alex Strickland Computer Integrated Surgery 600.445 Coursework Repository
 
 Introduction
-------------
+============
 
 The purpose of the assignment was to develop an algorithm for a 3D point set to 3D point set registration and a pivot calibration.  The problem involved a stereotactic navigation system and an electromagnetic positional tracking device.  Tracking markers were placed on objects so the optical tracking device and an electromagnetic tracking device could measure the 3D positions of objects in space relative to measuring base units.  These objects were then registered so that they could be related in the same coordinate frames.  Pivot calibration posts were placed in the system so pivot calibration could be performed and the 3D position of two different probes could be tracked throughout the system.  The diagram below gives a visual description of the system.
 
 
 Mathematical Approach
----------------------
+=====================
 
 A number of least squares methods could be used to determine a transformation matrix for a 3D point set registration.  We selected to use Horn’s method because a rotation matrix is always found and no iterative approximation is involved.  The first step is to find the centriod of the point clouds in the two different coordinate systems.  Then the centroid is subtracted from each point measurement of the separate point clouds so the points will be relative to the centroid.  Next an H matrix is created which is the sum of the products of each corresponding point in the two frames.  A real symmetric G matrix is then created from the sums and differences of the elements in the H matrix which was previously created.  Next, the eigenvalues and corresponding eigenvectors of the G matrix were calculated.  The eigenvector corresponding to the most positive eigenvalue represents the unit quaternion of the matrix.  Once the quaternion is known, the rotation matrix can be found using Rodriguez’s formula.  The translation between the two coordinate systems is next found from the difference between the centroid of the known point cloud and the scaled centroid of the unknown point cloud.  Finally a homogenous transformation matrix could be made to know the frame transformation between the two point clouds.
 
@@ -38,19 +38,22 @@ Once the data was parsed, two matrices containing marker positions in different 
 Next a pivot calibration algorithm was created which used both the parser and hornRegistration algorithms.  First, the tracker data was parsed in separate matrices which corresponded to each frame of tracked data.  Each matrix of frame was compared to the original matrix frame using the hornRegistration function and the corresponding homogeneous transformation matrix was found.  The rotational component of each frame was put into an Eigen matrix and the translational component of each frame was put into an Eigen vector with the form described in the mathematical approach above.  The function of JacobiSVD of the Eigen library was then used to solve the least squares vector between the rotational matrix and translation vectors.  The least squares vector contained approximated orientation of the probe and the position of the probe tip.
 
 Structure of the Program
-------------------------
+========================
+
+
 
 
 
 Results and Discussion
-----------------------
+======================
 
 Table of unknown results
-------------------------
+========================
 
-Discuss how we think our results are
-------------------------------------
+Status of results
+======================
 
-A short statement of who did what
-----------------------
+
+
+Andrew and Alex spent approximately equal time on the assignment, with significant amounts of time spent pair programming. Both contributed equally to the implementation and debugging of funcitons.
 

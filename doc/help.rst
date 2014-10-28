@@ -8,4 +8,4 @@ Getting Help
 ============
 
 Please report any issues with CIS, including bug reports, feature requests,
-or support questions, on `GitHub <https://github.com/schuhschuh/cis/issues>`__.
+or support questions, on `GitHub <https://github.com/ahundt/cis/issues>`__.

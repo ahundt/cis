@@ -316,14 +316,14 @@ BOOST_AUTO_TEST_CASE(solveForCExpected)
         }
     }
 
-    std::vector<std::vector<Eigen::Matrix4d>> cExpected;
+    std::vector<Eigen::MatrixXd> cExpected;
     for (int i = 0; i< ad.calreadings.frames.size(); ++i){
         for (int j = 0; j < ad.calreadings.frames[0][2].rows(); ++j){
-            Eigen::MatrixXd Cexpected[j] = transformsEMcoordtoTrackerLocation[i]*transformsOptcoordtoTrackerLocation[i]*ad.calreadings.frames[0][2].row(j);
+            cExpected.push_back(transformsEMcoordtoTrackerLocation[i]*transformsOptcoordtoTrackerLocation[i]*ad.calreadings.frames[0][2].row(j).transpose());
         }
     }
 
-    cout << "\n\n" << "Cexpected[0][0] << "\n\n";
+    std::cout << "\n\n" << cExpected[0] << "\n\n";
 }
 
 void testOnePivotCalibration(csvCIS_pointCloudData::TrackerDevices trackerIndexedData, Eigen::Vector3d checkOutput, std::string description = "", bool debug = false) {

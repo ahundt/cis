@@ -134,7 +134,22 @@ registrationToFirstCloud(), and transformToRandMinusIandPMatrices() functions
 Results and Discussion
 ======================
 
-We implemented a battery of unit tests to verify the basic functions and ensure they are running correctly. We have been able to ensure that point cloud to point cloud registration is working correctly by finding the transformation of one point cloud to another and then the opposite.  Multiplying these two transformation matrices together resulted in an identity matrix which would be expected.  We tested the input data set as well, ensuring that we were within the given tolerance range.  Our program outputted almost exact results when the data was run with no error.  When error such as EM distortion, EM noise, and OT jiggle, were introduced in the data, our results were still very close to the expected results and were well within our tolerance range.  This shows the strength of Horn’s method and since it requires no special case exceptions for a solution, we concluded it was the best method of the one's taught in class.  The position of the tip of the probe when calibrate by EM also gave us results well with in out tolerance levels.  Again, it could be seen that our results were less accurate when error was introduced, but not to an unreasonable degree.  We did encounter a bug when trying to calibrate the optical probe in the EM coordinate system.  Our results for the x and y values of the pivot point were in the tolerance range of the actual pivot point.  However, we ran into a large systematic shift in the negative z-direction of our output data.  We believe that there was a possible ordering or directional issue in our algorithmic transforms.  Since the shift was systematic throughout all the test data, the value of the error was well know and could accounted for if this were a real system until the bug was found.
+Validation
+----------
+
+We took several approaches to the validation of our software. These include manual and automatic execution of the supplied test data, the implementation of unit tests to verify the data, and initial integration of continuous integration software to catch errors early.  We implemented a battery of unit tests to verify the basic functions and ensure they are running correctly.  
+
+Point Cloud Registration
+------------------------
+
+We have been able to ensure that point cloud to point cloud registration is working correctly by finding the transformation of one point cloud to another and then the opposite.  Multiplying these two transformation matrices together resulted in an identity matrix which would be expected.  We tested the input data set as well, ensuring that we were within the given tolerance range.  Our program produces nearly exact results when the data was run with no error.  When error such as EM distortion, EM noise, and OT jiggle, were introduced in the data, our results were still very close to the expected results and were well within our tolerance range.  This shows the strength of Horn’s method and since it requires no special case exceptions for a solution, we concluded it was the best method of the one's taught in class.  
+
+Calibration
+-----------
+
+The position of the tip of the probe when calibrate by EM also gave us results well with in out tolerance levels.  Again, it could be seen that our results were less accurate when error was introduced, but not to an unreasonable degree.  We did encounter a bug when trying to calibrate the optical probe in the EM coordinate system.  Our results for the x and y values of the pivot point were in the tolerance range of the actual pivot point.  However, we ran into a large systematic shift in the negative z-direction of our output data.  We believe that there was a possible ordering or directional issue in our algorithmic transforms.  Since the shift was systematic throughout all the test data, the value of the error was well know and could accounted for if this were a real system until the bug was found.
+
+
 
 Status of results
 ======================

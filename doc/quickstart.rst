@@ -128,6 +128,52 @@ id est laborum.
 	192.677
 	192.434
 
+
+
+Command Line Format
+~~~~~~~~~~~~~~~~~~~
+
+The command line format follows standard conventions, plus the ability to store
+a response file, typically named *.rsp, which saves additional command line
+parameters for future use and convenience. The available command line parameters
+and descriptions for the primary cisHW1main executable file are below.
+
+.. code-block:: bash
+    
+    ./cisHW1main
+    
+    General Options:
+      --responseFile arg                    File containing additional command line
+                                            parameters
+      --help                                produce help message
+      --debug arg (=0)                      enable debug output
+    
+    Algorithm Options:
+    
+    Data Options:
+      --dataFolderPath arg (=/Users/athundt/source/cis/build/bin)
+                                            folder containing data files, defaults
+                                            to current working directory
+      --dataFilenamePrefix arg (=pa1-debug-a)
+                                            constant prefix of data filename path
+      --dataFileNameSuffix_calbody arg (=-calbody.txt)
+                                            suffix of data filename path
+      --dataFileNameSuffix_calreadings arg (=-calreadings.txt)
+                                            suffix of data filename path
+      --dataFileNameSuffix_empivot arg (=-empivot.txt)
+                                            suffix of data filename path
+      --dataFileNameSuffix_optpivot arg (=-optpivot.txt)
+                                            suffix of data filename path
+      --dataFileNameSuffix_output1 arg (=-output1.txt)
+                                            suffix of data filename path
+      --calbodyPath arg                     full path to data txt file
+      --calreadingsPath arg                 full path to data txt file
+      --empivotPath arg                     full path to data txt file
+      --optpivotPath arg                    full path to data txt file
+      --output1Path arg                     full path to data txt file
+
+
+
 Unit Test
 ~~~~~~~~~
 

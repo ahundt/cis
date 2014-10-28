@@ -11,11 +11,13 @@
 #include "hornRegistration.hpp"
 #include "PointData.hpp"
 #include "PivotCalibration.hpp"
+#include "PointEstimation.hpp"
 
 
 namespace po = boost::program_options;
 
 /// read the command line options from argc,argv and load them into the params object
+/// @see boost::program_options for details on how the command line parsing library works.
 bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 
   
@@ -157,6 +159,17 @@ int main(int argc,char**argv) {
 		Eigen::VectorXd result = pivotCalibration(trackerIndexedData,pclp.debug);
 		std::cout << "\n\nPivotCalibration result for " << ad.empivot.title << ":\n\n" << result << "\n\n";
 	}
+    
+    if(!ad.calreadings.frames.empty() && !ad.calbody.frames.empty()){
+        
+        // a
+        std::vector<Eigen::MatrixXd> cExpected = estimateCExpected(ad.calreadings.frames,ad.calbody.frames,pclp.debug);
+        
+        
+        std::cout << "\n\nsolveForCExpected results for "<< ad.calreadings.title << " and " << ad.calbody.title <<":\n\n";
+        for (auto expected : cExpected)
+            std::cout << expected << "\n";
+    }
     
 	return 0;
 }

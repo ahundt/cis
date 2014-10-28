@@ -4,14 +4,15 @@
 
 #include "matrixOperations.hpp"
 
-/// @brief where the electromagnetic tracker estimates the electromagnetic markers are on the object
+/// @brief This function enables the electromagnetic tracker to estimate the position of the electromagnetic markers are on the object
 template<typename T>
 std::vector<Eigen::MatrixXd> estimateCExpected(const T& calreadings, const T& calbody, bool debug = false ){
 	
 
     std::vector<Eigen::Matrix4d> transformsEMcoordtoTrackerLocation;
     std::vector<Eigen::Matrix4d> transformsOptcoordtoTrackerLocation;
- //visitSecondTrackerRepeatedly(calreadings,calbody,
+    
+    // load up relevant transforms
     for (int i = 0; i< calreadings.size(); ++i){
         for(int j = 0; j < 2; ++j){
 

@@ -116,7 +116,7 @@ id est laborum.
 
 .. code-block:: bash
     
-	./cisHW1main --dataFilenamePrefix pa1-debug-a --dataFolderPath /Users/athundt/source/cis/data/PA1-2/
+	./cisHW1main --dataFilenamePrefix pa1-debug-a --dataFolderPath /path/to/cis/data/PA1-2/
 
 
 	PivotCalibration result for pa1-debug-a-empivot.txt:
@@ -128,6 +128,19 @@ id est laborum.
 	192.677
 	192.434
 
+Unit Test
+~~~~~~~~~
+
+The easiest way to run the unit test is to build the software, 
+then symlink the data folder "PA1-2" from "data/PA1-2" into
+the same directory as the unit tests. In other words, the unit 
+tests expect the directory "PA1-2" to be in the same directory
+as the unit test executable when it is run.
+
+.. code-block:: bash
+    
+	ln -s /path/to/cis/data/PA1-2
+	./cisHW1test
 
 Next Steps
 ----------
@@ -142,7 +155,7 @@ or move on to the various :doc:`How-to Guides <howto>`.
 .. _Tutorials:
 
 Advanced Information
-==================
+====================
 
 For advanced documentation, please see the doxygen API documentation, unit tests, software manual. If you cannot view
 these files and documents, they are visible as inline source code documentation and and restructured text files

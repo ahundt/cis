@@ -2,20 +2,6 @@
 Reference
 =========
 
-.. Package Overview is available in the manual and online documentation
-
-Package Overview
-================
-
-
-In order to ease certain tasks, CIS also includes the following tools:
-
-Mauris pretium aliquet, lectus tincidunt. Porttitor mollis imperdiet libero senectus pulvinar. 
-Etiam molestie mauris ligula laoreet, vehicula eleifend. Repellat orci erat et, sem cum, 
-ultricies sollicitudin amet eleifend dolor nullam erat, malesuada est leo ac. Varius natoque 
-turpis elementum est. Duis montes, tellus lobortis lacus amet arcu et. In vitae vel, wisi at, 
-id praesent bibendum libero faucibus porta egestas, quisque praesent ipsum fermentum tempo
-
 
 Source Package
 ==============

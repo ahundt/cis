@@ -114,7 +114,7 @@ matrices.
 **SVDSolve()**				   
 
 Computes the x of the least squares problem Ax=b using singular value decomposition
-when the stack of matrices in given.
+when the stack of matrices in given
 
 
 **Hmatrix()**   			
@@ -124,6 +124,11 @@ Computes a sum of the products H matrix given a set of two cloud points
 **Gmatrix()**					  
  
 Computes a sum of the differences of the given H matrix
+
+**pivotCalibration()**
+
+Computes the pivot point position from tracking data using the SVDSolve(), 
+registrationToFirstCloud(), and transformToRandMinusIandPMatrices() functions
 
 
 Results and Discussion

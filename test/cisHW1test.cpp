@@ -311,8 +311,8 @@ BOOST_AUTO_TEST_CASE(solveForCExpected)
     for (int i = 0; i< ad.calreadings.frames.size(); ++i){
         for(int j = 0; j < ad.calreadings.frames[i].size(); ++j){
             
-            transformsEMcoordtoTrackerLocation.push_back(hornRegistration(ad.calreadings.frames[i][j],ad.calbody.frames[0][i]));
-            transformsOptcoordtoTrackerLocation.push_back(hornRegistration(ad.calreadings.frames[i][j],ad.calbody.frames[0][i]));
+            transformsEMcoordtoTrackerLocation.push_back(hornRegistration(ad.calreadings.frames[i][j],ad.calbody.frames[0][j]));
+            transformsOptcoordtoTrackerLocation.push_back(hornRegistration(ad.calreadings.frames[i][j],ad.calbody.frames[0][j]));
             //Eigen::MatrixXd Cexpected[i,0] = transformsEMcoordtoTrackerLocation*transformsOptcoordtoTrackerLocation*ad.calreadings.frames[2][i];
             
         }

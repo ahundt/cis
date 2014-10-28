@@ -10,6 +10,7 @@
 #include "parseCommandLineOptions.hpp"
 #include "hornRegistration.hpp"
 #include "PointData.hpp"
+#include "PivotCalibration.hpp"
 
 
 namespace po = boost::program_options;
@@ -27,6 +28,7 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
     generalOptions.add_options()
     ("responseFile", po::value<std::string>(), "File containing additional command line parameters")
     CLO_HELP
+    CLO_DEBUG
     ;
 	
 
@@ -117,7 +119,8 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_empivot       ,pclp.empivotPath);
 	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_optpivot      ,pclp.optpivotPath);
 	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_output1       ,pclp.output1Path);
-	
+    
+    po::readOption(vmap,"debug"                      ,pclp.debug        ,optional);
 	
     return false;
 }
@@ -143,9 +146,17 @@ int main(int argc,char**argv) {
     loadPointCloudFromFile(pclp.output1Path       ,ad.output1                    );
 	
     
-    Eigen::Matrix4d F = hornRegistration(ad.calreadings.frames[0][0],ad.calbody.frames[0][0]);
+    ///////////////////////////////////////////
+    // print pivot calibration data of empivot
     
-    std::cout << F << std::endl;
+    csvCIS_pointCloudData::TrackerDevices trackerIndexedData;
+    // Note: we know there is only one tracker in this data
+    //       so we can run concat to combine the vectors and
+    //       and do the calibration for it.
+    trackerIndexedData = concat(ad.empivot.frames);
+    Eigen::VectorXd result = pivotCalibration(trackerIndexedData,pclp.debug);
+    std::cout << "\n\nPivotCalibration result for " << ad.empivot.title << ":\n\n" << result << "\n\n";
+    
     
 	return 0;
 }

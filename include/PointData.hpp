@@ -19,6 +19,7 @@ struct AlgorithmData {
 };
 
 struct ParsedCommandLineCommands {
+    bool         debug;
 	std::string  calbodyPath;
 	std::string  calreadingsPath;
 	std::string  empivotPath;

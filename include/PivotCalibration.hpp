@@ -47,7 +47,7 @@ Eigen::MatrixXd registrationToTwoSeriallyLinkedClouds(const TrackerCloudRange& t
         Eigen::MatrixXd Ftcr = hornRegistration(*tcIt1,*trackerCoordSysIt1);
         output.block<HtransformSize,HtransformSize>(i,0) = Ftcr2inv*Ftcr;
         if(debug){
-            std::cout << "\n\nFtrc2inv:\n\n" << Ftcr2inv << "\n\nFtcr:\n\n" << Ftcr << "\n\n";
+            std::cout << "\n\nFtrc2inv:\n\n" << Ftcr2inv << "\n\nFtcr:\n\n" << Ftcr << "\n\nFtcr2inv*Ftcr:\n\n" << Ftcr2inv*Ftcr << "\n\n";
         }
     }
 

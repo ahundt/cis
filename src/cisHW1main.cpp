@@ -90,7 +90,6 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 
 	// initalize string params
 	std::string  dataFolderPath
-				,dataFilenamePrefix
 				,dataFileNameSuffix_calbody
 				,dataFileNameSuffix_calreadings
 				,dataFileNameSuffix_empivot
@@ -99,7 +98,7 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 
 	// load up parameter values from the variable map
 	po::readOption(vmap,"dataFolderPath"                   ,dataFolderPath                     ,optional);
-	po::readOption(vmap,"dataFilenamePrefix"               ,dataFilenamePrefix                 ,optional);
+	po::readOption(vmap,"dataFilenamePrefix"               ,pclp.dataFilenamePrefix            ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_calbody"      ,dataFileNameSuffix_calbody         ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_calreadings"  ,dataFileNameSuffix_calreadings     ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_empivot"      ,dataFileNameSuffix_empivot         ,optional);
@@ -116,11 +115,11 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 
 	// check if the user supplied a full path, if not assemble a path
 	// from the default paths and the defualt prefix/suffix combos
-	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_calbody       ,pclp.calbodyPath);
-	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_calreadings   ,pclp.calreadingsPath);
-	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_empivot       ,pclp.empivotPath);
-	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_optpivot      ,pclp.optpivotPath);
-	assmblePathIfFullPathNotSupplied(dataFolderPath,dataFilenamePrefix,dataFileNameSuffix_output1       ,pclp.output1Path);
+	assmblePathIfFullPathNotSupplied(dataFolderPath,pclp.dataFilenamePrefix,dataFileNameSuffix_calbody       ,pclp.calbodyPath);
+	assmblePathIfFullPathNotSupplied(dataFolderPath,pclp.dataFilenamePrefix,dataFileNameSuffix_calreadings   ,pclp.calreadingsPath);
+	assmblePathIfFullPathNotSupplied(dataFolderPath,pclp.dataFilenamePrefix,dataFileNameSuffix_empivot       ,pclp.empivotPath);
+	assmblePathIfFullPathNotSupplied(dataFolderPath,pclp.dataFilenamePrefix,dataFileNameSuffix_optpivot      ,pclp.optpivotPath);
+	assmblePathIfFullPathNotSupplied(dataFolderPath,pclp.dataFilenamePrefix,dataFileNameSuffix_output1       ,pclp.output1Path);
 
     po::readOption(vmap,"debug"                      ,pclp.debug        ,optional);
 
@@ -131,22 +130,20 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 
 
 /// Produce an output CIS CSV file
-void outputCISCSV(std::ostream ostr, const std::string& outputName = "NAME-OUTPUT-1.TXT", const Eigen::Vector3d & emProbe, const Eigen::Vector3d & optProbe, const csvCIS_pointCloudData::TrackerFrames & vvFrames){
+void outputCISCSV(std::ostream& ostr, const std::string& outputName = "NAME-OUTPUT-1.TXT", const Eigen::Vector3d & emProbe = Eigen::Vector3d(0,0,0), const Eigen::Vector3d & optProbe = Eigen::Vector3d(0,0,0), const csvCIS_pointCloudData::TrackerDevices & vTrackers = csvCIS_pointCloudData::TrackerDevices()){
 
     ostr
-    << vvFrames[0].size() << "," << vvFrames.size() << "," << outputName << "\n"
-    << emProbe.block<1,1>(0,0) << "," << emProbe.block<1,1>(1,0) << "," << emProbe.block<2,1>(2,0) << "\n"
-    << optProbe.block<1,1>(0,0) << "," << optProbe.block<1,1>(1,0) << "," << optProbe.block<1,1>(2,0) << "\n";
+    << vTrackers.size() << "," << vTrackers.size() << "," << outputName << "\n"
+    << emProbe(0) << "," << emProbe(1) << "," << emProbe(2) << "\n"
+    << optProbe(0) << "," << optProbe(1) << "," << optProbe(2) << "\n";
 
-    for (auto&& vTrackers : vvFrames) {
-        for(auto && tracker : vTrackers) {
-            std::size_t rows = tracker.rows();
-            for(std::size_t i = 0; i < rows; ++i) {
-                ostr
-                << optProbe.block<1,3>(i,2) << "," << optProbe.block<1,1>(i,2) << "," << optProbe.block<1,1>(i,2) << "\n";
-            }
-
+    for(auto && tracker : vTrackers) {
+        std::size_t rows = tracker.rows();
+        for(std::size_t i = 0; i < rows; ++i) {
+            ostr
+            << tracker.block<1,1>(i,0) << "," << tracker.block<1,1>(i,1) << "," << tracker.block<1,1>(i,2) << "\n";
         }
+
     }
 
 }
@@ -171,6 +168,7 @@ int main(int argc,char**argv) {
     loadPointCloudFromFile(pclp.optpivotPath      ,ad.optpivot                   );
     loadPointCloudFromFile(pclp.output1Path       ,ad.output1                    );
 
+    Eigen::Vector3d emPivotPoint;
 
     ///////////////////////////////////////////
     // print pivot calibration data of empivot
@@ -180,30 +178,43 @@ int main(int argc,char**argv) {
 		//       so we can run concat to combine the vectors and
 		//       and do the calibration for it.
 		trackerIndexedData = concat(ad.empivot.frames);
-		Eigen::VectorXd result = pivotCalibration(trackerIndexedData,pclp.debug);
+        Eigen::VectorXd result = pivotCalibration(trackerIndexedData,pclp.debug);
+        emPivotPoint = result.block<3,1>(3,0);
 		std::cout << "\n\nPivotCalibration result for " << ad.empivot.title << ":\n\n" << result << "\n\n";
 	}
 
+    Eigen::Vector3d optPivotPoint;
+    
 	if(!ad.optpivot.frames.empty()){
-		csvCIS_pointCloudData::TrackerDevices trackerIndexedData;
+		csvCIS_pointCloudData::TrackerFrames trackerIndexedData(swapIndexing(ad.optpivot.frames));
 		// Note: we know there is only one tracker in this data
 		//       so we can run concat to combine the vectors and
 		//       and do the calibration for it.
-		trackerIndexedData = swapIndexing(ad.optpivot.frames);
 		Eigen::VectorXd result = pivotCalibrationTwoSystems(trackerIndexedData[0],trackerIndexedData[1],pclp.debug);
-		std::cout << "\n\nPivotCalibration result for " << ad.optpivot.title << ":\n\n" << result << "\n\n";
+        optPivotPoint = result.block<3,1>(3,0);
+		std::cout << "\n\nPivotCalibrationTwoSystems result for " << ad.optpivot.title << ":\n\n" << result << "\n\n";
 	}
 
+    std::vector<Eigen::MatrixXd> cExpected;
+    
     if(!ad.calreadings.frames.empty() && !ad.calbody.frames.empty()){
 
         // a
-        std::vector<Eigen::MatrixXd> cExpected = estimateCExpected(ad.calreadings.frames,ad.calbody.frames,pclp.debug);
+        cExpected = estimateCExpected(ad.calreadings.frames,ad.calbody.frames,pclp.debug);
 
 
         std::cout << "\n\nsolveForCExpected results for "<< ad.calreadings.title << " and " << ad.calbody.title <<":\n\n";
         for (auto expected : cExpected)
             std::cout << expected << "\n";
     }
+    
+    
+    std::string outputFilename = pclp.dataFilenamePrefix + "-OUTPUT1.txt";
+    std::ofstream ofs (outputFilename, std::ofstream::out);
+    
+    outputCISCSV(ofs,outputFilename,emPivotPoint,optPivotPoint,cExpected);
+    
+    ofs.close();
 
 	return 0;
 }

@@ -19,6 +19,7 @@ struct AlgorithmData {
 };
 
 struct ParsedCommandLineCommands {
+    std::string  dataFilenamePrefix;
     bool         debug;
 	std::string  calbodyPath;
 	std::string  calreadingsPath;

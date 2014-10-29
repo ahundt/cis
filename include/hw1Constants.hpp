@@ -18,6 +18,11 @@ static const std::string pa1unknownj("pa1-unknown-j");
 static const std::string pa1unknownk("pa1-unknown-k");
 
 
+static const std::string dataFileNameSuffix_calbody("-calbody.txt");
+static const std::string dataFileNameSuffix_calreadings("-calreadings.txt");
+static const std::string dataFileNameSuffix_empivot("-empivot.txt");
+static const std::string dataFileNameSuffix_optpivot("-optpivot.txt");
+static const std::string dataFileNameSuffix_output1("-output1.txt");
 
 
 std::vector<std::string> HW1DataFilePrefixes(){

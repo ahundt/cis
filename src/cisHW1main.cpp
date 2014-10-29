@@ -46,17 +46,16 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 
 
     std::string currentPath(boost::filesystem::path( boost::filesystem::current_path() ).string());
-    
-    
+
     // create algorithm command line options
     dataOptions.add_options()
 		    ("dataFolderPath"                ,po::value<std::string>()->default_value(currentPath)       ,"folder containing data files, defaults to current working directory"   )
             ("dataFilenamePrefix"            ,po::value<std::vector<std::string> >()->default_value(HW1DataFilePrefixes(),""),"constant prefix of data filename path. Specify this multiple times to run on many data sources at once"   )
-		  	("dataFileNameSuffix_calbody"    ,po::value<std::string>()->default_value("-calbody.txt"    ),"suffix of data filename path"   )
-		  	("dataFileNameSuffix_calreadings",po::value<std::string>()->default_value("-calreadings.txt"),"suffix of data filename path"   )
-		  	("dataFileNameSuffix_empivot"    ,po::value<std::string>()->default_value("-empivot.txt"    ),"suffix of data filename path"   )
-		  	("dataFileNameSuffix_optpivot"   ,po::value<std::string>()->default_value("-optpivot.txt"   ),"suffix of data filename path"   )
-		  	("dataFileNameSuffix_output1"    ,po::value<std::string>()->default_value("-output1.txt"    ),"suffix of data filename path"   )
+		  	("dataFileNameSuffix_calbody"    ,po::value<std::string>()->default_value(dataFileNameSuffix_calbody    ),"suffix of data filename path"   )
+		  	("dataFileNameSuffix_calreadings",po::value<std::string>()->default_value(dataFileNameSuffix_calreadings),"suffix of data filename path"   )
+		  	("dataFileNameSuffix_empivot"    ,po::value<std::string>()->default_value(dataFileNameSuffix_empivot    ),"suffix of data filename path"   )
+		  	("dataFileNameSuffix_optpivot"   ,po::value<std::string>()->default_value(dataFileNameSuffix_optpivot   ),"suffix of data filename path"   )
+		  	("dataFileNameSuffix_output1"    ,po::value<std::string>()->default_value(dataFileNameSuffix_output1    ),"suffix of data filename path"   )
 		  	("calbodyPath"                   ,po::value<std::string>() , "full path to data txt file")
 		  	("calreadingsPath"               ,po::value<std::string>() , "full path to data txt file")
 		  	("empivotPath"                   ,po::value<std::string>() , "full path to data txt file")

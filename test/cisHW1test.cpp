@@ -16,8 +16,9 @@
 #include "PointData.hpp"
 #include "PivotCalibration.hpp"
 #include "PointEstimation.hpp"
+#include "hw1Constants.hpp"
 
-static const bool debug = true;
+static const bool debug = false;
 static const double tolerance = 0.01l;
 
 /// @todo The unit test requires a symlink from the executable folder to the location of the PA1-2 data folder, fix this using CMake.
@@ -299,9 +300,10 @@ BOOST_AUTO_TEST_CASE(solveForCExpected)
 	std::vector<Eigen::MatrixXd> cExpected = estimateCExpected(ad.calreadings.frames,ad.calbody.frames,debug);
 
 
-       std::cout << "\n\nsolveForCExpected\n\n" << cExpected.size() << "\n\n";
-    for (int i = 0; i<10; i++)
-        std::cout << cExpected[i] << "\n\n";
+    if(debug){
+        std::cout << "\n\nsolveForCExpected\n\n" << cExpected.size() << "\n\n";
+        for (int i = 0; i<cExpected.size(); i++) std::cout << cExpected[i] << "\n\n";
+    }
 }
 
 void testOnePivotCalibration(csvCIS_pointCloudData::TrackerDevices trackerIndexedData, Eigen::Vector3d checkOutput, std::string description = "", bool debug = false) {
@@ -347,20 +349,14 @@ void testOnePivotCalibration(std::string relativeDataPath,std::string datapathsu
 
 void testTwoPivotCalibration(std::string relativeDataPath,std::string datapathsuffix, bool debug = false){
 
-    if (debug) {
-        std::cout << "testing " <<relativeDataPath<<datapathsuffix<<"\n";
-        std::cout << "===============================================\n\n";
-    }
 
     AlgorithmData ad;
     csvCIS_pointCloudData::TrackerFrames trackerIndexedData;
 
     ad = assembleHW1AlgorithmData(relativeDataPath,datapathsuffix);
     trackerIndexedData = swapIndexing(ad.optpivot.frames);
-    if(debug){
-        Print(trackerIndexedData[0],true,"emTrackerIndexedData0"); // em tracker
-        Print(trackerIndexedData[1],true,"opticalProbeIndexedData1"); // optical probe
-    }
+    /// @todo contains two different ways of attempting to do this worked on during debugging
+    /// @todo The core functions are likely correct, but we believe that we are using one of the wrong frames, the wrong calibration object, or the wrong ordering and that is causing the offset. We expect a data sourcing and frame transform ordering error rather than a flaw in the underlying algorithms.
     Eigen::VectorXd optProbePivotPtAndCalInOptCoord = pivotCalibration(trackerIndexedData[1],debug);
     if(debug) std::cout << "\n\ntestTwoPivot - p:\n\n" << optProbePivotPtAndCalInOptCoord << "\n\n";
     Eigen::Vector3d optProbeCalInOptCoord = optProbePivotPtAndCalInOptCoord.block<3,1>(0,0);
@@ -369,24 +365,42 @@ void testTwoPivotCalibration(std::string relativeDataPath,std::string datapathsu
     Eigen::VectorXd emTrackerPivotPtAndCalInOptCoord = pivotCalibration(trackerIndexedData[0],debug);
     Eigen::Vector3d emCalInOptCoord = emTrackerPivotPtAndCalInOptCoord.block<3,1>(0,0);
     Eigen::Vector3d emTrackerPivotPtInOptCoord = emTrackerPivotPtAndCalInOptCoord.block<3,1>(3,0);
-    //Eigen::VectorXd result = pivotCalibrationTwoSystems(trackerIndexedData[0],trackerIndexedData[1],debug);
+    
+    
+    Eigen::VectorXd result = pivotCalibrationTwoSystems(trackerIndexedData[0],trackerIndexedData[1],debug);
 
 
     Eigen::MatrixXd dcloud = registrationToFirstCloud(trackerIndexedData[0]);
 
     Eigen::MatrixXd hcloud = registrationToFirstCloud(trackerIndexedData[1]);
-
-    Eigen::Affine3d FDinv;
-    //FDinv.matrix() = homogeneousInverse(FD);
-    //FDinv.matrix() = Eigen::Matrix4d(FD.block<4,4>(0,0));
-
-    Eigen::Vector3d optPivotPtInEMCoord = FDinv*optProbePivotPtInOptCoord;
+//
+//    Eigen::Affine3d FDinv;
+//    FDinv.matrix() = homogeneousInverse(FD);
+//    FDinv.matrix() = Eigen::Matrix4d(FD.block<4,4>(0,0));
+//
+//    Eigen::Vector3d optPivotPtInEMCoord = FDinv*optProbePivotPtInOptCoord;
+    
+    // skip tranform into other coords for now
+    Eigen::Vector3d optPivotPtInEMCoord = optProbePivotPtInOptCoord;
 
     Eigen::Vector3d groundTruthOptPivotPtInEMCoord = ad.output1.estOpticalPostPos;
 
+    
+    bool isWithinTolerance_ = isWithinTolerance(optPivotPtInEMCoord,groundTruthOptPivotPtInEMCoord);
+    
+    if (debug || !isWithinTolerance_) {
+        std::cout << "testing " <<relativeDataPath<<datapathsuffix<<"\n";
+        std::cout << "===============================================\n\n";
+    }
+    
+    
     BOOST_CHECK(isWithinTolerance(optPivotPtInEMCoord,groundTruthOptPivotPtInEMCoord));
-
-    if (!isWithinTolerance(optPivotPtInEMCoord,groundTruthOptPivotPtInEMCoord)) {
+    
+    if(debug || !isWithinTolerance_){
+        Print(trackerIndexedData[0],true,"emTrackerIndexedData0"); // em tracker
+        Print(trackerIndexedData[1],true,"opticalProbeIndexedData1"); // optical probe
+    }
+    if (!isWithinTolerance_) {
         std::cout << "\n\noptProbePivotPtInOptCoord:\n\n" << optProbePivotPtInOptCoord << "\n\n";
         std::cout << "\n\ngroundTruthOptPivotPtInEMCoord:\n\n" << groundTruthOptPivotPtInEMCoord << "\n\n";
         std::cout << "\n\nemTrackerPivotPtInOptCoord:\n\n" << emTrackerPivotPtInOptCoord << "\n\n";

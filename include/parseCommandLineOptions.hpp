@@ -24,7 +24,7 @@
 #define CLO_GET_ARG_STR2(data) BOOST_PP_TUPLE_ELEM(2, 0, data)
 
 #define CLO_HELP               ("help", "produce help message")
-#define CLO_DEBUG              ("debug",po::value<bool>()->default_value(false), "enable debug output")
+#define CLO_DEBUG              ("debug", "enable debug output")
 #define CLO_RESPONSE_FILES     ("responseFiles", boost::program_options::value<std::vector<std::string> >()->multitoken(), "List of files containing additional command line parameters (multiple arguments)")
 
 namespace boost

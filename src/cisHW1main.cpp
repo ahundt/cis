@@ -121,7 +121,7 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 	assmblePathIfFullPathNotSupplied(dataFolderPath,pclp.dataFilenamePrefix,dataFileNameSuffix_optpivot      ,pclp.optpivotPath);
 	assmblePathIfFullPathNotSupplied(dataFolderPath,pclp.dataFilenamePrefix,dataFileNameSuffix_output1       ,pclp.output1Path);
 
-    po::readOption(vmap,"debug"                      ,pclp.debug        ,optional);
+    pclp.debug = vmap.count(CLO_GET_ARG_STR2(CLO_DEBUG));
 
     return false;
 }

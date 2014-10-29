@@ -101,6 +101,8 @@ public:
 /// - "output" filename is differeint: first line is the same but next 2 lines are special points of estimated postion
 csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = false){
     csvCIS_pointCloudData outputData;
+    if(csv.empty()) return outputData;
+       
     std::vector<std::string> strs;
     
     // by default if no frame count is specified, there is only one frame

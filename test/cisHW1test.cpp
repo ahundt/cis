@@ -20,15 +20,6 @@
 static const bool debug = true;
 static const double tolerance = 0.01l;
 
-static const std::string relativeDataPath("PA1-2/");
-static const std::string pa1debuga("pa1-debug-a-");
-static const std::string pa1debugb("pa1-debug-b-");
-static const std::string pa1debugc("pa1-debug-c-");
-static const std::string pa1debugd("pa1-debug-d-");
-static const std::string pa1debuge("pa1-debug-e-");
-static const std::string pa1debugf("pa1-debug-f-");
-static const std::string pa1debugg("pa1-debug-g-");
-
 /// @todo The unit test requires a symlink from the executable folder to the location of the PA1-2 data folder, fix this using CMake.
 
 int add(int i, int j)

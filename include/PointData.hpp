@@ -18,23 +18,27 @@ struct AlgorithmData {
 	csvCIS_pointCloudData output1;
 };
 
+struct DataSource {
+    std::string  filenamePrefix;
+    std::string  calbodyPath;
+    std::string  calreadingsPath;
+    std::string  empivotPath;
+    std::string  optpivotPath;
+    std::string  output1Path;
+};
+
 struct ParsedCommandLineCommands {
-    std::string  dataFilenamePrefix;
     bool         debug;
-	std::string  calbodyPath;
-	std::string  calreadingsPath;
-	std::string  empivotPath;
-	std::string  optpivotPath;
-	std::string  output1Path;
+    std::vector<DataSource> dataSources;
 };
 
 /// The user may specify an exact path for a data source, or simply the folder path and filename prefix.
 /// This funciton will detect which option and select the correctly assembled files.
 ///
 /// @throws std::runtime_error if none of the options correspond to an actual existing file.
-void assmblePathIfFullPathNotSupplied(std::string dataFolderPath, std::string dataFilenamePrefix, std::string suffix, std::string& dataFilePath){
+void assemblePathIfFullPathNotSupplied(std::string dataFolderPath, std::string dataFilenamePrefix, std::string suffix, std::string& dataFilePath,bool requiredFile = true){
 	
-	if(boost::filesystem::exists(dataFilePath)) return;
+	if(boost::filesystem::exists(dataFilePath) || !requiredFile) return;
 	
 	if (dataFilePath.empty() || !boost::filesystem::exists(dataFilePath) ) {
 		dataFilePath = dataFolderPath+dataFilenamePrefix+suffix;
@@ -53,14 +57,15 @@ static const std::string dataFileNameSuffix_optpivot("optpivot.txt");
 static const std::string dataFileNameSuffix_output1("output1.txt");
 
 AlgorithmData assembleHW1AlgorithmData(std::string datafolderpath, std::string dataFilenamePrefix, bool debug = false){
-    ParsedCommandLineCommands pclp;
+    DataSource pclp;
+    const bool required = true;
     // check if the user supplied a full path, if not assemble a path
     // from the default paths and the defualt prefix/suffix combos
-    assmblePathIfFullPathNotSupplied(datafolderpath,dataFilenamePrefix,dataFileNameSuffix_calbody       ,pclp.calbodyPath);
-    assmblePathIfFullPathNotSupplied(datafolderpath,dataFilenamePrefix,dataFileNameSuffix_calreadings   ,pclp.calreadingsPath);
-    assmblePathIfFullPathNotSupplied(datafolderpath,dataFilenamePrefix,dataFileNameSuffix_empivot       ,pclp.empivotPath);
-    assmblePathIfFullPathNotSupplied(datafolderpath,dataFilenamePrefix,dataFileNameSuffix_optpivot      ,pclp.optpivotPath);
-    assmblePathIfFullPathNotSupplied(datafolderpath,dataFilenamePrefix,dataFileNameSuffix_output1       ,pclp.output1Path);
+    assemblePathIfFullPathNotSupplied(datafolderpath,dataFilenamePrefix,dataFileNameSuffix_calbody       ,pclp.calbodyPath);
+    assemblePathIfFullPathNotSupplied(datafolderpath,dataFilenamePrefix,dataFileNameSuffix_calreadings   ,pclp.calreadingsPath);
+    assemblePathIfFullPathNotSupplied(datafolderpath,dataFilenamePrefix,dataFileNameSuffix_empivot       ,pclp.empivotPath);
+    assemblePathIfFullPathNotSupplied(datafolderpath,dataFilenamePrefix,dataFileNameSuffix_optpivot      ,pclp.optpivotPath);
+    assemblePathIfFullPathNotSupplied(datafolderpath,dataFilenamePrefix,dataFileNameSuffix_output1       ,pclp.output1Path,!required);
     
     
     AlgorithmData ad;

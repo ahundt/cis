@@ -21,10 +21,10 @@ template<typename TrackerCloudRange>
 Eigen::MatrixXd registrationToFirstCloud(const TrackerCloudRange& cloudA,bool debug = false){
     static const std::size_t HtransformSize = 4;
 	Eigen::MatrixXd output(std::distance(std::begin(cloudA),std::end(cloudA))*HtransformSize,HtransformSize);
-    
+
     // take the first cloud
 	auto trackerCoordSysCloudAIt = std::begin(cloudA); // For Problem 6, will ask Paul if we need to find the h from original H data or from FDinv*H
-    
+
     // find the center aka mean point
     Eigen::Vector3d abar;
     Eigen::MatrixXd cloudAMoved = *trackerCoordSysCloudAIt;
@@ -34,9 +34,9 @@ Eigen::MatrixXd registrationToFirstCloud(const TrackerCloudRange& cloudA,bool de
 	for(auto cloudIt = std::begin(cloudA); cloudIt!=std::end(cloudA); ++cloudIt, i+=HtransformSize){
 		output.block<HtransformSize,HtransformSize>(i,0) = hornRegistration(cloudAMoved,*cloudIt);
     }
-    
+
     if(debug) std::cout << "\n\ntransforms - registrationToFirstCloudOutput:\n\n" << output << "\n\n";
-    
+
     return output;
 }
 
@@ -54,7 +54,7 @@ Eigen::MatrixXd registrationToTwoSeriallyLinkedClouds(const TrackerCloudRange& c
     Eigen::Vector3d a2bar;
     moveCloudToOrigin(cloudA1Moved, a1bar);
     moveCloudToOrigin(cloudA2Moved, a2bar);
-    
+
     std::size_t i = 0;
 	for(auto cloudIt1 = std::begin(cloudA1), cloudIt2 = std::begin(cloudA2); cloudIt1!=std::end(cloudA1); ++cloudIt1, ++cloudIt2, i+=HtransformSize){
         Eigen::MatrixXd FcloudA2inv = hornRegistration(cloudA2Moved,*cloudIt2); //This is H, it calculates FH
@@ -79,25 +79,25 @@ Eigen::MatrixXd registrationToTwoSeriallyLinkedClouds(const TrackerCloudRange& c
 std::pair<Eigen::MatrixXd,Eigen::VectorXd> transformToRandMinusIandPMatrices(const Eigen::MatrixXd& transforms,bool debug = false) {
     static const std::size_t HtransformSize = 4;
     static const std::size_t RotSize = 3;
-    
+
 	std::size_t transformRows = transforms.rows();
 	std::size_t transformCount = transformRows/4;
 	std::pair<Eigen::MatrixXd,Eigen::VectorXd> output;
 	output.first.resize(transformCount*RotSize-RotSize,6);
 	output.second.resize(transformCount*RotSize-RotSize);
-    
-	
+
+
 	for(std::size_t transformRow = HtransformSize, outputRow = 0; transformRow < transformRows; transformRow+=HtransformSize,outputRow+=RotSize){
-        
+
 	    output.first.block<RotSize,RotSize>(outputRow,0) = transforms.block<RotSize,RotSize>(transformRow,0);
 	    output.first.block<RotSize,RotSize>(outputRow,RotSize) = -Eigen::Matrix3d::Identity();
 		output.second.block<RotSize,1>(outputRow,0) = transforms.block<RotSize,1>(transformRow,RotSize);
 	}
-    
+
     if(debug){
         std::cout << "\n\nRI - transformToRandMinusIandPMatrices:\n\n" << output.first << "\n\np - transformToRandMinusIandPMatrices:\n\n" << output.second << "\n\n";
     }
-	
+
     return output;
 }
 
@@ -131,7 +131,7 @@ Eigen::VectorXd pivotCalibration(const TrackerCloudRange& cloudA,bool debug = fa
 
     std::pair<Eigen::MatrixXd,Eigen::VectorXd> RIp = transformToRandMinusIandPMatrices(transforms,debug);
     //if(debug) std::cout << "\n\nRI - pivotCalibration:\n\n" << RIp.first << "\n\np - pivotCalibration:\n\n" << RIp.second << "\n\n";
-   
+
     Eigen::VectorXd X =  SVDSolve(RIp,debug);
     if(debug) std::cout << "\n\npivotCalibration - p:\n\n" << X << "\n\n";
     return X;
@@ -150,8 +150,8 @@ template<typename TrackerCloudRange>
 Eigen::VectorXd pivotCalibrationTwoSystems(const TrackerCloudRange& cloudA, const TrackerCloudRange& cloudA2,bool debug = false){
     BOOST_VERIFY(std::distance(std::begin(cloudA),std::end(cloudA))>2);
     BOOST_VERIFY(std::distance(std::begin(cloudA2),std::end(cloudA2))>2);
-    Eigen::MatrixXd transforms = registrationToFirstCloud(cloudA,debug);
-    //Eigen::MatrixXd transforms = registrationToTwoSeriallyLinkedClouds(cloudA, cloudA2, debug);
+    //Eigen::MatrixXd transforms = registrationToFirstCloud(cloudA,debug);
+    Eigen::MatrixXd transforms = registrationToTwoSeriallyLinkedClouds(cloudA, cloudA2, debug);
     std::pair<Eigen::MatrixXd,Eigen::VectorXd> RIp = transformToRandMinusIandPMatrices(transforms, debug);
     //if(debug) std::cout << "\n\nRI:\n\n" << RIp.first << "\n\np:\n\n" << RIp.second << "\n\n";
     return SVDSolve(RIp,debug);

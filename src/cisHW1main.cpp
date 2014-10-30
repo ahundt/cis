@@ -97,9 +97,9 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 				,dataFileNameSuffix_empivot
 				,dataFileNameSuffix_optpivot
 				,dataFileNameSuffix_output1;
-    
+
     DataSource datasource;
-    
+
     std::vector<std::string> dataFilenamePrefixList;
 
 	// load up parameter values from the variable map
@@ -110,12 +110,12 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 	po::readOption(vmap, "dataFileNameSuffix_empivot"      ,dataFileNameSuffix_empivot         ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_optpivot"     ,dataFileNameSuffix_optpivot        ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_output1"      ,dataFileNameSuffix_output1         ,optional);
-    
+
     int prefixCount = dataFilenamePrefixList.size();
     if(!prefixCount){
         pclp.dataSources.push_back(DataSource());
     }
-    
+
     if(prefixCount<=1){
         po::readOption(vmap,"calbodyPath"                      ,pclp.dataSources[0].calbodyPath        ,optional);
         po::readOption(vmap,"calreadingsPath"                  ,pclp.dataSources[0].calreadingsPath    ,optional);
@@ -167,9 +167,9 @@ void outputCISCSV(std::ostream& ostr, const std::string& outputName = "NAME-OUTP
 }
 
 void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, bool debug = false){
-    
+
     Eigen::Vector3d emPivotPoint;
-    
+
     ///////////////////////////////////////////
     // print pivot calibration data of empivot
     if(!ad.empivot.frames.empty()){
@@ -182,71 +182,89 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         emPivotPoint = result.block<3,1>(3,0);
         std::cout << "\n\nPivotCalibration result for " << ad.empivot.title << ":\n\n" << result << "\n\n";
     }
-    
+
     Eigen::Vector3d optPivotPoint;
-    
+
     if(!ad.optpivot.frames.empty()){
+        // Sorts through the input files and splits it into vectors of vectors
+        // trackerIndexedData[0][i] is D and [1][i] is G
         csvCIS_pointCloudData::TrackerFrames trackerIndexedData(swapIndexing(ad.optpivot.frames));
+
 //        Eigen::MatrixXd TestCase = registrationToFirstCloud(ad.optpivot.frames);
 //        Eigen::MatrixXd FGTest = TestCase.block<4,4>(4,0);
 //        auto littleGTest = std::begin(ad.optpivot.frames);
 //        Eigen::MatrixXd = FGTest*littleGTest;
+
+        // opticalMarkersOnEMDeviceInEMFrame = d from calbody
         Eigen::MatrixXd opticalMarkersOnEMDeviceInEMFrame(ad.calbody.frames[0][0]); // A
-        Eigen::MatrixXd EMMarkersOnCalObjInCalObjFrame(trackerIndexedData[0][1]);
+
+        // Intializes a vector of Eigen Matrices to store Gnew
+        std::vector<Eigen::MatrixXd> Gnew;
+
         for (int i = 0; i< trackerIndexedData[0].size(); ++i){
+            // Confirms that there are two data sets in trackerIndexedData (D and G)
             BOOST_VERIFY(trackerIndexedData.size()==2);
             // only copy first two falues in here
             // perform hornRegistration and add to back of vector
-            
+
             // input points are in EM Tracker frame
             // output points are in Optical Tracker Frame
             // Find transform from the calibration object reference frame to the EM coordinates of the calibration object
+
+            // trackerIndexedData[0][i] = D for each frame from optpivot
+            Eigen::MatrixXd EMMarkersOnCalObjInCalObjFrame(trackerIndexedData[1][i]);
+
+            // trackerIndexedData[0][i] = D for each frame from optpivot
             Eigen::MatrixXd OptMarkersOnEMDeviceInOptFrame(trackerIndexedData[0][i]); // D
+
+            // Creates the Horn Transform from d to D (i.e. FDinv) in each frame
             Eigen::Affine3d OptToEMFrame(hornRegistration( // horn(D,A)
                                                           OptMarkersOnEMDeviceInOptFrame,
                                                           opticalMarkersOnEMDeviceInEMFrame
                                                           ));
-            
+
             Eigen::MatrixXd calObjPtsInEMTrackerF(EMMarkersOnCalObjInCalObjFrame.rows(),3);
             for(std::size_t j = 0; j < EMMarkersOnCalObjInCalObjFrame.rows(); ++j){
                 //  extract calibration Object EM Tracker Positions On Calibration Object into individual points
                 Eigen::Vector3d EMMarkerOnCalObjInCalObjFrame(EMMarkersOnCalObjInCalObjFrame.row(j).transpose()); // Extract point from C
-                
+
                 // starting with point on calibration object in calObj frame -> optFrame -> EMFrame
                 Eigen::Vector3d calObjEMTrackerPosInEMFrame = OptToEMFrame*EMMarkerOnCalObjInCalObjFrame;
-                
+
                 // would be .row(j) but it is MatrixXd so we need to use .block to specify the size
                 // note that the output of the transform multiplication is already in row format
                 // so it can be inserted directly
+
+                // Need to make a vector of point clouds to store the new G (Gnew=FDinv*G)
                 calObjPtsInEMTrackerF.block<1,3>(j,0) = calObjEMTrackerPosInEMFrame.transpose();
             }
-
-
+            // Puts the Eigen Matrix Gnew into a vector corresponding to the frame
+            Gnew.push_back(calObjPtsInEMTrackerF);
         }
-        
-        Eigen::VectorXd result = pivotCalibrationTwoSystems(trackerIndexedData[0],trackerIndexedData[1],debug);
+
+        Eigen::VectorXd result = pivotCalibration(Gnew,debug);
         optPivotPoint = result.block<3,1>(3,0);
         std::cout << "\n\nPivotCalibrationTwoSystems result for " << ad.optpivot.title << ":\n\n" << result << "\n\n";
     }
-    
+
     std::vector<Eigen::MatrixXd> cExpected;
-    
+
     if(!ad.calreadings.frames.empty() && !ad.calbody.frames.empty()){
-        
+
         // a
         cExpected = estimateCExpected(ad.calreadings.frames,ad.calbody.frames,debug);
-        
-        
+
         std::cout << "\n\nsolveForCExpected results for "<< ad.calreadings.title << " and " << ad.calbody.title <<":\n\n";
         for (auto expected : cExpected)
             std::cout << expected << "\n";
+
     }
-    
-    
+
+
     std::string outputFilename = dataFilenamePrefix + "-output1.txt";
     std::ofstream ofs (outputFilename, std::ofstream::out);
     outputCISCSV(ofs,outputFilename,emPivotPoint,optPivotPoint,cExpected);
-    
+
     ofs.close();
 }
 
@@ -262,7 +280,7 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
 int main(int argc,char**argv) {
 	ParsedCommandLineCommands pclp;
 	readCommandLine(argc,argv,pclp);
-    
+
     for(auto&& dataSource : pclp.dataSources){
         AlgorithmData ad;
         loadPointCloudFromFile(dataSource.calbodyPath       ,ad.calbody                    );

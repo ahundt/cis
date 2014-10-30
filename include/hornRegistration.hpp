@@ -110,6 +110,20 @@ Eigen::Matrix3d ArunsMethod(Eigen::Matrix3d Hsum)
     return R;
 }
 
+/// Takes a point cloud, finds the mean point position abar, and subtracts
+/// abar from every point so it is centered around the origin.
+///
+/// In other words,
+/// subtract the average point coordinate from every
+/// point position to center it on the origin
+/// subtracts the average every point in x,y,z
+/// this recenters the point cloud around 0
+/// @see Rigid3D3DCalculations.pdf slide 4 for this step
+void moveCloudToOrigin(Eigen::MatrixXd& cloudA,Eigen::Vector3d& Abar){
+    Abar=cloudA.colwise().mean();
+    cloudA.rowwise() -= Abar.transpose();
+}
+
 /// Performs Horn Method of registration
 ///
 /// @see http://people.csail.mit.edu/bkph/papers/Absolute_Orientation.pdf
@@ -120,26 +134,22 @@ Eigen::Matrix3d ArunsMethod(Eigen::Matrix3d Hsum)
 /// Both input clouds are expected to be 3 dimensions wide and n dimensions long
 Eigen::Matrix4d hornRegistration(const Eigen::MatrixXd& CloudA, const Eigen::MatrixXd& CloudB, bool debug = false)
 {
-	// average the point clouds
-    Eigen::Vector3d abar=CloudA.colwise().mean();
-    Eigen::Vector3d bbar=CloudB.colwise().mean();
-    // leave out but still compile this code
-	if(debug) {
-	    std::cout << "\n\nabar:\n\n" << abar
-	              << "\n\nbbar:\n\n" << bbar
-	              << "\n\nCloudA:\n\n" << CloudA
-	              << "\n\nCloudB:\n\n" << CloudB
-	              << "\n\n";
-	}
-    // subtract the average point coordinate from every
-    // point position to center it on the origin
-    // subtracts the average every point in x,y,z
-    // this recenters the point cloud around 0
-    // @see Rigid3D3DCalculations.pdf slide 4 for this step
     Eigen::MatrixXd CloudAMoved = CloudA;
     Eigen::MatrixXd CloudBMoved = CloudB;
-    CloudAMoved.rowwise() -= abar.transpose();
-    CloudBMoved.rowwise() -= bbar.transpose();
+    Eigen::Vector3d abar;
+    Eigen::Vector3d bbar;
+    
+    moveCloudToOrigin(CloudAMoved, abar);
+    moveCloudToOrigin(CloudBMoved, bbar);
+    
+    if(debug) {
+        std::cout << "\n\nabar:\n\n" << abar
+        << "\n\nbbar:\n\n" << bbar
+        << "\n\nCloudA:\n\n" << CloudA
+        << "\n\nCloudB:\n\n" << CloudB
+        << "\n\n";
+    }
+    
     Eigen::Matrix3d H = Hmatrix(CloudAMoved,CloudBMoved);
     Eigen::Matrix4d G = Gmatrix(H);
     auto EV = EigenMatrix(G);

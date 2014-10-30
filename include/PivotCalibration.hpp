@@ -8,7 +8,7 @@
 /// @brief Register an STL range of tracker clouds to the first cloud in the set. Runs hornRegistration
 ///        on each point cloud against the other point clouds within the set.
 ///
-/// @param tcr C++ Range of n point clouds containing tx3 Eigen::MatrixXd point clouds.
+/// @param cloudA C++ Range of n point clouds containing tx3 Eigen::MatrixXd point clouds.
 ///
 /// The first 4x4 matrix component returned will be I, because it is comparing against itself,
 /// the subsequent matrices will be transforms from their coordinate system to the first matrix
@@ -18,14 +18,21 @@
 ///
 /// @todo make registration function a template param, rather than requiring hornRegistration
 template<typename TrackerCloudRange>
-Eigen::MatrixXd registrationToFirstCloud(const TrackerCloudRange& tcr,bool debug = false){
+Eigen::MatrixXd registrationToFirstCloud(const TrackerCloudRange& cloudA,bool debug = false){
     static const std::size_t HtransformSize = 4;
-	Eigen::MatrixXd output(std::distance(std::begin(tcr),std::end(tcr))*HtransformSize,HtransformSize);
-	auto trackerCoordSysIt = std::begin(tcr);
+	Eigen::MatrixXd output(std::distance(std::begin(cloudA),std::end(cloudA))*HtransformSize,HtransformSize);
+    
+    // take the first cloud
+	auto trackerCoordSysCloudAIt = std::begin(cloudA);
+    
+    // find the center aka mean point
+    Eigen::Vector3d abar;
+    Eigen::MatrixXd cloudAMoved = *trackerCoordSysCloudAIt;
+    moveCloudToOrigin(cloudAMoved, abar);
 	/// @todo eliminate finding registration on itself for first loop
     std::size_t i = 0;
-	for(auto tcIt = std::begin(tcr); tcIt!=std::end(tcr); ++tcIt, i+=HtransformSize){
-		output.block<HtransformSize,HtransformSize>(i,0) = hornRegistration(*tcIt,*trackerCoordSysIt);
+	for(auto cloudIt = std::begin(cloudA); cloudIt!=std::end(cloudA); ++cloudIt, i+=HtransformSize){
+		output.block<HtransformSize,HtransformSize>(i,0) = hornRegistration(cloudAMoved,*cloudIt);
     }
     
     if(debug) std::cout << "\n\ntransforms - registrationToFirstCloudOutput:\n\n" << output << "\n\n";
@@ -33,21 +40,28 @@ Eigen::MatrixXd registrationToFirstCloud(const TrackerCloudRange& tcr,bool debug
     return output;
 }
 
-// Assumes the inverse of the homogeneous matrix of tcr2 needs to be taken
+// Assumes the inverse of the homogeneous matrix of cloudA2 needs to be taken
 template<typename TrackerCloudRange>
-Eigen::MatrixXd registrationToTwoSeriallyLinkedClouds(const TrackerCloudRange& tcr1, const TrackerCloudRange& tcr2, bool debug = false){
+Eigen::MatrixXd registrationToTwoSeriallyLinkedClouds(const TrackerCloudRange& cloudA1, const TrackerCloudRange& cloudA2, bool debug = false){
     static const std::size_t HtransformSize = 4;
-	Eigen::MatrixXd output(std::distance(std::begin(tcr1),std::end(tcr1))*HtransformSize,HtransformSize);
-	auto trackerCoordSysIt1 = std::begin(tcr1);
-	auto trackerCoordSysIt2 = std::begin(tcr2);
-	/// @todo eliminate finding registration on itself for first loop
+	Eigen::MatrixXd output(std::distance(std::begin(cloudA1),std::end(cloudA1))*HtransformSize,HtransformSize);
+    // take the first cloud
+    auto trackerCoordSysCloudA1It = std::begin(cloudA1);
+    auto trackerCoordSysCloudA2It = std::begin(cloudA2);
+    Eigen::MatrixXd cloudA1Moved = *trackerCoordSysCloudA1It;
+    Eigen::MatrixXd cloudA2Moved = *trackerCoordSysCloudA2It;
+    Eigen::Vector3d a1bar;
+    Eigen::Vector3d a2bar;
+    moveCloudToOrigin(cloudA1Moved, a1bar);
+    moveCloudToOrigin(cloudA2Moved, a2bar);
+    
     std::size_t i = 0;
-	for(auto tcIt1 = std::begin(tcr1), tcIt2 = std::begin(tcr2); tcIt1!=std::end(tcr1); ++tcIt1, ++tcIt2, i+=HtransformSize){
-        Eigen::MatrixXd Ftcr2inv = hornRegistration(*trackerCoordSysIt2,*tcIt2);
-        Eigen::MatrixXd Ftcr = hornRegistration(*tcIt1,*trackerCoordSysIt1);
-        output.block<HtransformSize,HtransformSize>(i,0) = Ftcr2inv*Ftcr;
+	for(auto cloudIt1 = std::begin(cloudA1), cloudIt2 = std::begin(cloudA2); cloudIt1!=std::end(cloudA1); ++cloudIt1, ++cloudIt2, i+=HtransformSize){
+        Eigen::MatrixXd FcloudA2inv = hornRegistration(cloudA2Moved,*cloudIt2); //This is H, it calculates FH
+        Eigen::MatrixXd FcloudA = hornRegistration(*cloudIt1,cloudA1Moved); //This is D, it calculates FDinv
+        output.block<HtransformSize,HtransformSize>(i,0) = FcloudA*FcloudA2inv; //F = FDinv*FH
         if(debug){
-            std::cout << "\n\nFtrc2inv:\n\n" << Ftcr2inv << "\n\nFtcr:\n\n" << Ftcr << "\n\nFtcr2inv*Ftcr:\n\n" << Ftcr2inv*Ftcr << "\n\n";
+            std::cout << "\n\nFtrc2inv:\n\n" << FcloudA2inv << "\n\nFcloudA:\n\n" << FcloudA << "\n\nFcloudA2inv*FcloudA:\n\n" << FcloudA2inv*FcloudA << "\n\n";
         }
     }
 
@@ -69,11 +83,11 @@ std::pair<Eigen::MatrixXd,Eigen::VectorXd> transformToRandMinusIandPMatrices(con
 	std::size_t transformRows = transforms.rows();
 	std::size_t transformCount = transformRows/4;
 	std::pair<Eigen::MatrixXd,Eigen::VectorXd> output;
-	output.first.resize(transformCount*RotSize,6);
-	output.second.resize(transformCount*RotSize);
+	output.first.resize(transformCount*RotSize-RotSize,6);
+	output.second.resize(transformCount*RotSize-RotSize);
     
 	
-	for(std::size_t transformRow = 0, outputRow = 0; transformRow < transformRows; transformRow+=HtransformSize,outputRow+=RotSize){
+	for(std::size_t transformRow = HtransformSize, outputRow = 0; transformRow < transformRows; transformRow+=HtransformSize,outputRow+=RotSize){
         
 	    output.first.block<RotSize,RotSize>(outputRow,0) = transforms.block<RotSize,RotSize>(transformRow,0);
 	    output.first.block<RotSize,RotSize>(outputRow,RotSize) = -Eigen::Matrix3d::Identity();
@@ -104,15 +118,15 @@ Eigen::VectorXd SVDSolve(const std::pair<Eigen::MatrixXd, Eigen::VectorXd>& RIp,
 /// perform pivotCalibration, utilizing a series of tracker frames rotated around a single pivot
 /// point to determine the distance from the tracker frames to the pivot point.
 ///
-/// @param tcr A C++ Range of tracker clouds defined as Eigen::MatrixXd, with 3xn points per tracker.
+/// @param cloudA A C++ Range of tracker clouds defined as Eigen::MatrixXd, with 3xn points per tracker.
 /// @pre there must be at least three frames to process
 /// @todo make registration function a template (and regular) parameter that passes through to registrationToFirstCloud
 ///
 /// @return Eigen::VectorXd of size 6, the first 3 scalars are the probe tip location, the last 3 scalars are the pivot point of the probe. Both are relative to the em tracker frame.
 template<typename TrackerCloudRange>
-Eigen::VectorXd pivotCalibration(const TrackerCloudRange& tcr,bool debug = false){
-    BOOST_VERIFY(std::distance(std::begin(tcr),std::end(tcr))>2);
-    Eigen::MatrixXd transforms = registrationToFirstCloud(tcr,debug);
+Eigen::VectorXd pivotCalibration(const TrackerCloudRange& cloudA,bool debug = false){
+    BOOST_VERIFY(std::distance(std::begin(cloudA),std::end(cloudA))>2);
+    Eigen::MatrixXd transforms = registrationToFirstCloud(cloudA,debug);
     //if(debug) std::cout << "\n\ntransforms - pivotCalibration:\n\n" << transforms << "\n\n";
 
     std::pair<Eigen::MatrixXd,Eigen::VectorXd> RIp = transformToRandMinusIandPMatrices(transforms,debug);
@@ -126,17 +140,17 @@ Eigen::VectorXd pivotCalibration(const TrackerCloudRange& tcr,bool debug = false
 /// perform pivotCalibration of Optical Probe in terms of the EM Coordinate System
 /// @pre there must be at least three frames to process
 ///
-/// @param tcr A C++ Range of tracker clouds defined as Eigen::MatrixXd, with 3xn points per tracker.
-/// @param tcr2 A C++ Range of tracker clouds defined as Eigen::MatrixXd, with 3xn points per tracker.
+/// @param cloudA A C++ Range of tracker clouds defined as Eigen::MatrixXd, with 3xn points per tracker.
+/// @param cloudA2 A C++ Range of tracker clouds defined as Eigen::MatrixXd, with 3xn points per tracker.
 /// @pre there must be at least three frames to process
 /// @todo make registration function a template (and regular) parameter that passes through to registrationToFirstCloud
 ///
 /// @return Eigen::VectorXd of size 6, the first 3 scalars are the probe tip location, the last 3 scalars are the pivot point of the probe. Both are relative to the em tracker frame.
 template<typename TrackerCloudRange>
-Eigen::VectorXd pivotCalibrationTwoSystems(const TrackerCloudRange& tcr, const TrackerCloudRange& tcr2,bool debug = false){
-    BOOST_VERIFY(std::distance(std::begin(tcr),std::end(tcr))>2);
-    BOOST_VERIFY(std::distance(std::begin(tcr2),std::end(tcr2))>2);
-    Eigen::MatrixXd transforms = registrationToTwoSeriallyLinkedClouds(tcr, tcr2, debug);
+Eigen::VectorXd pivotCalibrationTwoSystems(const TrackerCloudRange& cloudA, const TrackerCloudRange& cloudA2,bool debug = false){
+    BOOST_VERIFY(std::distance(std::begin(cloudA),std::end(cloudA))>2);
+    BOOST_VERIFY(std::distance(std::begin(cloudA2),std::end(cloudA2))>2);
+    Eigen::MatrixXd transforms = registrationToTwoSeriallyLinkedClouds(cloudA, cloudA2, debug);
     std::pair<Eigen::MatrixXd,Eigen::VectorXd> RIp = transformToRandMinusIandPMatrices(transforms, debug);
     //if(debug) std::cout << "\n\nRI:\n\n" << RIp.first << "\n\np:\n\n" << RIp.second << "\n\n";
     return SVDSolve(RIp,debug);

@@ -187,9 +187,10 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
     
     if(!ad.optpivot.frames.empty()){
         csvCIS_pointCloudData::TrackerFrames trackerIndexedData(swapIndexing(ad.optpivot.frames));
-        // Note: we know there is only one tracker in this data
-        //       so we can run concat to combine the vectors and
-        //       and do the calibration for it.
+//        Eigen::MatrixXd TestCase = registrationToFirstCloud(ad.optpivot.frames);
+//        Eigen::MatrixXd FGTest = TestCase.block<4,4>(4,0);
+//        auto littleGTest = std::begin(ad.optpivot.frames);
+//        Eigen::MatrixXd = FGTest*littleGTest;
         Eigen::VectorXd result = pivotCalibrationTwoSystems(trackerIndexedData[0],trackerIndexedData[1],debug);
         optPivotPoint = result.block<3,1>(3,0);
         std::cout << "\n\nPivotCalibrationTwoSystems result for " << ad.optpivot.title << ":\n\n" << result << "\n\n";
@@ -209,7 +210,7 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
     }
     
     
-    std::string outputFilename = dataFilenamePrefix + "-OUTPUT1.txt";
+    std::string outputFilename = dataFilenamePrefix + "-output1.txt";
     std::ofstream ofs (outputFilename, std::ofstream::out);
     outputCISCSV(ofs,outputFilename,emPivotPoint,optPivotPoint,cExpected);
     

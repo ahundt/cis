@@ -191,6 +191,39 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
 //        Eigen::MatrixXd FGTest = TestCase.block<4,4>(4,0);
 //        auto littleGTest = std::begin(ad.optpivot.frames);
 //        Eigen::MatrixXd = FGTest*littleGTest;
+        Eigen::MatrixXd opticalMarkersOnEMDeviceInEMFrame(ad.calbody.frames[0][0]); // A
+        Eigen::MatrixXd EMMarkersOnCalObjInCalObjFrame(trackerIndexedData[0][1]);
+        for (int i = 0; i< trackerIndexedData[0].size(); ++i){
+            BOOST_VERIFY(trackerIndexedData.size()==2);
+            // only copy first two falues in here
+            // perform hornRegistration and add to back of vector
+            
+            // input points are in EM Tracker frame
+            // output points are in Optical Tracker Frame
+            // Find transform from the calibration object reference frame to the EM coordinates of the calibration object
+            Eigen::MatrixXd OptMarkersOnEMDeviceInOptFrame(trackerIndexedData[0][i]); // D
+            Eigen::Affine3d OptToEMFrame(hornRegistration( // horn(D,A)
+                                                          OptMarkersOnEMDeviceInOptFrame,
+                                                          opticalMarkersOnEMDeviceInEMFrame
+                                                          ));
+            
+            Eigen::MatrixXd calObjPtsInEMTrackerF(EMMarkersOnCalObjInCalObjFrame.rows(),3);
+            for(std::size_t j = 0; j < EMMarkersOnCalObjInCalObjFrame.rows(); ++j){
+                //  extract calibration Object EM Tracker Positions On Calibration Object into individual points
+                Eigen::Vector3d EMMarkerOnCalObjInCalObjFrame(EMMarkersOnCalObjInCalObjFrame.row(j).transpose()); // Extract point from C
+                
+                // starting with point on calibration object in calObj frame -> optFrame -> EMFrame
+                Eigen::Vector3d calObjEMTrackerPosInEMFrame = OptToEMFrame*EMMarkerOnCalObjInCalObjFrame;
+                
+                // would be .row(j) but it is MatrixXd so we need to use .block to specify the size
+                // note that the output of the transform multiplication is already in row format
+                // so it can be inserted directly
+                calObjPtsInEMTrackerF.block<1,3>(j,0) = calObjEMTrackerPosInEMFrame.transpose();
+            }
+
+
+        }
+        
         Eigen::VectorXd result = pivotCalibrationTwoSystems(trackerIndexedData[0],trackerIndexedData[1],debug);
         optPivotPoint = result.block<3,1>(3,0);
         std::cout << "\n\nPivotCalibrationTwoSystems result for " << ad.optpivot.title << ":\n\n" << result << "\n\n";

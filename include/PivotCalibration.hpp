@@ -23,7 +23,7 @@ Eigen::MatrixXd registrationToFirstCloud(const TrackerCloudRange& cloudA,bool de
 	Eigen::MatrixXd output(std::distance(std::begin(cloudA),std::end(cloudA))*HtransformSize,HtransformSize);
     
     // take the first cloud
-	auto trackerCoordSysCloudAIt = std::begin(cloudA);
+	auto trackerCoordSysCloudAIt = std::begin(cloudA); // For Problem 6, will ask Paul if we need to find the h from original H data or from FDinv*H
     
     // find the center aka mean point
     Eigen::Vector3d abar;
@@ -150,7 +150,8 @@ template<typename TrackerCloudRange>
 Eigen::VectorXd pivotCalibrationTwoSystems(const TrackerCloudRange& cloudA, const TrackerCloudRange& cloudA2,bool debug = false){
     BOOST_VERIFY(std::distance(std::begin(cloudA),std::end(cloudA))>2);
     BOOST_VERIFY(std::distance(std::begin(cloudA2),std::end(cloudA2))>2);
-    Eigen::MatrixXd transforms = registrationToTwoSeriallyLinkedClouds(cloudA, cloudA2, debug);
+    Eigen::MatrixXd transforms = registrationToFirstCloud(cloudA,debug);
+    //Eigen::MatrixXd transforms = registrationToTwoSeriallyLinkedClouds(cloudA, cloudA2, debug);
     std::pair<Eigen::MatrixXd,Eigen::VectorXd> RIp = transformToRandMinusIandPMatrices(transforms, debug);
     //if(debug) std::cout << "\n\nRI:\n\n" << RIp.first << "\n\np:\n\n" << RIp.second << "\n\n";
     return SVDSolve(RIp,debug);

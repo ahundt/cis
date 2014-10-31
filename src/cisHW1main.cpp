@@ -4,6 +4,8 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/math/special_functions/binomial.hpp>
+#include <math.h>
 
 // Project includes
 #include "parseCSV_CIS_pointCloud.hpp"
@@ -13,6 +15,7 @@
 #include "PivotCalibration.hpp"
 #include "PointEstimation.hpp"
 #include "hw1Constants.hpp"
+#include "DistortionCalibration.hpp"
 
 namespace po = boost::program_options;
 
@@ -211,6 +214,46 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
     outputCISCSV(ofs,outputFilename,emPivotPoint,optPivotPoint,cExpected);
 
     ofs.close();
+
+
+    /////////////////////////////////////////////////////////////////////
+    // Adding Programming Assignment 2 Code to Main
+    /////////////////////////////////////////////////////////////////////
+
+    // q = Values returned by nagivational sensor -> C (from calreadings)
+    // p = known 3D ground truth -> Cexpected (already calculated above)
+
+    Eigen::MatrixXd cEM;
+
+    // Stacks all of the C values given in calreadings and then normalize
+    // Might want to find the max and min in each frame - need to ask Paul
+    if(!ad.calreadings.frames.empty()){
+        static const std::size_t NumMarkers = ad.calreadings.frames[0][2].rows();
+        static const std::size_t NumFrames = ad.calreadings.frames.size();
+        cEM.resize(NumMarkers*NumFrames,3);
+        for (std::size_t outputRow = 0, i = 0; i < NumFrames; outputRow+=NumMarkers, i++){
+            Eigen::MatrixXd markerTrackersOnCalBodyInEMFrame=ad.calreadings.frames[i][2];
+
+            // @todo For some reason putting numMarkers in for 27 does not work
+            cEM.block<27,3>(outputRow,0) = markerTrackersOnCalBodyInEMFrame;
+        }
+    Eigen::MatrixXd normalCEM = ScaleToBox(cEM);
+
+        std::cout << "\n\nnormalC in EM results for "<< normalCEM << std::endl;
+        std::cout << "\n\nC size is "<< cEM.rows() << std::endl;
+        //std::cout << "\n\nCalreadings in first frame is " << ad.calreadings.frames[0][2];
+        //std::cout << "\n\nthe size is "<< ad.calreadings.frames[0][2].rows() << std::endl;
+    }
+
+    // Testing
+    double test = boost::math::binomial_coefficient<double>(3, 1);
+    std::cout << "\n\nbinomial coefficient test is " << test << std::endl;
+    double a=5.0;
+    int b=3;
+    int c=1;
+    double B = BersteinPolynomial(a, b, c);
+    std::cout << "\n\nB is " << B << std::endl;
+
 }
 
 /**************************************************************************/

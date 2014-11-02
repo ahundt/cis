@@ -4,6 +4,8 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/math/special_functions/binomial.hpp>
+#include <math.h>
 
 // Project includes
 #include "parseCSV_CIS_pointCloud.hpp"
@@ -13,6 +15,7 @@
 #include "PivotCalibration.hpp"
 #include "PointEstimation.hpp"
 #include "hw1Constants.hpp"
+#include "DistortionCalibration.hpp"
 
 namespace po = boost::program_options;
 
@@ -97,9 +100,9 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 				,dataFileNameSuffix_empivot
 				,dataFileNameSuffix_optpivot
 				,dataFileNameSuffix_output1;
-    
+
     DataSource datasource;
-    
+
     std::vector<std::string> dataFilenamePrefixList;
 
 	// load up parameter values from the variable map
@@ -110,12 +113,12 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 	po::readOption(vmap, "dataFileNameSuffix_empivot"      ,dataFileNameSuffix_empivot         ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_optpivot"     ,dataFileNameSuffix_optpivot        ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_output1"      ,dataFileNameSuffix_output1         ,optional);
-    
+
     int prefixCount = dataFilenamePrefixList.size();
     if(!prefixCount){
         pclp.dataSources.push_back(DataSource());
     }
-    
+
     if(prefixCount<=1){
         po::readOption(vmap,"calbodyPath"                      ,pclp.dataSources[0].calbodyPath        ,optional);
         po::readOption(vmap,"calreadingsPath"                  ,pclp.dataSources[0].calreadingsPath    ,optional);
@@ -167,9 +170,9 @@ void outputCISCSV(std::ostream& ostr, const std::string& outputName = "NAME-OUTP
 }
 
 void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, bool debug = false){
-    
+
     Eigen::Vector3d emPivotPoint;
-    
+
     ///////////////////////////////////////////
     // print pivot calibration data of empivot
     if(!ad.empivot.frames.empty()){
@@ -182,38 +185,75 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         emPivotPoint = result.block<3,1>(3,0);
         std::cout << "\n\nPivotCalibration result for " << ad.empivot.title << ":\n\n" << result << "\n\n";
     }
-    
+
     Eigen::Vector3d optPivotPoint;
-    
+
     if(!ad.optpivot.frames.empty()){
-        csvCIS_pointCloudData::TrackerFrames trackerIndexedData(swapIndexing(ad.optpivot.frames));
-        // Note: we know there is only one tracker in this data
-        //       so we can run concat to combine the vectors and
-        //       and do the calibration for it.
-        Eigen::VectorXd result = pivotCalibrationTwoSystems(trackerIndexedData[0],trackerIndexedData[1],debug);
+        std::vector<Eigen::MatrixXd> Gnew;
+        Gnew = findNewGInEM(ad.optpivot.frames,ad.calbody.frames,debug);
+        Eigen::VectorXd result = pivotCalibration(Gnew,debug);
         optPivotPoint = result.block<3,1>(3,0);
-        std::cout << "\n\nPivotCalibrationTwoSystems result for " << ad.optpivot.title << ":\n\n" << result << "\n\n";
+        std::cout << "\n\nPivotCalibration result for " << ad.optpivot.title << ":\n\n" << result << "\n\n";
     }
-    
+
     std::vector<Eigen::MatrixXd> cExpected;
-    
+
     if(!ad.calreadings.frames.empty() && !ad.calbody.frames.empty()){
-        
-        // a
+
         cExpected = estimateCExpected(ad.calreadings.frames,ad.calbody.frames,debug);
-        
-        
+
         std::cout << "\n\nsolveForCExpected results for "<< ad.calreadings.title << " and " << ad.calbody.title <<":\n\n";
         for (auto expected : cExpected)
             std::cout << expected << "\n";
+
     }
-    
-    
-    std::string outputFilename = dataFilenamePrefix + "-OUTPUT1.txt";
+
+
+    std::string outputFilename = dataFilenamePrefix + "-output1.txt";
     std::ofstream ofs (outputFilename, std::ofstream::out);
     outputCISCSV(ofs,outputFilename,emPivotPoint,optPivotPoint,cExpected);
-    
+
     ofs.close();
+
+
+    /////////////////////////////////////////////////////////////////////
+    // Adding Programming Assignment 2 Code to Main
+    /////////////////////////////////////////////////////////////////////
+
+    // q = Values returned by nagivational sensor -> C (from calreadings)
+    // p = known 3D ground truth -> Cexpected (already calculated above)
+
+    Eigen::MatrixXd cEM;
+
+    // Stacks all of the C values given in calreadings and then normalize
+    // Might want to find the max and min in each frame - need to ask Paul
+    if(!ad.calreadings.frames.empty()){
+        static const std::size_t NumMarkers = ad.calreadings.frames[0][2].rows();
+        static const std::size_t NumFrames = ad.calreadings.frames.size();
+        cEM.resize(NumMarkers*NumFrames,3);
+        for (std::size_t outputRow = 0, i = 0; i < NumFrames; outputRow+=NumMarkers, i++){
+            Eigen::MatrixXd markerTrackersOnCalBodyInEMFrame=ad.calreadings.frames[i][2];
+
+            // @todo For some reason putting numMarkers in for 27 does not work
+            cEM.block<27,3>(outputRow,0) = markerTrackersOnCalBodyInEMFrame;
+        }
+    Eigen::MatrixXd normalCEM = ScaleToBox(cEM);
+
+        std::cout << "\n\nnormalC in EM results for "<< normalCEM << std::endl;
+        std::cout << "\n\nC size is "<< cEM.rows() << std::endl;
+        //std::cout << "\n\nCalreadings in first frame is " << ad.calreadings.frames[0][2];
+        //std::cout << "\n\nthe size is "<< ad.calreadings.frames[0][2].rows() << std::endl;
+    }
+
+    // Testing
+    double test = boost::math::binomial_coefficient<double>(3, 1);
+    std::cout << "\n\nbinomial coefficient test is " << test << std::endl;
+    double a=5.0;
+    int b=3;
+    int c=1;
+    double B = BersteinPolynomial(a, b, c);
+    std::cout << "\n\nB is " << B << std::endl;
+
 }
 
 /**************************************************************************/
@@ -228,7 +268,7 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
 int main(int argc,char**argv) {
 	ParsedCommandLineCommands pclp;
 	readCommandLine(argc,argv,pclp);
-    
+
     for(auto&& dataSource : pclp.dataSources){
         AlgorithmData ad;
         loadPointCloudFromFile(dataSource.calbodyPath       ,ad.calbody                    );

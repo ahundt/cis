@@ -47,9 +47,9 @@ struct checkHornRegistrationInverses{
         Eigen::Matrix4d Finv = hornRegistration(trackerPerspective2,trackerPerspective1);
 
         BOOST_CHECK(Eigen::Matrix4d::Identity().isApprox(F*Finv,tolerance));
-        if(!Eigen::Matrix4d::Identity().isApprox(F*Finv,tolerance)){
+       // if(!Eigen::Matrix4d::Identity().isApprox(F*Finv,tolerance)){
             std::cout << "\n\n"<< p1 <<"\n\n" << trackerPerspective1 << "\n\n"<< p2 <<"\n\n" << trackerPerspective2  << "\n\nF:\n\n" << F << "\n\nFinv:\n\n" << Finv << "\n\nF*Finv:\n\n" << F*Finv <<"\n\n";
-        }
+       // }
     }
 };
 
@@ -100,7 +100,7 @@ void visitSecondTrackerRepeatedly(const csvCIS_pointCloudData::TrackerFrames& tf
 
 }
 
-
+#if 0
 BOOST_AUTO_TEST_SUITE(VariantsSuite)
 
 BOOST_AUTO_TEST_CASE(simplePass)
@@ -250,7 +250,17 @@ BOOST_AUTO_TEST_CASE(manualHornRegistration)
     checkHornRegistrationInverses()(trackerPoints,trackerPointsManTform,"trackerPoints","trackerPointsManTform");
 
 }
-
+#endif
+BOOST_AUTO_TEST_CASE(testLittleG_EMPivotCalibration)
+{
+    AlgorithmData ad;
+    
+    // a
+    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debugg);
+    //visitEachTracker(ad..frames, ad.calreadings.frames, checkHornRegistrationInverses());
+    visitSecondTrackerRepeatedly(ad.empivot.frames, ad.empivot.frames, checkHornRegistrationInverses());
+}
+#if 0
 BOOST_AUTO_TEST_CASE(testDebugData)
 {
     AlgorithmData ad;
@@ -622,3 +632,4 @@ BOOST_AUTO_TEST_CASE(pass3)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+#endif

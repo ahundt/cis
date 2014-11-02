@@ -68,6 +68,7 @@ std::vector<Eigen::MatrixXd> estimateCExpected(const T& calreadings, const T& ca
 }
 
 /// @brief This function enables a probe tracked in the Optical frame to be put in EM coordinates
+/// @todo Document what is G? Explain in english.
 template<typename T>
 std::vector<Eigen::MatrixXd> findNewGInEM(const T& optpivot, const T& calbody, bool debug = false ){
     // Sorts through the input files and splits it into vectors of vectors

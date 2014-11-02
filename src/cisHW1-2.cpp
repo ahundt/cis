@@ -14,7 +14,7 @@
 #include "PointData.hpp"
 #include "PivotCalibration.hpp"
 #include "PointEstimation.hpp"
-#include "hw1Constants.hpp"
+#include "hwDataConstants.hpp"
 #include "DistortionCalibration.hpp"
 
 namespace po = boost::program_options;
@@ -52,18 +52,31 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 
     // create algorithm command line options
     dataOptions.add_options()
-		    ("dataFolderPath"                ,po::value<std::string>()->default_value(currentPath)       ,"folder containing data files, defaults to current working directory"   )
-            ("dataFilenamePrefix"            ,po::value<std::vector<std::string> >()->default_value(HW1DataFilePrefixes(),""),"constant prefix of data filename path. Specify this multiple times to run on many data sources at once"   )
-		  	("dataFileNameSuffix_calbody"    ,po::value<std::string>()->default_value(dataFileNameSuffix_calbody    ),"suffix of data filename path"   )
-		  	("dataFileNameSuffix_calreadings",po::value<std::string>()->default_value(dataFileNameSuffix_calreadings),"suffix of data filename path"   )
-		  	("dataFileNameSuffix_empivot"    ,po::value<std::string>()->default_value(dataFileNameSuffix_empivot    ),"suffix of data filename path"   )
-		  	("dataFileNameSuffix_optpivot"   ,po::value<std::string>()->default_value(dataFileNameSuffix_optpivot   ),"suffix of data filename path"   )
-		  	("dataFileNameSuffix_output1"    ,po::value<std::string>()->default_value(dataFileNameSuffix_output1    ),"suffix of data filename path"   )
-		  	("calbodyPath"                   ,po::value<std::string>() , "full path to data txt file")
-		  	("calreadingsPath"               ,po::value<std::string>() , "full path to data txt file")
-		  	("empivotPath"                   ,po::value<std::string>() , "full path to data txt file")
-		  	("optpivotPath"                  ,po::value<std::string>() , "full path to data txt file")
-		  	("output1Path"                   ,po::value<std::string>() , "full path to data txt file")
+            ("pa1", "set automatic programming assignment 1 source data parameters, overrides DataFilenamePrefix, exclusive of pa2")
+            ("pa2", "set automatic programming assignment 2 source data parameters, overrides DataFilenamePrefix, exclusive of pa1")
+		    ("dataFolderPath"                   ,po::value<std::string>()->default_value(currentPath)       ,"folder containing data files, defaults to current working directory"   )
+            ("dataFilenamePrefix"               ,po::value<std::vector<std::string> >()->default_value(HW2DataFilePrefixes(),""),"constant prefix of data filename path. Specify this multiple times to run on many data sources at once"   )
+		  	("dataFileNameSuffix_calbody"       ,po::value<std::string>()->default_value(dataFileNameSuffix_calbody     ),"suffix of data filename path"   )
+		  	("dataFileNameSuffix_calreadings"   ,po::value<std::string>()->default_value(dataFileNameSuffix_calreadings ),"suffix of data filename path"   )
+		  	("dataFileNameSuffix_empivot"       ,po::value<std::string>()->default_value(dataFileNameSuffix_empivot     ),"suffix of data filename path"   )
+		  	("dataFileNameSuffix_optpivot"      ,po::value<std::string>()->default_value(dataFileNameSuffix_optpivot    ),"suffix of data filename path"   )
+		  	("dataFileNameSuffix_output1"       ,po::value<std::string>()->default_value(dataFileNameSuffix_output1     ),"suffix of data filename path"   )
+		  	("dataFileNameSuffix_ct_fiducials"  ,po::value<std::string>()->default_value(dataFileNameSuffix_ct_fiducials),"suffix of data filename path"   )
+		  	("dataFileNameSuffix_em_fiducials"  ,po::value<std::string>()->default_value(dataFileNameSuffix_em_fiducials),"suffix of data filename path"   )
+		  	("dataFileNameSuffix_em_nav"        ,po::value<std::string>()->default_value(dataFileNameSuffix_em_nav      ),"suffix of data filename path"   )
+		  	("dataFileNameSuffix_output2"       ,po::value<std::string>()->default_value(dataFileNameSuffix_output2     ),"suffix of data filename path"   )
+			
+				
+				
+		  	("calbodyPath"                   ,po::value<std::string>() , "full path to data txt file, optional alternative to prefix+suffix name combination"   )
+		  	("calreadingsPath"               ,po::value<std::string>() , "full path to data txt file, optional alternative to prefix+suffix name combination"   )
+		  	("empivotPath"                   ,po::value<std::string>() , "full path to data txt file, optional alternative to prefix+suffix name combination"   )
+		  	("optpivotPath"                  ,po::value<std::string>() , "full path to data txt file, optional alternative to prefix+suffix name combination"   )
+		  	("output1Path"                   ,po::value<std::string>() , "full path to data txt file, optional alternative to prefix+suffix name combination"   )
+		  	("ct_fiducialsPath"  			 ,po::value<std::string>() , "full path to data txt file, optional alternative to prefix+suffix name combination"   )
+		  	("em_fiducialsPath"  			 ,po::value<std::string>() , "full path to data txt file, optional alternative to prefix+suffix name combination"   )
+		  	("em_navPath"        			 ,po::value<std::string>() , "full path to data txt file, optional alternative to prefix+suffix name combination"   )
+		  	("output2Path"       			 ,po::value<std::string>() , "full path to data txt file, optional alternative to prefix+suffix name combination"   )
 			  ;
 
     po::options_description allOptions;
@@ -99,7 +112,12 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 				,dataFileNameSuffix_calreadings
 				,dataFileNameSuffix_empivot
 				,dataFileNameSuffix_optpivot
-				,dataFileNameSuffix_output1;
+				,dataFileNameSuffix_output1
+				,dataFileNameSuffix_ct_fiducials
+				,dataFileNameSuffix_em_fiducials
+				,dataFileNameSuffix_em_nav
+				,dataFileNameSuffix_output2
+				;
 
     DataSource datasource;
 
@@ -113,6 +131,18 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 	po::readOption(vmap, "dataFileNameSuffix_empivot"      ,dataFileNameSuffix_empivot         ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_optpivot"     ,dataFileNameSuffix_optpivot        ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_output1"      ,dataFileNameSuffix_output1         ,optional);
+	po::readOption(vmap, "dataFileNameSuffix_ct_fiducials" ,dataFileNameSuffix_ct_fiducials    ,optional);
+	po::readOption(vmap, "dataFileNameSuffix_em_fiducials" ,dataFileNameSuffix_em_fiducials    ,optional);
+	po::readOption(vmap, "dataFileNameSuffix_em_nav"       ,dataFileNameSuffix_em_nav          ,optional);
+	po::readOption(vmap, "dataFileNameSuffix_output2"      ,dataFileNameSuffix_output2         ,optional);
+    
+    
+    if (vmap.count("pa1")) {
+        dataFilenamePrefixList = HW1DataFilePrefixes();
+    } else if (vmap.count("pa2")) {
+        dataFilenamePrefixList = HW2DataFilePrefixes();
+    }
+    
 
     int prefixCount = dataFilenamePrefixList.size();
     if(!prefixCount){
@@ -133,11 +163,15 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
     for(auto&& prefix : dataFilenamePrefixList){
         DataSource dataSource;
         dataSource.filenamePrefix = prefix;
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_calbody       ,dataSource.calbodyPath,required);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_calreadings   ,dataSource.calreadingsPath,required);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_empivot       ,dataSource.empivotPath,required);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_optpivot      ,dataSource.optpivotPath,required);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_output1       ,dataSource.output1Path,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_calbody       ,dataSource.calbodyPath        ,required);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_calreadings   ,dataSource.calreadingsPath    ,required);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_empivot       ,dataSource.empivotPath        ,required);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_optpivot      ,dataSource.optpivotPath       ,required);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_output1       ,dataSource.output1Path        ,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_ct_fiducials   ,dataSource.ct_fiducials    ,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_em_fiducials   ,dataSource.em_fiducials    ,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_em_nav         ,dataSource.em_nav          ,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_output2        ,dataSource.output2         ,optional);
 
         pclp.dataSources.push_back(dataSource);
     }

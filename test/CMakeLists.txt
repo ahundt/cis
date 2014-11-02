@@ -78,3 +78,6 @@ endif ()
 basis_add_test(cisHW1test.cpp)
 basis_target_link_libraries(cisHW1test ${PCL_LIBRARIES} ${BOOST_LIBRARIES} ${Boost_LIBRARIES})
 
+basis_add_test(cisHW2test.cpp)
+basis_target_link_libraries(cisHW2test ${PCL_LIBRARIES} ${BOOST_LIBRARIES} ${Boost_LIBRARIES})
+

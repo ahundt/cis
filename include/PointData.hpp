@@ -8,7 +8,7 @@
 #include <iostream>
 
 // project includes
-#include "hw1Constants.hpp"
+#include "hwDataConstants.hpp"
 #include "parseCSV_CIS_pointCloud.hpp"
 
 struct AlgorithmData {
@@ -20,12 +20,19 @@ struct AlgorithmData {
 };
 
 struct DataSource {
+    // filename prefix that goes in front of the filename string
     std::string  filenamePrefix;
+    // full paths to the files
     std::string  calbodyPath;
     std::string  calreadingsPath;
     std::string  empivotPath;
     std::string  optpivotPath;
     std::string  output1Path;
+	std::string  ct_fiducials;
+	std::string  em_fiducials;
+	std::string  em_nav      ;
+	std::string  output2     ;
+	
 };
 
 struct ParsedCommandLineCommands {

@@ -213,16 +213,16 @@ void outputCISCSV(std::ostream& ostr, const std::string& outputName = "NAME-OUTP
 void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, bool debug = false){
 
     Eigen::Vector3d emPivotPoint;
+    csvCIS_pointCloudData::TrackerDevices EMPtsInEMFrameOnProbe;
 
     ///////////////////////////////////////////
     // print pivot calibration data of empivot
     if(!ad.empivot.frames.empty()){
-        csvCIS_pointCloudData::TrackerDevices trackerIndexedData;
         // Note: we know there is only one tracker in this data
         //       so we can run concat to combine the vectors and
         //       and do the calibration for it.
-        trackerIndexedData = concat(ad.empivot.frames);
-        Eigen::VectorXd result = pivotCalibration(trackerIndexedData,debug);
+        EMPtsInEMFrameOnProbe = concat(ad.empivot.frames);
+        Eigen::VectorXd result = pivotCalibration(EMPtsInEMFrameOnProbe,debug);
         emPivotPoint = result.block<3,1>(3,0);
         std::cout << "\n\nPivotCalibration result for " << ad.empivot.title << ":\n\n" << result << "\n\n";
     }
@@ -237,6 +237,7 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         std::cout << "\n\nPivotCalibration result for " << ad.optpivot.title << ":\n\n" << result << "\n\n";
     }
 
+    // cExpected contains *estimated* Optical Points in EM frame on Calibration Object
     std::vector<Eigen::MatrixXd> cExpected;
 
     if(!ad.calreadings.frames.empty() && !ad.calbody.frames.empty()){
@@ -264,27 +265,11 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
     // q = Values returned by nagivational sensor -> C (from calreadings)
     // p = known 3D ground truth -> Cexpected (already calculated above)
 
-    Eigen::MatrixXd cEM;
 
     // Stacks all of the C values given in calreadings and then normalize
     // Might want to find the max and min in each frame - need to ask Paul
     if(!ad.calreadings.frames.empty()){
-        static const std::size_t NumMarkers = ad.calreadings.frames[0][2].rows();
-        static const std::size_t NumFrames = ad.calreadings.frames.size();
-        cEM.resize(NumMarkers*NumFrames,3);
-        for (std::size_t outputRow = 0, i = 0; i < NumFrames; outputRow+=NumMarkers, i++){
-            Eigen::MatrixXd markerTrackersOnCalBodyInEMFrame=ad.calreadings.frames[i][2];
-
-            // @todo For some reason putting numMarkers in for 27 does not work
-            cEM.block<27,3>(outputRow,0) = markerTrackersOnCalBodyInEMFrame;
-        }
-        Eigen::MatrixXd normalCEM = cEM;
-        ScaleToBox(normalCEM);
-
-        std::cout << "\n\nnormalC in EM results for "<< normalCEM << std::endl;
-        std::cout << "\n\nC size is "<< cEM.rows() << std::endl;
-        //std::cout << "\n\nCalreadings in first frame is " << ad.calreadings.frames[0][2];
-        //std::cout << "\n\nthe size is "<< ad.calreadings.frames[0][2].rows() << std::endl;
+        correctDistortionOnSourceData(ad.calreadings.frames,cExpected,EMPtsInEMFrameOnProbe);
     }
 
 

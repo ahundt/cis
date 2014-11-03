@@ -3,59 +3,31 @@
 
 #include <boost/math/special_functions/binomial.hpp>
 #include "matrixOperations.hpp"
-
-//enum BoundingBoxRows {
-//    max = 0,
-//    min = 1
-//};
+#include "parseCSV_CIS_pointCloud.hpp"
 
 
-/// Finds the maximum and minimum values of the point clouds in the X, Y,and Z
-/// @todo what are the expected dimensions of X?
-/// @todo create a unit test for this
-///
-/// Use this to find min and max:
-///
-/// Eigen::Vector3d MaxValues = X.colwise().maxCoeff();
-/// Eigen::Vector3d MinValues = x.colwise().minCoeff();
-
-//Eigen::MatrixXd FindMaxMinXYZ(const Eigen::MatrixXd& X)
-//{
-//    int cols = X.cols();
-//    int rows = X.rows();
-//    Eigen::MatrixXd maxmin(2,cols);
-//    Eigen::VectorXd aVec;
-//    for (int j = 0; j<cols; j++){
-//        aVec = X.col(j);
-//        double max = aVec(0);
-//        double min = aVec(0);
-//        for (int i = 0; i<rows; i++){
-//            if (aVec(i) >= max) {
-//                max=aVec(i);
-//                maxmin(0,j)=max;
-//            }
-//            if (aVec(i) <= min) {
-//                min=aVec(i);
-//                maxmin(1,j)=min;
-//            }
-//        }
-//    }
-//    return maxmin;
-//}
+void boundingBox(Eigen::MatrixXd& X, Eigen::Vector3d& maxCorner, Eigen::Vector3d& minCorner){
+    maxCorner = X.colwise().maxCoeff();
+    minCorner = X.colwise().minCoeff();
+}
 
 /// Scales every dimension of the point cloud to the max and min values
+/// Also finds the original bounding box which is subsequently scaled down.
+///
 /// @todo what are the expected dimensions of X?
 /// @todo which return row is the min and which is the max
 /// @todo this does not scale to the unit box, it scales to the size of the max and min point of the matrix.
-void ScaleToBox(Eigen::MatrixXd& X)
+///
+/// @param X nx3 matrix containing points that will be scaled
+/// @param maxCorner the maximum coordinate in all dimensions of the bounding box
+void ScaleToUnitBox(Eigen::MatrixXd& X, const Eigen::Vector3d& maxCorner, const Eigen::Vector3d& minCorner )
 {
-    Eigen::Vector3d max = X.colwise().maxCoeff();
-    Eigen::Vector3d min = X.colwise().minCoeff();
-    Eigen::Vector3d diff = max-min;
+    // bounding box max and min
+    Eigen::Vector3d diff = maxCorner-minCorner;
     for (int i=0; i<X.cols(); i++){
         for (int j=0; j<X.rows(); j++){
             // scale the x,y,z of the point
-            X(j,i) = (X(j,i)-min(i))/diff(i);
+            X(j,i) = (X(j,i)-minCorner(i))/diff(i);
         }
     }
 }
@@ -103,24 +75,111 @@ Eigen::MatrixXd FMatrixRow(const Eigen::Vector3d& v,int N = 5, bool debug = fals
 }
 
 
+/// Normalize the cEM matrix of points, then find the
+/// F Matrix row of each point and insert it into a larger
+/// matrix on which SVD will be solved.
+///
+/// @pre cEM must be normalized to the unit rectangle
+///
 /// @see slide 42 and 43 of InterpolationReview.pdf
+///
+///
 /// @param cEM n x numPoints matrix containing the c expected value, aka actual points measured by EM tracker in EM coordinate system, after translation from EM coord system
 /// @param N the polynomial degree
-Eigen::MatrixXd FMatrix(const Eigen::MatrixXd& cEM, int N = 5, bool debug = false){
+Eigen::MatrixXd FMatrix(const Eigen::MatrixXd& normalcEM, int N = 5, bool debug = false){
     /// @todo don't recompute pow here and in FMatrixRow
     int columns = pow(N+1,3);
-    int rows = cEM.rows();
+    int rows = normalcEM.rows();
     Eigen::MatrixXd cEMFMatrix(rows,columns);
+    
     
     for (int i=0; i<rows; i++){
         Eigen::Vector3d vXYZ;
-        vXYZ = cEM.block<1,3>(i,0);
+        vXYZ = normalcEM.block<1,3>(i,0);
         Eigen::MatrixXd row = FMatrixRow(vXYZ,N,debug);
         if(debug) std::cout << "\n\nreturned FMatrixRow:\n\n" << row << "\n\n";
         cEMFMatrix.row(i) = row;
     }
     if(debug) std::cout << "\n\ncEMFMatrix:\n\n" << cEMFMatrix << "\n\n";
     return cEMFMatrix;
+}
+
+///
+/// Solving for SVD F*C=P, where F is the EMPointsInEMFrameOnCalObj with BernsteinPolynomials applied.
+///
+/// @return distortion Calibration Matrix C
+/// @see slide 43 of InterpolationReview.pdf
+Eigen::MatrixXd distortionCalibrationMatrixC(const Eigen::MatrixXd& EMPointsInEMFrameOnCalObj, const Eigen::MatrixXd& OptPointsInEMFrameOnCalibObject ){
+    
+    Eigen::MatrixXd normalEMPointsInEMFrameOnCalObj(EMPointsInEMFrameOnCalObj); // aka normal cEM
+    Eigen::Vector3d minCorner;
+    Eigen::Vector3d maxCorner;
+    boundingBox(normalEMPointsInEMFrameOnCalObj,minCorner,maxCorner);
+    ScaleToUnitBox(normalEMPointsInEMFrameOnCalObj,minCorner,maxCorner); // normalize into unit box
+    
+    Eigen::MatrixXd FMatofEMPointsInEMFrameOnCalObj = FMatrix(normalEMPointsInEMFrameOnCalObj);
+    
+    std::cout << "\n\nFMatrix for SVD is rows: "<< FMatofEMPointsInEMFrameOnCalObj.rows() << " cols: " << FMatofEMPointsInEMFrameOnCalObj.cols() << std::endl << std::endl;
+    
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(FMatofEMPointsInEMFrameOnCalObj, Eigen::ComputeThinU | Eigen::ComputeThinV);
+    
+    /// this is cx cy cz on slide 43 of InterpolationReview.pdf
+    Eigen::MatrixXd pointCorrectionMatrix = svd.solve(OptPointsInEMFrameOnCalibObject);
+    std::cout << "\n\npointCorrectionMatrix rows: " << pointCorrectionMatrix.rows() << " cols: " << pointCorrectionMatrix.cols() << "\n\n";
+    
+    return pointCorrectionMatrix;
+}
+
+
+void correctDistortion(){
+    
+}
+
+
+/// @todo move elsewhere and remove dependency on parsing data structure
+void correctDistortionOnSourceData(
+                                   const csvCIS_pointCloudData::TrackerFrames& calreadingsFrames,
+                                   const std::vector<Eigen::MatrixXd>&         cExpected,
+                                   const csvCIS_pointCloudData::TrackerDevices& EMPtsInEMFrameOnProbe
+                                   ){
+    
+    static const int firstFrame = 0;
+    static const int IndexOptPtsInOptFrameOnEMTracker = 0;
+    static const int IndexOptInOptFrameOnCalObj = 1;
+    static const int IndexEMPointsInEMFrameOnCalObj = 2;
+    
+    BOOST_VERIFY(calreadingsFrames.size()==cExpected.size());
+    BOOST_VERIFY(cExpected[0].cols()>0);
+    
+    int cExpectedFrameRows = cExpected[0].rows();
+    int cExpectedCols = cExpected[0].cols();
+    Eigen::MatrixXd cExpectedStacked(cExpected.size()*cExpectedFrameRows,cExpectedCols);
+    
+    static const std::size_t NumEMPointsInEMFrameOnCalObj = calreadingsFrames[firstFrame][IndexEMPointsInEMFrameOnCalObj].rows();
+    static const std::size_t NumFrames = calreadingsFrames.size();
+    Eigen::MatrixXd cEM;
+    cEM.resize(NumEMPointsInEMFrameOnCalObj*NumFrames,3);
+    
+    
+    for (std::size_t outputRow = 0, i = 0; i < NumFrames; outputRow+=NumEMPointsInEMFrameOnCalObj, i++){
+        const Eigen::MatrixXd& markerTrackersOnCalBodyInEMFrame=calreadingsFrames[i][IndexEMPointsInEMFrameOnCalObj];
+        
+        // @todo For some reason putting numMarkers in for 27 does not work
+        cEM.block(outputRow,0,NumEMPointsInEMFrameOnCalObj,3) = markerTrackersOnCalBodyInEMFrame;
+        cExpectedStacked.block(i*cExpectedFrameRows, 0, cExpectedFrameRows, cExpectedCols);
+    }
+    
+    Eigen::MatrixXd dcmC = distortionCalibrationMatrixC(cEM, cExpectedStacked);
+    
+    
+    //EMPtsInEMFrameOnProbe
+    
+    
+    //std::cout << "\n\nC size is "<< cEM.rows() << std::endl;
+    //
+    //std::cout << "\n\nFMatrix for SVD is \n\n"<< FMat << std::endl;
+    //std::cout << "\n\nCalreadings in first frame is " << ad.calreadings.frames[0][2];
+    //std::cout << "\n\nthe size is "<< ad.calreadings.frames[0][2].rows() << std::endl;
 }
 
 #endif // _DISTORTION_CALIBRATION_HPP_

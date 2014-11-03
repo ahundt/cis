@@ -106,12 +106,12 @@ std::pair<Eigen::MatrixXd,Eigen::VectorXd> transformToRandMinusIandPMatrices(con
 /// @pre must be at least 3 input RIp values (really [R,-I],p)
 ///
 /// @return Eigen::VectorXd of size 6, containing ???????? @todo
-Eigen::VectorXd SVDSolve(const std::pair<Eigen::MatrixXd, Eigen::VectorXd>& RIp, bool debug = false)
+Eigen::VectorXd SVDSolveRIp(const std::pair<Eigen::MatrixXd, Eigen::VectorXd>& RIp, bool debug = false)
 {
     BOOST_VERIFY(RIp.first.rows()>9);
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(RIp.first, Eigen::ComputeThinU | Eigen::ComputeThinV);
     Eigen::VectorXd X = svd.solve(-RIp.second);
-    if(debug) std::cout << "\n\nSVDSolve - p:\n\n" << X << "\n\n";
+    if(debug) std::cout << "\n\nSVDSolveRIp - p:\n\n" << X << "\n\n";
     return X;
 }
 
@@ -132,7 +132,7 @@ Eigen::VectorXd pivotCalibration(const TrackerCloudRange& cloudA,bool debug = fa
     std::pair<Eigen::MatrixXd,Eigen::VectorXd> RIp = transformToRandMinusIandPMatrices(transforms,debug);
     //if(debug) std::cout << "\n\nRI - pivotCalibration:\n\n" << RIp.first << "\n\np - pivotCalibration:\n\n" << RIp.second << "\n\n";
 
-    Eigen::VectorXd X =  SVDSolve(RIp,debug);
+    Eigen::VectorXd X =  SVDSolveRIp(RIp,debug);
     if(debug) std::cout << "\n\npivotCalibration - p:\n\n" << X << "\n\n";
     return X;
 }
@@ -154,7 +154,7 @@ Eigen::VectorXd pivotCalibrationTwoSystems(const TrackerCloudRange& cloudA, cons
     Eigen::MatrixXd transforms = registrationToTwoSeriallyLinkedClouds(cloudA, cloudA2, debug);
     std::pair<Eigen::MatrixXd,Eigen::VectorXd> RIp = transformToRandMinusIandPMatrices(transforms, debug);
     //if(debug) std::cout << "\n\nRI:\n\n" << RIp.first << "\n\np:\n\n" << RIp.second << "\n\n";
-    return SVDSolve(RIp,debug);
+    return SVDSolveRIp(RIp,debug);
 }
 
 

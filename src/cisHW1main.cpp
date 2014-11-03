@@ -254,10 +254,19 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
     double Btest = BersteinPolynomial(a, b, c);
     std::cout << "\n\nBtest is " << Btest << std::endl;
 
-    double test2 = 0.5;
-    Eigen::VectorXd TestF = FMatrix(test2);
+    Eigen::Vector3d test2;
+    test2 << 0, 0.5, 1;
+    Eigen::MatrixXd TestF = FMatrix(test2);
     std::cout << "\n\nF is " << TestF.transpose() << std::endl;
-    std::cout << "\n\nThe size of F is " << TestF.rows() << "x" << TestF.cols() <<std::endl;
+    //std::cout << "\n\nThe size of F is " << TestF.rows() << "x" << TestF.cols() <<std::endl;
+
+    Eigen::MatrixXd cEMFMatrix;
+    for (int i=0; i<cEM.cols(); i++){
+        Eigen::Vector3d vXYZ;
+        vXYZ = cEM.block<1,3>(i,0);
+        cEMFMatrix = FMatrix(v);
+    }
+    std::cout << "\n\ncEMFMatrix is " << cEMFMatrix << std::endl;
 }
 
 /**************************************************************************/

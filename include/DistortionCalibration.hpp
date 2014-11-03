@@ -48,21 +48,21 @@ double BersteinPolynomial(double v, int N, int k)
 
 /// Makes F matrix of Berstein Polynomials
 /// For
-Eigen::MatrixXd FMatrix(double v)
+Eigen::MatrixXd FMatrix(Eigen::Vector3d v)
 {
     int N = 5;
     int index = 0;
     int columns = pow(N+1,3)-1;
-    Eigen::MatrixXd F = Eigen::MatrixXd::Zero(1,columns);
-    std::cout << "\n\nF is " << F << std::endl;
+    Eigen::MatrixXd F(1,columns);
+    //std::cout << "\n\nF is " << F << std::endl;
     for (int i=0; i<=5; i++){
         for(int j=0; j<=5; j++){
             for(int k=0; k<=5; k++){
                 // Fijk = Bi * Bj * Bk F(0,index)
-                std::cout << "\n\nindex is " << index << std::endl;
-                double B = BersteinPolynomial(v,N,i)*BersteinPolynomial(v,N,j)*BersteinPolynomial(v,N,k);
+                //std::cout << "\n\nindex is " << index << std::endl;
+                double bSum = BersteinPolynomial(v(0),N,i)*BersteinPolynomial(v(1),N,j)*BersteinPolynomial(v(2),N,k);
                 //std::cout << "\n\nB is " << B << std::endl;
-                F.block<1,1>(0,index) << B;
+                F.block<1,1>(0,index) << bSum;
                 index++;
                 BOOST_VERIFY(index<columns);
                 //std::cout << "\n\nF is " << F << std::endl;

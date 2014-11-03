@@ -35,6 +35,7 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
     ("responseFile", po::value<std::string>(), "File containing additional command line parameters")
     CLO_HELP
     CLO_DEBUG
+    ("debugParser","display debug information for data file parser")
     ;
 
 
@@ -103,6 +104,8 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
       std::cout << allOptions << std::endl;
       return false;
     }
+    
+    pclp.debugParser = vmap.count("debugParser");
 
 	parseResponseFiles(vmap,allOptions);
 
@@ -168,10 +171,10 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
         assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_empivot       ,dataSource.empivotPath        ,required);
         assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_optpivot      ,dataSource.optpivotPath       ,required);
         assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_output1       ,dataSource.output1Path        ,optional);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_ct_fiducials   ,dataSource.ct_fiducials    ,optional);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_em_fiducials   ,dataSource.em_fiducials    ,optional);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_em_nav         ,dataSource.em_nav          ,optional);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_output2        ,dataSource.output2         ,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_ct_fiducials   ,dataSource.ct_fiducialsPath  ,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_em_fiducials   ,dataSource.em_fiducialsPath  ,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_em_nav         ,dataSource.em_navPath        ,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_output2        ,dataSource.output2Path       ,optional);
 
         pclp.dataSources.push_back(dataSource);
     }
@@ -305,11 +308,15 @@ int main(int argc,char**argv) {
 
     for(auto&& dataSource : pclp.dataSources){
         AlgorithmData ad;
-        loadPointCloudFromFile(dataSource.calbodyPath       ,ad.calbody                    );
-        loadPointCloudFromFile(dataSource.calreadingsPath   ,ad.calreadings                );
-        loadPointCloudFromFile(dataSource.empivotPath       ,ad.empivot                    );
-        loadPointCloudFromFile(dataSource.optpivotPath      ,ad.optpivot                   );
-        loadPointCloudFromFile(dataSource.output1Path       ,ad.output1                    );
+        loadPointCloudFromFile(dataSource.calbodyPath       ,ad.calbody             ,pclp.debugParser       );
+        loadPointCloudFromFile(dataSource.calreadingsPath   ,ad.calreadings         ,pclp.debugParser       );
+        loadPointCloudFromFile(dataSource.empivotPath       ,ad.empivot             ,pclp.debugParser       );
+        loadPointCloudFromFile(dataSource.optpivotPath      ,ad.optpivot            ,pclp.debugParser       );
+        loadPointCloudFromFile(dataSource.output1Path       ,ad.output1             ,pclp.debugParser       );
+        loadPointCloudFromFile(dataSource.ct_fiducialsPath  ,ad.ct_fiducials        ,pclp.debugParser       );
+        loadPointCloudFromFile(dataSource.em_fiducialsPath  ,ad.em_fiducials        ,pclp.debugParser       );
+        loadPointCloudFromFile(dataSource.em_navPath        ,ad.em_nav              ,pclp.debugParser       );
+        loadPointCloudFromFile(dataSource.output2Path       ,ad.output2             ,pclp.debugParser       );
 
         hw1GenerateOutputFile(ad, dataSource.filenamePrefix,pclp.debug);
     }

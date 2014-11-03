@@ -1,5 +1,8 @@
-#ifndef CISHW1_H_INCLUDED
-#define CISHW1_H_INCLUDED
+#ifndef _DISTORTION_CALIBRATION_HPP_
+#define _DISTORTION_CALIBRATION_HPP_
+
+#include <boost/math/special_functions/binomial.hpp>
+#include "matrixOperations.hpp"
 
 /// Finds the maximum and minimum values of the point clouds in the X, Y,and Z
 Eigen::MatrixXd FindMaxMinXYZ(Eigen::MatrixXd X)
@@ -46,4 +49,4 @@ double BersteinPolynomial(double v, int N, int k)
     return B;
 }
 
-#endif // CISHW1_H_INCLUDED
+#endif // _DISTORTION_CALIBRATION_HPP_

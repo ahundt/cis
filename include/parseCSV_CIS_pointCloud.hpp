@@ -121,8 +121,11 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
     std::vector<std::string>::iterator currentStringLineIterator = strs.begin();
 	std::vector<std::string> firstLineStrings;
     
-    /// @todo the file format could be improved and shouldn't require this special case
+    /// @todo the file format could be improved and shouldn't require these special cases
+    bool isCtFiducials = boost::algorithm::contains(*strs.begin(), std::string("ct-fiducials"));
     bool isCalBody = boost::algorithm::contains(*strs.begin(), std::string("calbody"));
+    // only isCalBody and is CtFiducials do not specify numframes, they assume a fixed value instead.
+    bool isNumFramesSpecified = !(isCalBody || isCtFiducials);
 
 	boost::split(firstLineStrings, *currentStringLineIterator, boost::is_any_of(", "), boost::token_compress_on);
     int firstLineIndex = 0;
@@ -132,7 +135,7 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
             // the first 3 numbers are the number of trackers on each object
             // there are expected to be 3 of these numbers (as opposed to trackers) as of HW1
 			outputData.title = *beginFL;
-        } else if(!isCalBody && firstLineIndex == firstLineStrings.size()-2) {
+        } else if(isNumFramesSpecified && firstLineIndex == firstLineStrings.size()-2) {
             // the number of Frames containing all the tracker markers,
             // essentially like timesteps, in each file.
             // This is the last number and second to last item in the line, except in the "calbody" case.
@@ -145,14 +148,18 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
 		}
 	}
     
+    
     // if the filename contains the string output,
     // the first two lines are special estimated positions
-    /// @todo the file format could be improved and shouldn't require this special case
-    if(boost::algorithm::contains(*strs.begin(), std::string("output"))){
+    /// @todo the file format could be improved and shouldn't require these special cases
+    if(boost::algorithm::contains(*strs.begin(), std::string("output1"))){
         ++currentStringLineIterator;
         outputData.estElectromagneticPostPos = readPointString(*currentStringLineIterator);
         ++currentStringLineIterator;
         outputData.estOpticalPostPos = readPointString(*currentStringLineIterator);
+    } else if(boost::algorithm::contains(*strs.begin(), std::string("output2"))){
+        // output2 does not specify number of elements per data frame, assume 1
+        outputData.firstLine.push_back(1);
     }
     
     

@@ -5,6 +5,7 @@
 #include "matrixOperations.hpp"
 
 /// Finds the maximum and minimum values of the point clouds in the X, Y,and Z
+/// @todo what are the expected dimensions of X?
 Eigen::MatrixXd FindMaxMinXYZ(Eigen::MatrixXd X)
 {
     Eigen::MatrixXd maxmin(2,3);
@@ -28,6 +29,7 @@ Eigen::MatrixXd FindMaxMinXYZ(Eigen::MatrixXd X)
 }
 
 /// Scales every dimension of the point cloud to the max and min values
+/// @todo what are the expected dimensions of X?
 Eigen::MatrixXd ScaleToBox(Eigen::MatrixXd X)
 {
     Eigen::MatrixXd MaxMinValues = FindMaxMinXYZ(X);

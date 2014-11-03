@@ -278,7 +278,8 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
             // @todo For some reason putting numMarkers in for 27 does not work
             cEM.block<27,3>(outputRow,0) = markerTrackersOnCalBodyInEMFrame;
         }
-    Eigen::MatrixXd normalCEM = ScaleToBox(cEM);
+        Eigen::MatrixXd normalCEM = cEM;
+        ScaleToBox(normalCEM);
 
         std::cout << "\n\nnormalC in EM results for "<< normalCEM << std::endl;
         std::cout << "\n\nC size is "<< cEM.rows() << std::endl;
@@ -295,19 +296,14 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
     double Btest = BersteinPolynomial(a, b, c);
     std::cout << "\n\nBtest is " << Btest << std::endl;
 
-    Eigen::Vector3d test2;
+    Eigen::MatrixXd test2(1,3);
     test2 << 0, 0.5, 1;
     Eigen::MatrixXd TestF = FMatrix(test2);
     std::cout << "\n\nF is " << TestF.transpose() << std::endl;
     //std::cout << "\n\nThe size of F is " << TestF.rows() << "x" << TestF.cols() <<std::endl;
 
-    Eigen::MatrixXd cEMFMatrix;
-    for (int i=0; i<cEM.cols(); i++){
-        Eigen::Vector3d vXYZ;
-        vXYZ = cEM.block<1,3>(i,0);
-        cEMFMatrix = FMatrix(vXYZ);
-    }
-    std::cout << "\n\ncEMFMatrix is " << cEMFMatrix << std::endl;
+
+    //std::cout << "\n\ncEMFMatrix rows: " << TestF.rows() << " cols: " << TestF.cols() << " values:\n\n" << TestF << std::endl;
 }
 
 /**************************************************************************/

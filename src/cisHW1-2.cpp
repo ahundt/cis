@@ -287,20 +287,6 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         //std::cout << "\n\nthe size is "<< ad.calreadings.frames[0][2].rows() << std::endl;
     }
 
-    // Testing
-    double test = boost::math::binomial_coefficient<double>(3, 1);
-    std::cout << "\n\nbinomial coefficient test is " << test << std::endl;
-    double a=5.0;
-    int b=3;
-    int c=1;
-    double Btest = BersteinPolynomial(a, b, c);
-    std::cout << "\n\nBtest is " << Btest << std::endl;
-
-    Eigen::MatrixXd test2(1,3);
-    test2 << 0, 0.5, 1;
-    Eigen::MatrixXd TestF = FMatrix(test2);
-    std::cout << "\n\nF is " << TestF.transpose() << std::endl;
-    //std::cout << "\n\nThe size of F is " << TestF.rows() << "x" << TestF.cols() <<std::endl;
 
 
     //std::cout << "\n\ncEMFMatrix rows: " << TestF.rows() << " cols: " << TestF.cols() << " values:\n\n" << TestF << std::endl;

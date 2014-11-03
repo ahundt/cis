@@ -100,7 +100,6 @@ void visitSecondTrackerRepeatedly(const csvCIS_pointCloudData::TrackerFrames& tf
 
 }
 
-#if 0
 BOOST_AUTO_TEST_SUITE(VariantsSuite)
 
 BOOST_AUTO_TEST_CASE(simplePass)
@@ -250,7 +249,7 @@ BOOST_AUTO_TEST_CASE(manualHornRegistration)
     checkHornRegistrationInverses()(trackerPoints,trackerPointsManTform,"trackerPoints","trackerPointsManTform");
 
 }
-#endif
+
 BOOST_AUTO_TEST_CASE(testLittleG_EMPivotCalibration)
 {
     AlgorithmData ad;

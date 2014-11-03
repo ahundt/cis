@@ -264,7 +264,7 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
     for (int i=0; i<cEM.cols(); i++){
         Eigen::Vector3d vXYZ;
         vXYZ = cEM.block<1,3>(i,0);
-        cEMFMatrix = FMatrix(v);
+        cEMFMatrix = FMatrix(vXYZ);
     }
     std::cout << "\n\ncEMFMatrix is " << cEMFMatrix << std::endl;
 }

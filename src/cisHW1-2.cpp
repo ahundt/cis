@@ -158,6 +158,10 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
         po::readOption(vmap,"empivotPath"                      ,pclp.dataSources[0].empivotPath        ,optional);
         po::readOption(vmap,"optpivotPath"                     ,pclp.dataSources[0].optpivotPath       ,optional);
         po::readOption(vmap,"output1Path"                      ,pclp.dataSources[0].output1Path        ,optional);
+        po::readOption(vmap,"ct_fiducialsPath"                 ,pclp.dataSources[0].ct_fiducialsPath   ,optional);
+        po::readOption(vmap,"em_fiducialsPath"                 ,pclp.dataSources[0].em_fiducialsPath   ,optional);
+        po::readOption(vmap,"em_navPath"                       ,pclp.dataSources[0].em_navPath         ,optional);
+        po::readOption(vmap,"output2Path"                      ,pclp.dataSources[0].output2Path        ,optional);
     }
 
 
@@ -171,10 +175,10 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
         assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_empivot       ,dataSource.empivotPath        ,required);
         assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_optpivot      ,dataSource.optpivotPath       ,required);
         assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_output1       ,dataSource.output1Path        ,optional);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_ct_fiducials   ,dataSource.ct_fiducialsPath  ,optional);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_em_fiducials   ,dataSource.em_fiducialsPath  ,optional);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_em_nav         ,dataSource.em_navPath        ,optional);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_output2        ,dataSource.output2Path       ,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_ct_fiducials  ,dataSource.ct_fiducialsPath  ,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_em_fiducials  ,dataSource.em_fiducialsPath  ,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_em_nav        ,dataSource.em_navPath        ,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix,dataFileNameSuffix_output2       ,dataSource.output2Path       ,optional);
 
         pclp.dataSources.push_back(dataSource);
     }

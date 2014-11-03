@@ -142,35 +142,74 @@ and descriptions for the primary cisHW1main executable file are below.
     
     ./cisHW1main
     
-    General Options:
-      --responseFile arg                    File containing additional command line
-                                            parameters
-      --help                                produce help message
-      --debug arg (=0)                      enable debug output
-    
-    Algorithm Options:
-    
-    Data Options:
-      --dataFolderPath arg (=/Users/athundt/source/cis/build/bin)
-                                            folder containing data files, defaults
-                                            to current working directory
-      --dataFilenamePrefix arg (=pa1-debug-a)
-                                            constant prefix of data filename path
-      --dataFileNameSuffix_calbody arg (=-calbody.txt)
-                                            suffix of data filename path
-      --dataFileNameSuffix_calreadings arg (=-calreadings.txt)
-                                            suffix of data filename path
-      --dataFileNameSuffix_empivot arg (=-empivot.txt)
-                                            suffix of data filename path
-      --dataFileNameSuffix_optpivot arg (=-optpivot.txt)
-                                            suffix of data filename path
-      --dataFileNameSuffix_output1 arg (=-output1.txt)
-                                            suffix of data filename path
-      --calbodyPath arg                     full path to data txt file
-      --calreadingsPath arg                 full path to data txt file
-      --empivotPath arg                     full path to data txt file
-      --optpivotPath arg                    full path to data txt file
-      --output1Path arg                     full path to data txt file
+	General Options:
+	  --responseFile arg                    File containing additional command line
+	                                        parameters
+	  --help                                produce help message
+	  --debug                               enable debug output
+	  --debugParser                         display debug information for data file
+	                                        parser
+
+	Algorithm Options:
+
+	Data Options:
+	  --pa1                                 set automatic programming assignment 1 
+	                                        source data parameters, overrides 
+	                                        DataFilenamePrefix, exclusive of pa2
+	  --pa2                                 set automatic programming assignment 2 
+	                                        source data parameters, overrides 
+	                                        DataFilenamePrefix, exclusive of pa1
+	  --dataFolderPath arg (=/Users/athundt/source/cis/xcodebuild/bin/Debug)
+	                                        folder containing data files, defaults 
+	                                        to current working directory
+	  --dataFilenamePrefix arg              constant prefix of data filename path. 
+	                                        Specify this multiple times to run on 
+	                                        many data sources at once
+	  --dataFileNameSuffix_calbody arg (=-calbody.txt)
+	                                        suffix of data filename path
+	  --dataFileNameSuffix_calreadings arg (=-calreadings.txt)
+	                                        suffix of data filename path
+	  --dataFileNameSuffix_empivot arg (=-empivot.txt)
+	                                        suffix of data filename path
+	  --dataFileNameSuffix_optpivot arg (=-optpivot.txt)
+	                                        suffix of data filename path
+	  --dataFileNameSuffix_output1 arg (=-output1.txt)
+	                                        suffix of data filename path
+	  --dataFileNameSuffix_ct_fiducials arg (=-ct-fiducials.txt)
+	                                        suffix of data filename path
+	  --dataFileNameSuffix_em_fiducials arg (=-em-fiducialss.txt)
+	                                        suffix of data filename path
+	  --dataFileNameSuffix_em_nav arg (=-EM-nav.txt)
+	                                        suffix of data filename path
+	  --dataFileNameSuffix_output2 arg (=-output2.txt)
+	                                        suffix of data filename path
+	  --calbodyPath arg                     full path to data txt file, optional 
+	                                        alternative to prefix+suffix name 
+	                                        combination
+	  --calreadingsPath arg                 full path to data txt file, optional 
+	                                        alternative to prefix+suffix name 
+	                                        combination
+	  --empivotPath arg                     full path to data txt file, optional 
+	                                        alternative to prefix+suffix name 
+	                                        combination
+	  --optpivotPath arg                    full path to data txt file, optional 
+	                                        alternative to prefix+suffix name 
+	                                        combination
+	  --output1Path arg                     full path to data txt file, optional 
+	                                        alternative to prefix+suffix name 
+	                                        combination
+	  --ct_fiducialsPath arg                full path to data txt file, optional 
+	                                        alternative to prefix+suffix name 
+	                                        combination
+	  --em_fiducialsPath arg                full path to data txt file, optional 
+	                                        alternative to prefix+suffix name 
+	                                        combination
+	  --em_navPath arg                      full path to data txt file, optional 
+	                                        alternative to prefix+suffix name 
+	                                        combination
+	  --output2Path arg                     full path to data txt file, optional 
+	                                        alternative to prefix+suffix name 
+	                                        combination
 
 
 

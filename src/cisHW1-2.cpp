@@ -297,8 +297,15 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         dc = result.block<3,1>(0,0);
         std::cout << "\n\nundistorted result:\n\n" << result << "\n\n";
     }
-
+    
+    std::vector<Eigen::Vector3d> fiducialPointinEMFrames;
+    
     if (!ad.calreadings.frames.empty() && !ad.em_fiducials.frames.empty()){
+        // Problem 4
+        // Takes positions of EM tracker points on the EM probe in the EM frame when the tip is in a CT fiducial
+        // Returns points of the CT fiducial locations in EM frame
+        // Need to pass dc too when making it into a function
+        
         std::size_t numRowsPerTracker = ad.em_fiducials.frames[0][0].rows();
         const std::size_t homogeneousSize = 4;
         std::vector<Eigen::MatrixXd> Gvector = concat(ad.em_fiducials.frames);
@@ -306,16 +313,60 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         std::vector<Eigen::MatrixXd> splitUndistortedFrames = splitRows(Gundistorted,numRowsPerTracker);
         Eigen::MatrixXd FtransformVector = registrationToFirstCloud(splitUndistortedFrames);
         std::vector<Eigen::MatrixXd> splitHomogeneousTransforms = splitRows(FtransformVector,homogeneousSize);
-        std::vector<Eigen::Vector3d> fidicualPointinEMFrames;
         for (auto mat:splitHomogeneousTransforms){
             Eigen::Affine3d affineFrameForEachFiducial;
             affineFrameForEachFiducial.matrix() = mat;
-            Eigen::Vector3d fidicualPointinEMFrame = affineFrameForEachFiducial*dc;
-            fidicualPointinEMFrames.push_back(fidicualPointinEMFrame);
-            std::cout << "\n\nfidicualPointinEMFrame is: \n" << fidicualPointinEMFrame << std::endl;
+            Eigen::Vector3d fiducialPointinEMFrame = affineFrameForEachFiducial*dc;
+            fiducialPointinEMFrames.push_back(fiducialPointinEMFrame);
+            std::cout << "\n\nfidicualPointinEMFrame is: \n" << fiducialPointinEMFrame << std::endl;
         }
 
     }
+    
+    Eigen::Matrix4d Freg;
+    
+    if (!ad.ct_fiducials.frames.empty()){
+        // Problem 5
+        // Takes the point clouds of the CT and EM measured at each fiducial
+        // Calculates Freg which is the transformation between CT and EM coordinates
+        
+        // There is only one frame and "tracker" containing points to each CT fiducial in the CT Frame
+        Eigen::MatrixXd fiducialPointCloudCT = ad.em_fiducials.frames[0][0];
+        
+        Eigen::MatrixXd fiducialPointCloudEM = stackRangeTranspose(fiducialPointinEMFrames);
+        
+        Freg = hornRegistration(fiducialPointCloudEM,fiducialPointCloudCT);
+        std::cout << "\n\nFreg is: \n" << Freg << std::endl;
+    }
+    
+    std::vector<Eigen::Vector3d> probeTipPointinCTFrames;
+    
+    if (!ad.calreadings.frames.empty() && !ad.em_nav.frames.empty()){
+        // Problem 6
+        // Takes positions of EM tracker points on the EM probe in the EM frame when the tip is in a CT fiducial
+        // Returns points of the CT fiducial locations in the CT frame
+        // Need to pass dc too when making it into a function
+        
+        Eigen::Affine3d affineFreg;
+        affineFreg.matrix() = Freg;
+        std::size_t numRowsPerTracker = ad.em_nav.frames[0][0].rows();
+        const std::size_t homogeneousSize = 4;
+        std::vector<Eigen::MatrixXd> Gvector = concat(ad.em_nav.frames);
+        Eigen::MatrixXd Gundistorted = correctDistortionOnSourceData(ad.calreadings.frames,cExpected,Gvector);
+        std::vector<Eigen::MatrixXd> splitUndistortedFrames = splitRows(Gundistorted,numRowsPerTracker);
+        Eigen::MatrixXd FtransformVector = registrationToFirstCloud(splitUndistortedFrames);
+        std::vector<Eigen::MatrixXd> splitHomogeneousTransforms = splitRows(FtransformVector,homogeneousSize);
+        for (auto mat:splitHomogeneousTransforms){
+            Eigen::Affine3d affineFrameForEachProbePosition;
+            affineFrameForEachProbePosition.matrix() = mat;
+            Eigen::Vector3d probeTipPointinEMFrame = affineFrameForEachProbePosition*dc;
+            Eigen::Vector3d probeTipPointinCTFrame = affineFreg*probeTipPointinEMFrame;
+            probeTipPointinCTFrames.push_back(probeTipPointinCTFrame);
+            std::cout << "\n\nprobeTipPointinEMFrame is: \n" << probeTipPointinCTFrame << std::endl;
+        }
+        
+    }
+    
     
     if (!ad.em_nav.frames.empty())
     {

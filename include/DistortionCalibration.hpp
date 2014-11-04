@@ -140,6 +140,33 @@ Eigen::MatrixXd stackRange(const T & vecMat){
     return stack;
 }
 
+/// Take a vector of Vector3d (or points) and stack the transpose of each vector (aka row vector)
+/// vertically into one large matrix with the first Vector3d in the vector at the top and the last
+/// at the bottom.
+///
+/// @note Currently only works with vectors
+///
+/// @pre assumes all matrices have the same dimensions
+template<typename T>
+Eigen::MatrixXd stackRangeTranspose(const T & vecMat){
+    auto begin = std::begin(vecMat);
+    auto end = std::end(vecMat);
+    auto distance = std::distance(begin,end);
+    if(!distance) return Eigen::MatrixXd();
+    
+    std::size_t rows = begin->rows();
+    std::size_t cols = begin->cols();
+    Eigen::MatrixXd stack(distance,rows);
+    
+    std::size_t i = 0;
+    for(auto mat : vecMat ){
+        stack.block(i, 0, cols, rows) = mat.transpose();
+        ++i;
+    }
+    
+    return stack;
+}
+
 /// Takes a set of points and converts it to a matrix of normalized points aka points scaled to the unit box,
 /// where they are subsequently used to calculate F values for SVD.
 ///

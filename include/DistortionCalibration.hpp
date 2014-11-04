@@ -178,7 +178,7 @@ void correctDistortion(){
 
 
 /// @todo move elsewhere and remove dependency on parsing data structure
-void correctDistortionOnSourceData(
+Eigen::MatrixXd correctDistortionOnSourceData(
                                    const csvCIS_pointCloudData::TrackerFrames& calreadingsFrames,
                                    const std::vector<Eigen::MatrixXd>&         cExpected,
                                    const csvCIS_pointCloudData::TrackerDevices& EMPtsInEMFrameOnProbe
@@ -220,8 +220,12 @@ void correctDistortionOnSourceData(
     // scale using the same scaling factor as before, ignoring if it doesn't fit in the 0 to 1 bounds
     bool ignoreUnitBoxScalingBounds = true;
     ScaleToUnitBox(StackedEMPtsInEMFrameOnProbe, minCorner, maxCorner,ignoreUnitBoxScalingBounds);
+    Eigen::MatrixXd FMatrixStackedEMPtsInEMFrameOnProbe = FMatrix(StackedEMPtsInEMFrameOnProbe);
     
+    //               corrected distortion matrix =        F*C
+    Eigen::MatrixXd undistortedEMPointsInEMFrame = FMatrixStackedEMPtsInEMFrameOnProbe*dcmC;
     
+    return undistortedEMPointsInEMFrame;
     //Eigen
     
     //std::cout << "\n\nC size is "<< cEM.rows() << std::endl;

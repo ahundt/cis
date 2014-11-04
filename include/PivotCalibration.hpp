@@ -118,7 +118,7 @@ Eigen::VectorXd SVDSolveRIp(const std::pair<Eigen::MatrixXd, Eigen::VectorXd>& R
 /// perform pivotCalibration, utilizing a series of tracker frames rotated around a single pivot
 /// point to determine the distance from the tracker frames to the pivot point.
 ///
-/// @param cloudA A C++ Range of tracker clouds defined as Eigen::MatrixXd, with 3xn points per tracker.
+/// @param cloudA A C++ Range of tracker clouds defined as Eigen::MatrixXd, with 3xn points per tracker. Typically vector<MatrixXd>
 /// @pre there must be at least three frames to process
 /// @todo make registration function a template (and regular) parameter that passes through to registrationToFirstCloud
 ///

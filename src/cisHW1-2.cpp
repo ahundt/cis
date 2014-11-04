@@ -269,7 +269,12 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
     // Stacks all of the C values given in calreadings and then normalize
     // Might want to find the max and min in each frame - need to ask Paul
     if(!ad.calreadings.frames.empty()){
-        correctDistortionOnSourceData(ad.calreadings.frames,cExpected,EMPtsInEMFrameOnProbe);
+        std::size_t numRowsPerTracker = EMPtsInEMFrameOnProbe[0].rows();
+        Eigen::MatrixXd undistortedEMPtsInEMFrameOnCalibrationObject = correctDistortionOnSourceData(ad.calreadings.frames,cExpected,EMPtsInEMFrameOnProbe);
+        std::vector<Eigen::MatrixXd> splitUndistortedFrames = splitRows(undistortedEMPtsInEMFrameOnCalibrationObject,numRowsPerTracker);
+        Eigen::VectorXd result = pivotCalibration(splitUndistortedFrames,debug);
+        
+        std::cout << "\n\nundistorted result:\n\n" << result << "\n\n";
     }
 
 

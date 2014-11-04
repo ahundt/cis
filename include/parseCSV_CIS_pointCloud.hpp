@@ -294,4 +294,21 @@ const std::vector<T> concat(const std::vector<std::vector<T> >& uv){
 
 
 
+/// @brief combine a vector<vector<T> > into a single vector<T>
+std::vector<Eigen::MatrixXd> splitRows(const Eigen::MatrixXd& mat,std::size_t numRowsPerMat){
+    
+    std::vector<Eigen::MatrixXd> vec;
+    std::size_t cols = mat.cols();
+    
+    for(std::size_t currentRow = 0; currentRow < mat.rows(); currentRow+=numRowsPerMat){
+        Eigen::MatrixXd partialMat(mat.block(currentRow,0,numRowsPerMat,cols));
+        vec.push_back(partialMat);
+    }
+    
+    return vec;
+}
+
+
+
+
 #endif // _PARSE_CSV_CIS_POINTCLOUD_HPP_

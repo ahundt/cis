@@ -26,10 +26,15 @@ void ScaleToUnitBox(Eigen::MatrixXd& X, const Eigen::Vector3d& minCorner, const 
 {
     // bounding box max and min
     Eigen::Vector3d diff = maxCorner-minCorner;
+    /// @todo come up with better way to handle when diff is 0
+    if(diff(0)==0) diff(0) = 1;
+    if(diff(1)==0) diff(1) = 1;
+    if(diff(2)==0) diff(2) = 1;
+    
     for (int i=0; i<X.cols(); i++){
         for (int j=0; j<X.rows(); j++){
             // scale the x,y,z of the point
-            auto coord = (X(j,i)-minCorner(i))/diff(i);
+            auto coord = (diff(i)==0.0) ? 0.0 : (X(j,i)-minCorner(i))/diff(i);
             if(!ignoreBounds){
                 BOOST_VERIFY(coord <= 1); // verify scaling is working
                 BOOST_VERIFY(coord >= 0);
@@ -135,12 +140,14 @@ Eigen::MatrixXd stackRange(const T & vecMat){
     return stack;
 }
 
-/// Takes a set of points and converts it to a matrix of normalized points where are
-/// subsequently used to calculate F values for SVD.
+/// Takes a set of points and converts it to a matrix of normalized points aka points scaled to the unit box,
+/// where they are subsequently used to calculate F values for SVD.
 ///
 /// @see slide 43 of InterpolationReview.pdf
 ///
 /// @param pointInAllFrames an numPoints x 3 matrix cointaining all the points to be normalized and inserted into an F Matrix for solving with SVD
+/// @param[out] minCorner the minimum coordinate of the distorted parameter, used for scaling to the unit box
+/// @param[out] maxCorner the maximum coordinate of the distorted parameter, used for scaling to the unit box
 Eigen::MatrixXd normalizedFMatrix(const Eigen::MatrixXd& pointsInAllFrames, Eigen::Vector3d& minCorner, Eigen::Vector3d& maxCorner)
 {
     Eigen::MatrixXd pointsNormalizedToUnitBox(pointsInAllFrames); // aka normal cEM
@@ -172,8 +179,30 @@ Eigen::MatrixXd distortionCalibrationMatrixC(const Eigen::MatrixXd& EMPointsInEM
 }
 
 
-void correctDistortion(){
+/// Correct distortions utilizing .
+///
+/// @param[in] distortedToCorrect the distorted data set to correct
+/// @param[in] distortedGroundTruth the same data as groundTruth, but this data has distortion, and the variation between this and the real groundTruth will be used to correct distortedToCorrect.
+/// @param[in] groundTruth previously known exact values with no distortion to determine the coefficient matrix to correct the distortion
+/// @param[out] minCorner the minimum coordinate of the distorted parameter, used for scaling to the unit box
+/// @param[out] maxCorner the maximum coordinate of the distorted parameter, used for scaling to the unit box
+///
+/// @return Eigen::MatrixXd containing data that should match groundTruth
+Eigen::MatrixXd correctDistortion(const Eigen::MatrixXd& distortedToCorrect, const Eigen::MatrixXd& distortedGroundTruth, const Eigen::MatrixXd& groundTruth, Eigen::Vector3d& minCorner, Eigen::Vector3d& maxCorner){
     
+    Eigen::MatrixXd dcmC = distortionCalibrationMatrixC(distortedGroundTruth, groundTruth,minCorner,maxCorner);
+    
+    // scale using the same scaling factor as before, ignoring if it doesn't fit in the 0 to 1 bounds
+    // this bool only affects a BOOST_VERIFY check, not function program behavior.
+    bool ignoreUnitBoxScalingBounds = true;
+    Eigen::MatrixXd distortedToCorrectScaled = distortedToCorrect;
+    ScaleToUnitBox(distortedToCorrectScaled, minCorner, maxCorner,ignoreUnitBoxScalingBounds);
+    
+    Eigen::MatrixXd FMatrixDistorted = FMatrix(distortedToCorrectScaled);
+    //               corrected distortion matrix =        F*C
+    Eigen::MatrixXd undistorted = FMatrixDistorted*dcmC;
+    
+    return undistorted;
 }
 
 
@@ -210,20 +239,23 @@ Eigen::MatrixXd correctDistortionOnSourceData(
     
     Eigen::Vector3d minCorner;
     Eigen::Vector3d maxCorner;
-    Eigen::MatrixXd dcmC = distortionCalibrationMatrixC(cEM, cExpectedStacked,minCorner,maxCorner);
+    
+    //Eigen::MatrixXd dcmC = distortionCalibrationMatrixC(cEM, cExpectedStacked,minCorner,maxCorner);
     
     
-    std::cout << "\n\ndistortionCalibrationMatrixC:\n\n" << dcmC;
+    //std::cout << "\n\ndistortionCalibrationMatrixC:\n\n" << dcmC;
     
     auto StackedEMPtsInEMFrameOnProbe = stackRange(EMPtsInEMFrameOnProbe);
     
+    Eigen::MatrixXd undistortedEMPointsInEMFrame = correctDistortion(StackedEMPtsInEMFrameOnProbe, cEM, cExpectedStacked, minCorner, maxCorner);
+    
     // scale using the same scaling factor as before, ignoring if it doesn't fit in the 0 to 1 bounds
-    bool ignoreUnitBoxScalingBounds = true;
-    ScaleToUnitBox(StackedEMPtsInEMFrameOnProbe, minCorner, maxCorner,ignoreUnitBoxScalingBounds);
-    Eigen::MatrixXd FMatrixStackedEMPtsInEMFrameOnProbe = FMatrix(StackedEMPtsInEMFrameOnProbe);
+    //bool ignoreUnitBoxScalingBounds = true;
+    //ScaleToUnitBox(StackedEMPtsInEMFrameOnProbe, minCorner, maxCorner,ignoreUnitBoxScalingBounds);
+    //Eigen::MatrixXd FMatrixStackedEMPtsInEMFrameOnProbe = FMatrix(StackedEMPtsInEMFrameOnProbe);
     
     //               corrected distortion matrix =        F*C
-    Eigen::MatrixXd undistortedEMPointsInEMFrame = FMatrixStackedEMPtsInEMFrameOnProbe*dcmC;
+    //Eigen::MatrixXd undistortedEMPointsInEMFrame = FMatrixStackedEMPtsInEMFrameOnProbe*dcmC;
     
     return undistortedEMPointsInEMFrame;
     //Eigen

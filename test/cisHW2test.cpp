@@ -56,15 +56,18 @@ BOOST_AUTO_TEST_CASE(BernsteinTest)
     int max = 100;
     int min = 0;
     Eigen::VectorXd X = Eigen::VectorXd::LinSpaced(max+1,min,max);
-    Y = X*X;
-    Eigen::MatrixXd UnitTest = Eigen::Matrix::Zero(X.size,3);
-    Eigen::MatrixXd GroundTruth = Eigen::Matrix::Zero(X.size,3);
+    Eigen::VectorXd Y = 2*X;
+    Eigen::MatrixXd UnitTest = Eigen::MatrixXd::Zero(X.size(),3);
+    Eigen::MatrixXd GroundTruth = Eigen::MatrixXd::Zero(X.size(),3);
     UnitTest.col(0) = Y;
     GroundTruth.col(0) = X;
-    Eigen::MatrixXd cIJK = distortionCalibrationMatrixC(UnitTest, GroundTruth, Eigen::Vector3d minCorner, Eigen::Vector3d maxCorner);
+    Eigen::Vector3d minCorner;
+    Eigen::Vector3d maxCorner;
+    Eigen::MatrixXd cIJK = distortionCalibrationMatrixC(UnitTest, GroundTruth, minCorner, maxCorner);
     Eigen::MatrixXd Fmat = FMatrix(UnitTest);
-    UnitTestUndistorted = Fmat*cIJK;
-    BOOST_Verify(isWithinTolerance(UnitTestUndistorted,GroundTruth));
+    Eigen::MatrixXd UnitTestUndistorted = Fmat*cIJK;
+    std::cout << "\n\nUnitTestUndistorted\n\n" << UnitTestUndistorted << "\n\nGroundTruth\n\n" << GroundTruth;
+    BOOST_VERIFY(isWithinTolerance(UnitTestUndistorted,GroundTruth));
 
 }
 

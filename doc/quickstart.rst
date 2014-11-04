@@ -220,11 +220,14 @@ The easiest way to run the unit test is to build the software,
 then symlink the data folder "PA1-2" from "data/PA1-2" into
 the same directory as the unit tests. In other words, the unit 
 tests expect the directory "PA1-2" to be in the same directory
-as the unit test executable when it is run.
+as the unit test executable when it is run. The same should be
+done for the OUTPUT folder to PA1-2-OUTPUT for comparison of
+debug output files for identifying problems in the system.
 
 .. code-block:: bash
     
 	ln -s /path/to/cis/data/PA1-2
+	ln -s /path/to/cis/OUTPUT PA1-2-OUTPUT
 	./cisHW1test
 
 Next Steps

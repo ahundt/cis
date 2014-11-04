@@ -66,8 +66,71 @@ BOOST_AUTO_TEST_CASE(BernsteinTest)
     
     Eigen::MatrixXd undistorted = correctDistortion(Y3distorted, Y3distorted, X3GroundTruth, minCorner, maxCorner);
     std::cout << "\n\nUnitTestUndistorted\n\n" << undistorted << "\n\nGroundTruth\n\n" << X3GroundTruth;
-    BOOST_VERIFY(isWithinTolerance(undistorted,X3GroundTruth));
+    BOOST_CHECK(isWithinTolerance(undistorted,X3GroundTruth));
 
+}
+    
+template<typename T>
+void CompareFrames(std::string file, const T& f1, const T& f2){
+    double frameTolerance = 2.0;
+    auto f1b = f1.begin();
+    auto f2b = f2.begin();
+    for(;f1b!=f1.end(); ++f1b, ++f2b){
+        auto f11b = f1b->begin();
+        auto f22b = f2b->begin();
+        for(;f11b != f1b->end(); ++f11b, ++f22b){
+            bool isWithinToleranceB = isWithinTolerance(*f11b, *f22b, frameTolerance);
+            BOOST_CHECK(isWithinToleranceB);
+            if(!isWithinToleranceB){
+                std::cout << "\n\n" << file << " outside of tolerances! check these values:\n\n" << *f11b << "\n\n";
+                
+            }
+        }
+        
+    }
+    
+}
+    
+void CompareOutputFiles(std::string filenamePrefix){
+    
+    DataSource pclp;
+    DataSource pclpOut;
+    const bool required = true;
+    // optional == not required == false
+    const bool optional = false;
+    // check if the user supplied a full path, if not assemble a path
+    // from the default paths and the defualt prefix/suffix combos
+    assemblePathIfFullPathNotSupplied(relativeOutputDataPath,filenamePrefix,dataFileNameSuffix_output1       ,pclpOut.output1Path      ,required);
+    assemblePathIfFullPathNotSupplied(relativeOutputDataPath,filenamePrefix,dataFileNameSuffix_output2       ,pclpOut.output2Path      ,required);
+    assemblePathIfFullPathNotSupplied(relativeDataPath,filenamePrefix,dataFileNameSuffix_output1       ,pclp.output1Path      ,required);
+    assemblePathIfFullPathNotSupplied(relativeDataPath,filenamePrefix,dataFileNameSuffix_output2       ,pclp.output2Path      ,required);
+    
+    
+    AlgorithmData ad;
+    loadPointCloudFromFile(pclp.output1Path       ,ad.output1                    ,debug);
+    loadPointCloudFromFile(pclp.output2Path       ,ad.output2                    ,debug);
+    
+    AlgorithmData adOut;
+    loadPointCloudFromFile(pclpOut.output1Path       ,adOut.output1                    ,debug);
+    loadPointCloudFromFile(pclpOut.output2Path       ,adOut.output2                    ,debug);
+    
+    //AlgorithmData adOut = initAlgorithmData(relativeOutputDataPath,filenamePrefix);
+    //AlgorithmData ad = initAlgorithmData(relativeDataPath, filenamePrefix);
+    
+    CompareFrames(relativeOutputDataPath + filenamePrefix + dataFileNameSuffix_output1, adOut.output1.frames, ad.output1.frames);
+    CompareFrames(relativeOutputDataPath + filenamePrefix + dataFileNameSuffix_output2, adOut.output2.frames, ad.output2.frames);
+}
+ 
+/// unit test output of all debug files
+BOOST_AUTO_TEST_CASE(EMPivotCalibrationResults)
+{
+    CompareOutputFiles(pa2debuga);
+    CompareOutputFiles(pa2debugb);
+    CompareOutputFiles(pa2debugc);
+    CompareOutputFiles(pa2debugd);
+    CompareOutputFiles(pa2debuge);
+    CompareOutputFiles(pa2debugf);
+    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n\n";
 }
 
 

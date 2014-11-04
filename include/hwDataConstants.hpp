@@ -6,6 +6,7 @@
 
 
 static const std::string relativeDataPath("PA1-2/");
+static const std::string relativeOutputDataPath("PA1-2-OUTPUT/");
 
 /////////////////
 // PA 1 Constants

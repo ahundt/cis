@@ -327,7 +327,7 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         
         Eigen::MatrixXd fiducialPointCloudEM = stackRangeTranspose(fiducialPointinEMFrames);
         
-        Freg = hornRegistration(fiducialPointCloudCT,fiducialPointCloudEM);
+        Freg = hornRegistration(fiducialPointCloudEM,fiducialPointCloudCT);
         std::cout << "\n\nFreg is: \n" << Freg << std::endl;
     }
     
@@ -346,7 +346,6 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         
         // see PA2.hpp
         probeTipPointinCTFrames = probeTipPointinCTFrame(Gvector,ad.calreadings.frames,cExpected,dc,affineFreg);
-
         
     }
     

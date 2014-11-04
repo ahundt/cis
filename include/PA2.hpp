@@ -28,9 +28,9 @@ std::vector<Eigen::Vector3d> fiducialPointInEMFrame(U& em_fiducialsGVector, T& c
 }
 
 
-// Problem 6
-// Takes positions of EM tracker points on the EM probe in the EM frame when the tip is in a CT fiducial
-// Returns points of the CT fiducial locations in the CT frame
+/// Problem 6
+/// Takes positions of EM tracker points on the EM probe in the EM frame when the tip is in a CT fiducial
+/// Returns points of the CT fiducial locations in the CT frame
 template<typename T, typename U>
 std::vector<Eigen::Vector3d> probeTipPointinCTFrame(const U& em_navGVector, const T& calreadingsFrames, const U& cExpected, const Eigen::Vector3d& centerToTip, const Eigen::Affine3d& Freg){
     

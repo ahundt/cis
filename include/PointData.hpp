@@ -44,6 +44,8 @@ struct DataSource {
 struct ParsedCommandLineCommands {
     bool                    debug;
     bool                    debugParser;
+    bool                    threads;
+    std::string             outputDataFolderPath;
     std::vector<DataSource> dataSources;
 };
 

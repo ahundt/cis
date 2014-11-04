@@ -5,7 +5,8 @@
 #include <boost/program_options/variables_map.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/math/special_functions/binomial.hpp>
-#include <math.h>
+#include <cmath>
+#include <thread>
 
 // Project includes
 #include "parseCSV_CIS_pointCloud.hpp"
@@ -41,6 +42,8 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 
 
     po::options_description algorithmOptions("Algorithm Options");
+    algorithmOptions.add_options()
+    ("threads","run each source data file in a separate thread");
 
 
     // create algorithm command line options
@@ -57,7 +60,8 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
             ("pa1", "set automatic programming assignment 1 source data parameters, overrides DataFilenamePrefix, exclusive of pa1")
             ("pa2", "set automatic programming assignment 2 source data parameters, overrides DataFilenamePrefix, exclusive of pa2")
     
-		    ("dataFolderPath"                   ,po::value<std::string>()->default_value(currentPath)       ,"folder containing data files, defaults to current working directory"   )
+            ("dataFolderPath"                   ,po::value<std::string>()->default_value(currentPath)       ,"folder containing data files, defaults to current working directory"   )
+            ("outputDataFolderPath"             ,po::value<std::string>()->default_value(currentPath)       ,"folder for output data files, defaults to current working directory"   )
             ("dataFilenamePrefix"               ,po::value<std::vector<std::string> >()->default_value(HW2DataFilePrefixes(),""),"constant prefix of data filename path. Specify this multiple times to run on many data sources at once"   )
 		  	("dataFileNameSuffix_calbody"       ,po::value<std::string>()->default_value(dataFileNameSuffix_calbody     ),"suffix of data filename path"   )
 		  	("dataFileNameSuffix_calreadings"   ,po::value<std::string>()->default_value(dataFileNameSuffix_calreadings ),"suffix of data filename path"   )
@@ -129,8 +133,10 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 
     std::vector<std::string> dataFilenamePrefixList;
 
-	// load up parameter values from the variable map
-	po::readOption(vmap,"dataFolderPath"                   ,dataFolderPath                     ,optional);
+    // load up parameter values from the variable map
+    po::readOption(vmap,"dataFolderPath"                   ,dataFolderPath                     ,optional);
+    po::readOption(vmap,"outputDataFolderPath"             ,pclp.outputDataFolderPath          ,optional);
+    po::readOption(vmap,"threads"                          ,pclp.threads                       ,optional);
 	po::readOption(vmap,"dataFilenamePrefix"               ,dataFilenamePrefixList             ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_calbody"      ,dataFileNameSuffix_calbody         ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_calreadings"  ,dataFileNameSuffix_calreadings     ,optional);
@@ -231,7 +237,7 @@ void output2CISCSV_PA2(std::ostream& ostr, const std::string& outputName = "name
 }
 
 
-void generateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, bool debug = false){
+void generateOutputFile(AlgorithmData ad, std::string outputDataFolderPath, std::string dataFilenamePrefix, bool debug = false){
 
     Eigen::Vector3d emPivotPoint;
     csvCIS_pointCloudData::TrackerDevices EMPtsInEMFrameOnProbe;
@@ -272,7 +278,7 @@ void generateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, bool d
     }
 
 
-    std::string outputFilename = dataFilenamePrefix + "-output1.txt";
+    std::string outputFilename =  outputDataFolderPath + dataFilenamePrefix + "-output1.txt";
     std::ofstream ofs (outputFilename, std::ofstream::out);
     output1CISCSV_PA1(ofs,outputFilename,emPivotPoint,optPivotPoint,cExpected);
 
@@ -352,7 +358,7 @@ void generateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, bool d
     
     if (!ad.em_nav.frames.empty())
     {
-        std::string outputFilename = dataFilenamePrefix + "-output2.txt";
+        std::string outputFilename = outputDataFolderPath + dataFilenamePrefix + "-output2.txt";
         std::ofstream ofs (outputFilename, std::ofstream::out);
         output2CISCSV_PA2(ofs,outputFilename,probeTipPointinCTFrames);
     }
@@ -374,6 +380,9 @@ void generateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, bool d
 int main(int argc,char**argv) {
 	ParsedCommandLineCommands pclp;
 	readCommandLine(argc,argv,pclp);
+    
+    std::vector<std::thread> th;
+
 
     for(auto&& dataSource : pclp.dataSources){
         AlgorithmData ad;
@@ -387,7 +396,18 @@ int main(int argc,char**argv) {
         loadPointCloudFromFile(dataSource.em_navPath        ,ad.em_nav              ,pclp.debugParser       );
         loadPointCloudFromFile(dataSource.output2Path       ,ad.output2             ,pclp.debugParser       );
 
-        generateOutputFile(ad, dataSource.filenamePrefix,pclp.debug);
+        // run all data sources in separate threads to speed up execution
+        if(pclp.threads) {
+            th.push_back(std::thread(generateOutputFile,ad, pclp.outputDataFolderPath, dataSource.filenamePrefix,pclp.debug));
+        } else {
+            generateOutputFile(ad, pclp.outputDataFolderPath, dataSource.filenamePrefix,pclp.debug);
+        }
+    }
+    
+    
+    //Join the threads with the main thread
+    for(auto &t : th){
+        t.join();
     }
 
 	return 0;

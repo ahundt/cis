@@ -339,23 +339,14 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         // Returns points of the CT fiducial locations in the CT frame
         // Need to pass dc too when making it into a function
         
+        std::vector<Eigen::MatrixXd> Gvector = concat(ad.em_nav.frames);
+        
         Eigen::Affine3d affineFreg;
         affineFreg.matrix() = Freg;
-        std::size_t numRowsPerTracker = ad.em_nav.frames[0][0].rows();
-        const std::size_t homogeneousSize = 4;
-        std::vector<Eigen::MatrixXd> Gvector = concat(ad.em_nav.frames);
-        Eigen::MatrixXd Gundistorted = correctDistortionOnSourceData(ad.calreadings.frames,cExpected,Gvector);
-        std::vector<Eigen::MatrixXd> splitUndistortedFrames = splitRows(Gundistorted,numRowsPerTracker);
-        Eigen::MatrixXd FtransformVector = registrationToFirstCloud(splitUndistortedFrames);
-        std::vector<Eigen::MatrixXd> splitHomogeneousTransforms = splitRows(FtransformVector,homogeneousSize);
-        for (auto mat:splitHomogeneousTransforms){
-            Eigen::Affine3d affineFrameForEachProbePosition;
-            affineFrameForEachProbePosition.matrix() = homogeneousInverse(mat);
-            Eigen::Vector3d probeTipPointinEMFrame = affineFrameForEachProbePosition*dc;
-            Eigen::Vector3d probeTipPointinCTFrame = affineFreg*probeTipPointinEMFrame;
-            probeTipPointinCTFrames.push_back(probeTipPointinCTFrame);
-            std::cout << "\n\nprobeTipPointinEMFrame is: \n" << probeTipPointinCTFrame << std::endl;
-        }
+        
+        // see PA2.hpp
+        probeTipPointinCTFrames = probeTipPointinCTFrame(Gvector,ad.calreadings.frames,cExpected,dc,affineFreg);
+
         
     }
     

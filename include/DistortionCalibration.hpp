@@ -1,12 +1,13 @@
 #ifndef _DISTORTION_CALIBRATION_HPP_
 #define _DISTORTION_CALIBRATION_HPP_
 
+#include <limits>
 #include <boost/math/special_functions/binomial.hpp>
 #include "matrixOperations.hpp"
 #include "parseCSV_CIS_pointCloud.hpp"
 
 
-void boundingBox(Eigen::MatrixXd& X, Eigen::Vector3d& maxCorner, Eigen::Vector3d& minCorner){
+void boundingBox(Eigen::MatrixXd& X, Eigen::Vector3d& minCorner, Eigen::Vector3d& maxCorner){
     maxCorner = X.colwise().maxCoeff();
     minCorner = X.colwise().minCoeff();
 }
@@ -20,7 +21,7 @@ void boundingBox(Eigen::MatrixXd& X, Eigen::Vector3d& maxCorner, Eigen::Vector3d
 ///
 /// @param X nx3 matrix containing points that will be scaled
 /// @param maxCorner the maximum coordinate in all dimensions of the bounding box
-void ScaleToUnitBox(Eigen::MatrixXd& X, const Eigen::Vector3d& maxCorner, const Eigen::Vector3d& minCorner )
+void ScaleToUnitBox(Eigen::MatrixXd& X, const Eigen::Vector3d& minCorner, const Eigen::Vector3d& maxCorner )
 {
     // bounding box max and min
     Eigen::Vector3d diff = maxCorner-minCorner;
@@ -137,11 +138,9 @@ Eigen::MatrixXd stackRange(const T & vecMat){
 /// @see slide 43 of InterpolationReview.pdf
 ///
 /// @param pointInAllFrames an numPoints x 3 matrix cointaining all the points to be normalized and inserted into an F Matrix for solving with SVD
-Eigen::MatrixXd normalizedFMatrix(const Eigen::MatrixXd& pointsInAllFrames)
+Eigen::MatrixXd normalizedFMatrix(const Eigen::MatrixXd& pointsInAllFrames, Eigen::Vector3d& minCorner, Eigen::Vector3d& maxCorner)
 {
     Eigen::MatrixXd pointsNormalizedToUnitBox(pointsInAllFrames); // aka normal cEM
-    Eigen::Vector3d minCorner;
-    Eigen::Vector3d maxCorner;
     boundingBox(pointsNormalizedToUnitBox,minCorner,maxCorner);
     ScaleToUnitBox(pointsNormalizedToUnitBox,minCorner,maxCorner); // normalize into unit box
     
@@ -155,9 +154,9 @@ Eigen::MatrixXd normalizedFMatrix(const Eigen::MatrixXd& pointsInAllFrames)
 ///
 /// @return distortion Calibration Matrix C
 /// @see slide 43 of InterpolationReview.pdf
-Eigen::MatrixXd distortionCalibrationMatrixC(const Eigen::MatrixXd& EMPointsInEMFrameOnCalObj, const Eigen::MatrixXd& OptPointsInEMFrameOnCalibObject ){
+Eigen::MatrixXd distortionCalibrationMatrixC(const Eigen::MatrixXd& EMPointsInEMFrameOnCalObj, const Eigen::MatrixXd& OptPointsInEMFrameOnCalibObject, Eigen::Vector3d& minCorner, Eigen::Vector3d& maxCorner ){
     
-    Eigen::MatrixXd FMatofEMPointsInEMFrameOnCalObj = normalizedFMatrix(EMPointsInEMFrameOnCalObj);
+    Eigen::MatrixXd FMatofEMPointsInEMFrameOnCalObj = normalizedFMatrix(EMPointsInEMFrameOnCalObj, minCorner, maxCorner);
     std::cout << "\n\nFMatrix for SVD is rows: "<< FMatofEMPointsInEMFrameOnCalObj.rows() << " cols: " << FMatofEMPointsInEMFrameOnCalObj.cols() << std::endl << std::endl;
     
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(FMatofEMPointsInEMFrameOnCalObj, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -187,6 +186,7 @@ void correctDistortionOnSourceData(
     static const int IndexOptInOptFrameOnCalObj = 1;
     static const int IndexEMPointsInEMFrameOnCalObj = 2;
     
+    
     BOOST_VERIFY(calreadingsFrames.size()==cExpected.size());
     BOOST_VERIFY(cExpected[0].cols()>0);
     
@@ -208,10 +208,17 @@ void correctDistortionOnSourceData(
         cEM.block(outputRow,0,NumEMPointsInEMFrameOnCalObj,3) = markerTrackersOnCalBodyInEMFrame;
     }
     
-    Eigen::MatrixXd dcmC = distortionCalibrationMatrixC(cEM, cExpectedStacked);
+    Eigen::Vector3d minCorner;
+    Eigen::Vector3d maxCorner;
+    Eigen::MatrixXd dcmC = distortionCalibrationMatrixC(cEM, cExpectedStacked,minCorner,maxCorner);
     
     
     std::cout << "\n\ndistortionCalibrationMatrixC:\n\n" << dcmC;
+    
+    auto StackedEMPtsInEMFrameOnProbe = stackRange(EMPtsInEMFrameOnProbe);
+    
+    ScaleToUnitBox(StackedEMPtsInEMFrameOnProbe, minCorner, maxCorner);
+    
     
     //Eigen
     

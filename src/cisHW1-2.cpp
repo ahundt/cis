@@ -53,8 +53,9 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 
     // create algorithm command line options
     dataOptions.add_options()
-            ("pa1", "set automatic programming assignment 1 source data parameters, overrides DataFilenamePrefix, exclusive of pa2")
-            ("pa2", "set automatic programming assignment 2 source data parameters, overrides DataFilenamePrefix, exclusive of pa1")
+            ("pa1", "set automatic programming assignment 1 source data parameters, overrides DataFilenamePrefix, exclusive of pa1")
+            ("pa2", "set automatic programming assignment 2 source data parameters, overrides DataFilenamePrefix, exclusive of pa2")
+    
 		    ("dataFolderPath"                   ,po::value<std::string>()->default_value(currentPath)       ,"folder containing data files, defaults to current working directory"   )
             ("dataFilenamePrefix"               ,po::value<std::vector<std::string> >()->default_value(HW2DataFilePrefixes(),""),"constant prefix of data filename path. Specify this multiple times to run on many data sources at once"   )
 		  	("dataFileNameSuffix_calbody"       ,po::value<std::string>()->default_value(dataFileNameSuffix_calbody     ),"suffix of data filename path"   )
@@ -78,6 +79,7 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 		  	("em_fiducialsPath"  			 ,po::value<std::string>() , "full path to data txt file, optional alternative to prefix+suffix name combination"   )
 		  	("em_navPath"        			 ,po::value<std::string>() , "full path to data txt file, optional alternative to prefix+suffix name combination"   )
 		  	("output2Path"       			 ,po::value<std::string>() , "full path to data txt file, optional alternative to prefix+suffix name combination"   )
+    
 			  ;
 
     po::options_description allOptions;
@@ -192,22 +194,39 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 
 
 /// Produce an output CIS CSV file
-void outputCISCSV(std::ostream& ostr, const std::string& outputName = "NAME-OUTPUT-1.TXT", const Eigen::Vector3d & emProbe = Eigen::Vector3d(0,0,0), const Eigen::Vector3d & optProbe = Eigen::Vector3d(0,0,0), const csvCIS_pointCloudData::TrackerDevices & vTrackers = csvCIS_pointCloudData::TrackerDevices()){
-
+void output1CISCSV_PA1(std::ostream& ostr, const std::string& outputName = "name-output-1.txt", const Eigen::Vector3d & emProbe = Eigen::Vector3d(0,0,0), const Eigen::Vector3d & optProbe = Eigen::Vector3d(0,0,0), const csvCIS_pointCloudData::TrackerDevices & vTrackers = csvCIS_pointCloudData::TrackerDevices()){
+    
     ostr
-    << vTrackers.size() << "," << vTrackers.size() << "," << outputName << "\n"
+    << vTrackers[0].size() << "," << vTrackers.size() << "," << outputName << "\n"
     << emProbe(0) << "," << emProbe(1) << "," << emProbe(2) << "\n"
     << optProbe(0) << "," << optProbe(1) << "," << optProbe(2) << "\n";
-
+    
     for(auto && tracker : vTrackers) {
         std::size_t rows = tracker.rows();
         for(std::size_t i = 0; i < rows; ++i) {
             ostr
             << tracker.block<1,1>(i,0) << "," << tracker.block<1,1>(i,1) << "," << tracker.block<1,1>(i,2) << "\n";
         }
-
+        
     }
+    
+}
 
+
+
+
+/// Produce an output CIS CSV file
+void output2CISCSV_PA2(std::ostream& ostr, const std::string& outputName = "name-output-2.txt", std::vector<Eigen::Vector3d> probeTipPositions = std::vector<Eigen::Vector3d>()){
+    
+    ostr
+    << probeTipPositions.size() << "," << outputName << "\n";
+    
+    for(auto && pos : probeTipPositions) {
+        ostr
+        << pos(0) << "," << pos(1) << "," << pos(2) << "\n";
+        
+    }
+    
 }
 
 void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, bool debug = false){
@@ -253,7 +272,7 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
 
     std::string outputFilename = dataFilenamePrefix + "-output1.txt";
     std::ofstream ofs (outputFilename, std::ofstream::out);
-    outputCISCSV(ofs,outputFilename,emPivotPoint,optPivotPoint,cExpected);
+    output1CISCSV_PA1(ofs,outputFilename,emPivotPoint,optPivotPoint,cExpected);
 
     ofs.close();
 
@@ -268,7 +287,7 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
 
     // Stacks all of the C values given in calreadings and then normalize
     // Might want to find the max and min in each frame - need to ask Paul
-    if(!ad.calreadings.frames.empty()){
+    if(!ad.calreadings.frames.empty() && !ad.empivot.frames.empty()){
         std::size_t numRowsPerTracker = EMPtsInEMFrameOnProbe[0].rows();
         Eigen::MatrixXd undistortedEMPtsInEMFrameOnCalibrationObject = correctDistortionOnSourceData(ad.calreadings.frames,cExpected,EMPtsInEMFrameOnProbe);
         std::vector<Eigen::MatrixXd> splitUndistortedFrames = splitRows(undistortedEMPtsInEMFrameOnCalibrationObject,numRowsPerTracker);
@@ -277,7 +296,17 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         std::cout << "\n\nundistorted result:\n\n" << result << "\n\n";
     }
 
-
+    if (!ad.em_nav.frames.empty())
+    {
+        std::vector<Eigen::Vector3d> output2;
+        for (auto tracker : ad.em_nav.frames) {
+            output2.push_back(Eigen::Vector3d::Zero());
+        }
+        
+        std::string outputFilename = dataFilenamePrefix + "-output2.txt";
+        std::ofstream ofs (outputFilename, std::ofstream::out);
+        output2CISCSV_PA2(ofs,outputFilename,output2);
+    }
 
     //std::cout << "\n\ncEMFMatrix rows: " << TestF.rows() << " cols: " << TestF.cols() << " values:\n\n" << TestF << std::endl;
 }

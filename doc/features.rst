@@ -10,3 +10,7 @@ Features
 **Pivot calibrations**
 
 - Pivot calibrations allow a coordinate system to be established with respect to existing data and the world frame.
+
+**Distortion Correction**
+
+- Bernstein Polynomial based distortion correction.

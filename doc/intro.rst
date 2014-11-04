@@ -165,6 +165,10 @@ rotational matrix and translation vectors. The least squares vector contained ap
 probe and the position of the probe tip.
 
 
+Distortion Calibration
+----------------------
+
+
 Structure of the Program
 ========================
 
@@ -260,17 +264,30 @@ PA2
 Correct distortions in one point cloud by utilizing distorted and undistorted versions of a second point cloud.
 Bernstein Polynomials are utilized to perform the correction.
 
-Data Flow
----------
+**BernsteinPolynomial()**
 
-The overall data flow for the program is as follows:
+Find the solution to the Berstein polynomial when at varying degrees and points depending on the input.
 
-1. **main()** is executed in the executable **cisHW1-2**, created by **cisHW1-2.cpp**.
-2. The function readCommandLine is called to read all command line arguments into the ParsedCommandLineCommands struct
-3. Each data source, aka set of files corresponding to one data set is parsed into an AlgorithmData struct.
-4. generateOutputFile() is called to execute the algorithms on the AlgorithmData.
-5. The major algorithms are called to process the data and produce output objects. See :ref:`Important Functions and Descriptions` for more details on these functions.
-6. **output1CISCSV_PA1()** and **output2CISCSV_PA2** are called to write out **name-output1.txt** and **name-output2.txt**, respectively.
+**Fmatrix()**
+
+Multiplies the Bernstein polynomial into a matrix so that a function of every degree of i, j, and k are found
+and a distortion calibration can be done using the matrix.
+
+**ScaleToUnitBox()**
+
+Calculates maximum and minimum values in the X,Y, and z coordinates of a point cloud and then normalizes the 
+value of every single opint.
+
+**probeTipPointinCTF()**
+
+Uses measured positions of EM tracker points on the EM probe in the EM frame when the tip is in a CT fiducial
+and returns the point of the fiducial dimple (solves problem 5).
+
+**fiducialPointInEMFrame()**
+
+Uses measured positions of EM tracker points on the EM probe in the EM frame when the tip is in a CT fiducial
+and returns points of the CT fiducial locations in EM frame.
+
 
 
 Results and Discussion

@@ -315,7 +315,7 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         std::vector<Eigen::MatrixXd> splitHomogeneousTransforms = splitRows(FtransformVector,homogeneousSize);
         for (auto mat:splitHomogeneousTransforms){
             Eigen::Affine3d affineFrameForEachFiducial;
-            affineFrameForEachFiducial.matrix() = mat;
+            affineFrameForEachFiducial.matrix() = homogeneousInverse(mat);
             Eigen::Vector3d fiducialPointinEMFrame = affineFrameForEachFiducial*dc;
             fiducialPointinEMFrames.push_back(fiducialPointinEMFrame);
             std::cout << "\n\nfidicualPointinEMFrame is: \n" << fiducialPointinEMFrame << std::endl;
@@ -335,7 +335,7 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         
         Eigen::MatrixXd fiducialPointCloudEM = stackRangeTranspose(fiducialPointinEMFrames);
         
-        Freg = hornRegistration(fiducialPointCloudEM,fiducialPointCloudCT);
+        Freg = hornRegistration(fiducialPointCloudCT,fiducialPointCloudEM);
         std::cout << "\n\nFreg is: \n" << Freg << std::endl;
     }
     
@@ -358,7 +358,7 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         std::vector<Eigen::MatrixXd> splitHomogeneousTransforms = splitRows(FtransformVector,homogeneousSize);
         for (auto mat:splitHomogeneousTransforms){
             Eigen::Affine3d affineFrameForEachProbePosition;
-            affineFrameForEachProbePosition.matrix() = mat;
+            affineFrameForEachProbePosition.matrix() = homogeneousInverse(mat);
             Eigen::Vector3d probeTipPointinEMFrame = affineFrameForEachProbePosition*dc;
             Eigen::Vector3d probeTipPointinCTFrame = affineFreg*probeTipPointinEMFrame;
             probeTipPointinCTFrames.push_back(probeTipPointinCTFrame);
@@ -370,14 +370,9 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
     
     if (!ad.em_nav.frames.empty())
     {
-        std::vector<Eigen::Vector3d> output2;
-        for (auto tracker : ad.em_nav.frames) {
-            output2.push_back(Eigen::Vector3d::Zero());
-        }
-        
         std::string outputFilename = dataFilenamePrefix + "-output2.txt";
         std::ofstream ofs (outputFilename, std::ofstream::out);
-        output2CISCSV_PA2(ofs,outputFilename,output2);
+        output2CISCSV_PA2(ofs,outputFilename,probeTipPointinCTFrames);
     }
     
     

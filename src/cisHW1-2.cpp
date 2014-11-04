@@ -198,7 +198,7 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 void output1CISCSV_PA1(std::ostream& ostr, const std::string& outputName = "name-output-1.txt", const Eigen::Vector3d & emProbe = Eigen::Vector3d(0,0,0), const Eigen::Vector3d & optProbe = Eigen::Vector3d(0,0,0), const csvCIS_pointCloudData::TrackerDevices & vTrackers = csvCIS_pointCloudData::TrackerDevices()){
     
     ostr
-    << vTrackers[0].size() << "," << vTrackers.size() << "," << outputName << "\n"
+    << vTrackers[0].rows() << "," << vTrackers.size() << "," << outputName << "\n"
     << emProbe(0) << "," << emProbe(1) << "," << emProbe(2) << "\n"
     << optProbe(0) << "," << optProbe(1) << "," << optProbe(2) << "\n";
     

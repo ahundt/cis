@@ -275,18 +275,14 @@ void generateOutputFile(AlgorithmData ad, std::string outputDataFolderPath, std:
 
         cExpected = estimateCExpected(ad.calreadings.frames,ad.calbody.frames,debug);
 
-        std::cout << "\n\nsolveForCExpected results for "<< ad.calreadings.title << " and " << ad.calbody.title <<":\n\n";
-        for (auto expected : cExpected)
-            std::cout << expected << "\n";
+        if(debug ){
+            std::cout << "\n\nsolveForCExpected results for "<< ad.calreadings.title << " and " << ad.calbody.title <<":\n\n";
+            for (auto expected : cExpected)
+                std::cout << expected << "\n";
+        }
 
     }
 
-
-    std::string outputFilename =  dataFilenamePrefix + "-output1.txt";
-    std::ofstream ofs (outputFilename, std::ofstream::out);
-    output1CISCSV_PA1(ofs,outputFilename,emPivotPoint,optPivotPoint,cExpected);
-
-    ofs.close();
 
 
     /////////////////////////////////////////////////////////////////////
@@ -297,6 +293,7 @@ void generateOutputFile(AlgorithmData ad, std::string outputDataFolderPath, std:
     // p = known 3D ground truth -> Cexpected (already calculated above)
 
     Eigen::Vector3d dc;
+    Eigen::Vector3d ppivotDistortionCorrected;
 
     // Stacks all of the C values given in calreadings and then normalize
     // Might want to find the max and min in each frame - need to ask Paul
@@ -305,7 +302,7 @@ void generateOutputFile(AlgorithmData ad, std::string outputDataFolderPath, std:
         Eigen::MatrixXd undistortedEMPtsInEMFrameOnCalibrationObject = correctDistortionOnSourceData(ad.calreadings.frames,cExpected,EMPtsInEMFrameOnProbe);
         std::vector<Eigen::MatrixXd> splitUndistortedFrames = splitRows(undistortedEMPtsInEMFrameOnCalibrationObject,numRowsPerTracker);
         Eigen::VectorXd result = pivotCalibration(splitUndistortedFrames,debug);
-        
+        ppivotDistortionCorrected = result.block<3,1>(3,0);
         dc = result.block<3,1>(0,0);
         std::cout << "\n\nundistorted result:\n\n" << result << "\n\n";
     }
@@ -341,6 +338,12 @@ void generateOutputFile(AlgorithmData ad, std::string outputDataFolderPath, std:
         std::cout << "\n\nFreg is: \n" << Freg << std::endl;
     }
     
+    Eigen::Affine3d freg2;
+    freg2.matrix() = Freg;
+    for(int i = 0; i < fiducialPointinEMFrames.size(); ++i){
+        std::cout << freg2*fiducialPointinEMFrames[i] << "\n";
+    }
+    
     std::vector<Eigen::Vector3d> probeTipPointinCTFrames;
     
     if (!ad.calreadings.frames.empty() && !ad.em_nav.frames.empty()){
@@ -359,6 +362,13 @@ void generateOutputFile(AlgorithmData ad, std::string outputDataFolderPath, std:
         
     }
     
+    
+    
+    std::string outputFilename =  dataFilenamePrefix + "-output1.txt";
+    std::ofstream ofs (outputFilename, std::ofstream::out);
+    output1CISCSV_PA1(ofs,outputFilename,ppivotDistortionCorrected,optPivotPoint,cExpected);
+    
+    ofs.close();
     
     if (!ad.em_nav.frames.empty())
     {

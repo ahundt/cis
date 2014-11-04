@@ -327,7 +327,7 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         
         Eigen::MatrixXd fiducialPointCloudEM = stackRangeTranspose(fiducialPointinEMFrames);
         
-        Freg = hornRegistration(fiducialPointCloudCT,fiducialPointCloudEM);
+        Freg = hornRegistration(fiducialPointCloudEM,fiducialPointCloudCT);
         std::cout << "\n\nFreg is: \n" << Freg << std::endl;
     }
     
@@ -351,10 +351,10 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         for (auto mat:splitHomogeneousTransforms){
             Eigen::Affine3d affineFrameForEachProbePosition;
             affineFrameForEachProbePosition.matrix() = homogeneousInverse(mat);
-            Eigen::Vector3d probeTipPointinEMFrame = affineFrameForEachProbePosition*dc;
-            Eigen::Vector3d probeTipPointinCTFrame = affineFreg*probeTipPointinEMFrame;
-            probeTipPointinCTFrames.push_back(probeTipPointinCTFrame);
-            std::cout << "\n\nprobeTipPointinEMFrame is: \n" << probeTipPointinCTFrame << std::endl;
+            Eigen::Vector3d probeTipPointinEMFrame = affineFrameForEachProbePosition*affineFreg*dc;
+            //Eigen::Vector3d probeTipPointinCTFrame = affineFreg*probeTipPointinEMFrame;
+            probeTipPointinCTFrames.push_back(probeTipPointinEMFrame);
+            std::cout << "\n\nprobeTipPointinEMFrame is: \n" << probeTipPointinEMFrame << std::endl;
         }
         
     }

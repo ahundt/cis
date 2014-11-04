@@ -170,13 +170,19 @@ Distortion Calibration
 
 Next we create a distortion calibration algorithm, which followed the mathematical procedure outlined above.  First,
 the data was parsed and stored in a large vector so the the maximum and minimum values could be obtained in the X, Y,
-and Z dimensions of the data set. This data is divided into three portions, the groundTruth and distorted points reflecting
-the same physical points with some error, and another set of points for which the first two distortion point clouds should
-be used to undistort this one. Then the values of the data set were scaled to between [0 1] to create a minimum 
+and Z dimensions of the data set. Then the values of the data set were scaled to between [0 1] to create a minimum 
 bounding box. We calculate Bernstein polynomials for each point and stack them into the F matrix. The Eigen library
-is utilized to calculate the SVD of Fc=p, where F is the F matrix of Berrnstein Polynomials, c is the calibration
+is utilized to calculate the SVD of Fc=p, where F is the F matrix of Bernstein Polynomials, c is the calibration
 coefficient matrix, and p is the undistorted points matrix that you compare the distorted points to. A separate
-set of points can be scaled according to the corresponding distortion parameters.
+set of points can be scaled according to the same distortion parameters from above and the distortion associated with their
+measurement can be corrected.  Once this is done, an the same Fmatrix calculated above can be calculated for this new
+set of points.  Then the c calibration coefficient matrix was multiplied by the Fmatrix to find the undistorted points in
+the new coordinate system.  Once the data was undistorted, we were able to run a new pivot calibration with the
+undistorted points to see how well our undistortion works.  The next step was to use the distortion matrix to find 
+CT fiducials in the EM frame.  The new data was scaled by the same scaling function as above and put into a new Fmatrix.  
+In this way, a new Fmatrix could be found and the measured points could be undistorted.  Then these values were used
+with known values of points measured in the CT frame to find a transformation matrix Freg that would take you from
+the EM frame to the CT frame.  Finally the tip of the EM probe could be measured in the CT frame.
 
 
 
@@ -341,7 +347,7 @@ Status of results
 
 We have encountered errors in our software that we have narrowed down to points after the EM distortion calibration steps, 
 because we have been able to verify our Bernstein functions using unit tests and debug data. However, a bug remains in either
-the steps for calculating Freg or finding each of the CT fiducials. Since the underlying components are largely well tested,
+the steps for calculating Freg or finding each of the CT fiducial. Since the underlying components are largely well tested,
 we expect the bug to be in the transform or data flow steps of the generateOutputFile() function in cisHW1-2.cpp or the function
 definitions in PA2.hpp. 
 
@@ -359,8 +365,8 @@ amount of EM Noise, distortion, and jiggle will be propagated throughout the sys
 
 
 One example of how error can propagate is if both the optical tracker and EM tracker are off with a common distortion
-component, it is possible for this information to cause the bernstein curve to misestimate the actual curve, and consequently
-cause the registration between the CT scan and the other sensors to have a higer error. In this way errors can propagate
+component, it is possible for this information to cause the Bernstein curve to misestimate the actual curve, and consequently
+cause the registration between the CT scan and the other sensors to have a higher error. In this way errors can propagate
 through the whole system. This particular example can be mitigated through the use of fixed physical structures that are
 known in advance that can be used to estimate and account for such systemic errors. 
 
@@ -377,8 +383,8 @@ can assess the accuracy of our calibration.
 
 Our metric for error is the distance difference between our calculations and the debug outputs. This can be measured
 as an average, or with other statistical tools. We can also detect certain sources of error by specifying our own test
-functions. We also utilize the **BOOST_VERIFY** macro and the checkWitinTolerances() function to verify that funcions
-are being called and returning values that or correct to within ceratain tolerances, considering the limits of the
+functions. We also utilize the **BOOST_VERIFY** macro and the checkWitinTolerances() function to verify that functions
+are being called and returning values that or correct to within certain tolerances, considering the limits of the
 particular algorithms we are using. 
 
 Andrew and Alex spent approximately equal time on the assignment, with significant amounts of time spent pair

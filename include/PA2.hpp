@@ -18,7 +18,7 @@ std::vector<Eigen::Vector3d> fiducialPointInEMFrame(U& em_fiducialsGVector, T& c
     std::vector<Eigen::MatrixXd> splitHomogeneousTransforms = splitRows(FtransformVector,homogeneousSize);
     for (auto mat:splitHomogeneousTransforms){
         Eigen::Affine3d affineFrameForEachFiducial;
-        affineFrameForEachFiducial.matrix() = homogeneousInverse(mat);
+        affineFrameForEachFiducial.matrix() = mat;
         Eigen::Vector3d fiducialPointinEMFrame = affineFrameForEachFiducial*centerToTip;
         fiducialPointinEMFramesReturn.push_back(fiducialPointinEMFrame);
         std::cout << "\n\nfidicualPointinEMFrame is: \n" << fiducialPointinEMFrame << std::endl;
@@ -44,7 +44,7 @@ std::vector<Eigen::Vector3d> probeTipPointinCTFrame(const U& em_navGVector, cons
     std::vector<Eigen::MatrixXd> splitHomogeneousTransforms = splitRows(FtransformVector,homogeneousSize);
     for (auto mat:splitHomogeneousTransforms){
         Eigen::Affine3d affineFrameForEachProbePosition;
-        affineFrameForEachProbePosition.matrix() = homogeneousInverse(mat);
+        affineFrameForEachProbePosition.matrix() = mat;
         Eigen::Vector3d probeTipPointinEMFrame_ = affineFrameForEachProbePosition*centerToTip;
         Eigen::Vector3d probeTipPointinCTFrame_ = Freg*probeTipPointinEMFrame_;
         probeTipPointinCTFrames.push_back(probeTipPointinCTFrame_);

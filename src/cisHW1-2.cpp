@@ -323,7 +323,7 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         // Calculates Freg which is the transformation between CT and EM coordinates
         
         // There is only one frame and "tracker" containing points to each CT fiducial in the CT Frame
-        Eigen::MatrixXd fiducialPointCloudCT = ad.em_fiducials.frames[0][0];
+        Eigen::MatrixXd fiducialPointCloudCT = ad.ct_fiducials.frames[0][0];
         
         Eigen::MatrixXd fiducialPointCloudEM = stackRangeTranspose(fiducialPointinEMFrames);
         

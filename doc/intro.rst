@@ -168,6 +168,17 @@ probe and the position of the probe tip.
 Distortion Calibration
 ----------------------
 
+Next we create a distortion calibration algorithm, which followed the mathematical procedure outlined above.  First,
+the data was parsed and stored in a large vector so the the maximum and minimum values could be obtained in the X, Y,
+and Z dimensions of the data set. This data is divided into three portions, the groundTruth and distorted points reflecting
+the same physical points with some error, and another set of points for which the first two distortion point clouds should
+be used to undistort this one. Then the values of the data set were scaled to between [0 1] to create a minimum 
+bounding box. We calculate Bernstein polynomials for each point and stack them into the F matrix. The Eigen library
+is utilized to calculate the SVD of Fc=p, where F is the F matrix of Berrnstein Polynomials, c is the calibration
+coefficient matrix, and p is the undistorted points matrix that you compare the distorted points to. A separate
+set of points can be scaled according to the corresponding distortion parameters.
+
+
 
 Structure of the Program
 ========================
@@ -183,6 +194,7 @@ The most important files include:
 File name                       Description
 =============================   ===============================================================================
 **DistortionCalibration.hpp**   Bernstein Polynomial method of distortion correction.
+**PA2.hpp**                     **fiducialPointInEMFrame()** and **probeTipPointinCTFrame()** PA2 #4,6
 **hornRegistration.hpp**        Horn's method of Point Cloud to Point Cloud registration.
 **PivotCalibration.hpp**        Pivot Calibration.
 **cisHW1test.cpp**              An extensive set of unit tests for the library relevant to PA1.
@@ -318,22 +330,56 @@ was the best method of the one's taught in class.
 Calibration
 -----------
 
-The position of the tip of the probe when calibrate by EM also gave us results well with in out tolerance
-levels. Again, it could be seen that our results were less accurate when error was introduced, but not to an
-unreasonable degree. We did encounter a bug when trying to calibrate the optical probe in the EM coordinate
-system. Our results for the x and y values of the pivot point were in the tolerance range of the actual pivot
-point. However, we ran into a large systematic shift in the negative z-direction of our output data. We believe
-that there was a possible ordering or directional issue in our algorithmic transforms. Since the shift was
-systematic throughout all the test data, the value of the error was well know and could accounted for if this
-were a real system until the bug was found.
+The position of the tip of the probe when calibrate by EM also gave us results well within our tolerance
+levels. Our results were less accurate when error was introduced, but not to an unreasonable degree.
 
 
 
 
 Status of results
-======================
+=================
+
+We have encountered errors in our software that we have narrowed down to points after the EM distortion calibration steps, 
+because we have been able to verify our Bernstein functions using unit tests and debug data. However, a bug remains in either
+the steps for calculating Freg or finding each of the CT fiducials. Since the underlying components are largely well tested,
+we expect the bug to be in the transform or data flow steps of the generateOutputFile() function in cisHW1-2.cpp or the function
+definitions in PA2.hpp. 
 
 
+Error Propagation
+-----------------
+
+
+Barring errors due to software bugs, error propagation can occur based on several sources. If there is systemic biased measurement in a single direction,
+this can offset error and cause it to propagate along transform chains and even amplify error. 
+
+Error sources and propagation can come from a variety of sources, including EM distortion, EM Noise, and OT jiggle. 
+We were able to account for the EM distortion through our distortion calibration functions. It is expected that some
+amount of EM Noise, distortion, and jiggle will be propagated throughout the system that we are unable to account for.
+
+
+One example of how error can propagate is if both the optical tracker and EM tracker are off with a common distortion
+component, it is possible for this information to cause the bernstein curve to misestimate the actual curve, and consequently
+cause the registration between the CT scan and the other sensors to have a higer error. In this way errors can propagate
+through the whole system. This particular example can be mitigated through the use of fixed physical structures that are
+known in advance that can be used to estimate and account for such systemic errors. 
+
+Additionally, inaccurate sensors due to large random variation are an example of error which cannot be removed through 
+distortion calibration. 
+
+
+Results Metric
+--------------
+
+We know that our distortion is correct and we can measure its accuracy because we can compare the old values 
+of EM pivot to the newly undistorted values that we encounter. By comparing to prior ground truth values we 
+can assess the accuracy of our calibration.
+
+Our metric for error is the distance difference between our calculations and the debug outputs. This can be measured
+as an average, or with other statistical tools. We can also detect certain sources of error by specifying our own test
+functions. We also utilize the **BOOST_VERIFY** macro and the checkWitinTolerances() function to verify that funcions
+are being called and returning values that or correct to within ceratain tolerances, considering the limits of the
+particular algorithms we are using. 
 
 Andrew and Alex spent approximately equal time on the assignment, with significant amounts of time spent pair
 programming. Both contributed equally to the implementation and debugging of functions.

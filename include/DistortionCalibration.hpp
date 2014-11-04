@@ -179,7 +179,8 @@ Eigen::MatrixXd distortionCalibrationMatrixC(const Eigen::MatrixXd& EMPointsInEM
 }
 
 
-/// Correct distortions utilizing .
+/// Correct distortions in one point cloud by utilizing distorted and undistorted versions of a second point cloud.
+/// Bernstein Polynomials are utilized to perform the correction.
 ///
 /// @param[in] distortedToCorrect the distorted data set to correct
 /// @param[in] distortedGroundTruth the same data as groundTruth, but this data has distortion, and the variation between this and the real groundTruth will be used to correct distortedToCorrect.

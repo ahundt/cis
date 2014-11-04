@@ -57,17 +57,16 @@ BOOST_AUTO_TEST_CASE(BernsteinTest)
     int min = 0;
     Eigen::VectorXd X = Eigen::VectorXd::LinSpaced(max+1,min,max);
     Eigen::VectorXd Y = 2*X;
-    Eigen::MatrixXd UnitTest = Eigen::MatrixXd::Zero(X.size(),3);
-    Eigen::MatrixXd GroundTruth = Eigen::MatrixXd::Zero(X.size(),3);
-    UnitTest.col(0) = Y;
-    GroundTruth.col(0) = X;
+    Eigen::MatrixXd Y3distorted = Eigen::MatrixXd::Zero(X.size(),3);
+    Eigen::MatrixXd X3GroundTruth = Eigen::MatrixXd::Zero(X.size(),3);
+    Y3distorted.col(0) = Y;
+    X3GroundTruth.col(0) = X;
     Eigen::Vector3d minCorner;
     Eigen::Vector3d maxCorner;
-    Eigen::MatrixXd cIJK = distortionCalibrationMatrixC(UnitTest, GroundTruth, minCorner, maxCorner);
-    Eigen::MatrixXd Fmat = FMatrix(UnitTest);
-    Eigen::MatrixXd UnitTestUndistorted = Fmat*cIJK;
-    std::cout << "\n\nUnitTestUndistorted\n\n" << UnitTestUndistorted << "\n\nGroundTruth\n\n" << GroundTruth;
-    BOOST_VERIFY(isWithinTolerance(UnitTestUndistorted,GroundTruth));
+    
+    Eigen::MatrixXd undistorted = correctDistortion(Y3distorted, Y3distorted, X3GroundTruth, minCorner, maxCorner);
+    std::cout << "\n\nUnitTestUndistorted\n\n" << undistorted << "\n\nGroundTruth\n\n" << X3GroundTruth;
+    BOOST_VERIFY(isWithinTolerance(undistorted,X3GroundTruth));
 
 }
 

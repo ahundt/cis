@@ -241,31 +241,13 @@ Eigen::MatrixXd correctDistortionOnSourceData(
     Eigen::Vector3d minCorner;
     Eigen::Vector3d maxCorner;
     
-    //Eigen::MatrixXd dcmC = distortionCalibrationMatrixC(cEM, cExpectedStacked,minCorner,maxCorner);
-    
-    
-    //std::cout << "\n\ndistortionCalibrationMatrixC:\n\n" << dcmC;
-    
     auto StackedEMPtsInEMFrameOnProbe = stackRange(EMPtsInEMFrameOnProbe);
     
     Eigen::MatrixXd undistortedEMPointsInEMFrame = correctDistortion(StackedEMPtsInEMFrameOnProbe, cEM, cExpectedStacked, minCorner, maxCorner);
     
-    // scale using the same scaling factor as before, ignoring if it doesn't fit in the 0 to 1 bounds
-    //bool ignoreUnitBoxScalingBounds = true;
-    //ScaleToUnitBox(StackedEMPtsInEMFrameOnProbe, minCorner, maxCorner,ignoreUnitBoxScalingBounds);
-    //Eigen::MatrixXd FMatrixStackedEMPtsInEMFrameOnProbe = FMatrix(StackedEMPtsInEMFrameOnProbe);
-    
-    //               corrected distortion matrix =        F*C
-    //Eigen::MatrixXd undistortedEMPointsInEMFrame = FMatrixStackedEMPtsInEMFrameOnProbe*dcmC;
-    
     return undistortedEMPointsInEMFrame;
-    //Eigen
-    
-    //std::cout << "\n\nC size is "<< cEM.rows() << std::endl;
-    //
-    //std::cout << "\n\nFMatrix for SVD is \n\n"<< FMat << std::endl;
-    //std::cout << "\n\nCalreadings in first frame is " << ad.calreadings.frames[0][2];
-    //std::cout << "\n\nthe size is "<< ad.calreadings.frames[0][2].rows() << std::endl;
 }
+
+
 
 #endif // _DISTORTION_CALIBRATION_HPP_

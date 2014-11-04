@@ -284,6 +284,7 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
     // q = Values returned by nagivational sensor -> C (from calreadings)
     // p = known 3D ground truth -> Cexpected (already calculated above)
 
+    Eigen::Vector3d dc;
 
     // Stacks all of the C values given in calreadings and then normalize
     // Might want to find the max and min in each frame - need to ask Paul
@@ -293,9 +294,29 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         std::vector<Eigen::MatrixXd> splitUndistortedFrames = splitRows(undistortedEMPtsInEMFrameOnCalibrationObject,numRowsPerTracker);
         Eigen::VectorXd result = pivotCalibration(splitUndistortedFrames,debug);
         
+        dc = result.block<3,1>(0,0);
         std::cout << "\n\nundistorted result:\n\n" << result << "\n\n";
     }
 
+    if (!ad.calreadings.frames.empty() && !ad.em_fiducials.frames.empty()){
+        std::size_t numRowsPerTracker = ad.em_fiducials.frames[0][0].rows();
+        const std::size_t homogeneousSize = 4;
+        std::vector<Eigen::MatrixXd> Gvector = concat(ad.em_fiducials.frames);
+        Eigen::MatrixXd Gundistorted = correctDistortionOnSourceData(ad.calreadings.frames,cExpected,Gvector);
+        std::vector<Eigen::MatrixXd> splitUndistortedFrames = splitRows(Gundistorted,numRowsPerTracker);
+        Eigen::MatrixXd FtransformVector = registrationToFirstCloud(splitUndistortedFrames);
+        std::vector<Eigen::MatrixXd> splitHomogeneousTransforms = splitRows(FtransformVector,homogeneousSize);
+        std::vector<Eigen::Vector3d> fidicualPointinEMFrames;
+        for (auto mat:splitHomogeneousTransforms){
+            Eigen::Affine3d affineFrameForEachFiducial;
+            affineFrameForEachFiducial.matrix() = mat;
+            Eigen::Vector3d fidicualPointinEMFrame = affineFrameForEachFiducial*dc;
+            fidicualPointinEMFrames.push_back(fidicualPointinEMFrame);
+            std::cout << "\n\nfidicualPointinEMFrame is: \n" << fidicualPointinEMFrame << std::endl;
+        }
+
+    }
+    
     if (!ad.em_nav.frames.empty())
     {
         std::vector<Eigen::Vector3d> output2;
@@ -307,6 +328,8 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         std::ofstream ofs (outputFilename, std::ofstream::out);
         output2CISCSV_PA2(ofs,outputFilename,output2);
     }
+    
+    
 
     //std::cout << "\n\ncEMFMatrix rows: " << TestF.rows() << " cols: " << TestF.cols() << " values:\n\n" << TestF << std::endl;
 }

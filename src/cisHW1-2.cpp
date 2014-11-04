@@ -382,8 +382,8 @@ int main(int argc,char**argv) {
 	ParsedCommandLineCommands pclp;
 	readCommandLine(argc,argv,pclp);
     
+    // thread pool to speed up execution
     std::vector<std::thread> th;
-
 
     for(auto&& dataSource : pclp.dataSources){
         AlgorithmData ad;
@@ -397,8 +397,8 @@ int main(int argc,char**argv) {
         loadPointCloudFromFile(dataSource.em_navPath        ,ad.em_nav              ,pclp.debugParser       );
         loadPointCloudFromFile(dataSource.output2Path       ,ad.output2             ,pclp.debugParser       );
 
-        // run all data sources in separate threads to speed up execution
         if(pclp.threads) {
+            // run all data sources in separate threads to speed up execution
             th.push_back(std::thread(generateOutputFile,ad, pclp.outputDataFolderPath, dataSource.filenamePrefix,pclp.debug));
         } else {
             generateOutputFile(ad, pclp.outputDataFolderPath, dataSource.filenamePrefix,pclp.debug);

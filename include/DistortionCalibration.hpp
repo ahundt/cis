@@ -21,7 +21,8 @@ void boundingBox(Eigen::MatrixXd& X, Eigen::Vector3d& minCorner, Eigen::Vector3d
 ///
 /// @param X nx3 matrix containing points that will be scaled
 /// @param maxCorner the maximum coordinate in all dimensions of the bounding box
-void ScaleToUnitBox(Eigen::MatrixXd& X, const Eigen::Vector3d& minCorner, const Eigen::Vector3d& maxCorner )
+/// @param ignoreBounds ignore if coordinates are not between 0 and 1. Defaults to false, which means there is an assertion checking the bounds.
+void ScaleToUnitBox(Eigen::MatrixXd& X, const Eigen::Vector3d& minCorner, const Eigen::Vector3d& maxCorner, bool ignoreBounds = false )
 {
     // bounding box max and min
     Eigen::Vector3d diff = maxCorner-minCorner;
@@ -29,8 +30,10 @@ void ScaleToUnitBox(Eigen::MatrixXd& X, const Eigen::Vector3d& minCorner, const 
         for (int j=0; j<X.rows(); j++){
             // scale the x,y,z of the point
             auto coord = (X(j,i)-minCorner(i))/diff(i);
-            BOOST_VERIFY(coord <=1); // verify scaling is working
-            BOOST_VERIFY(coord >=0);
+            if(!ignoreBounds){
+                BOOST_VERIFY(coord <= 1); // verify scaling is working
+                BOOST_VERIFY(coord >= 0);
+            }
             X(j,i) = coord;
         }
     }
@@ -190,20 +193,17 @@ void correctDistortionOnSourceData(
     BOOST_VERIFY(calreadingsFrames.size()==cExpected.size());
     BOOST_VERIFY(cExpected[0].cols()>0);
     
-    int cExpectedFrameRows = cExpected[0].rows();
-    int cExpectedCols = cExpected[0].cols();
-    Eigen::MatrixXd cExpectedStacked(cExpected.size()*cExpectedFrameRows,cExpectedCols);
+    // create stacked version of cExpected
+    Eigen::MatrixXd cExpectedStacked = stackRange(cExpected);
     
+    // prep cEM for manual stacking since it is a vector of vectors
+    // Stack EM Points in EM frame on to cEM matrix
     static const std::size_t NumEMPointsInEMFrameOnCalObj = calreadingsFrames[firstFrame][IndexEMPointsInEMFrameOnCalObj].rows();
     static const std::size_t NumFrames = calreadingsFrames.size();
     Eigen::MatrixXd cEM;
     cEM.resize(NumEMPointsInEMFrameOnCalObj*NumFrames,3);
-    
-    cExpectedStacked = stackRange(cExpected);
-    
     for (std::size_t outputRow = 0, i = 0; i < NumFrames; outputRow+=NumEMPointsInEMFrameOnCalObj, i++){
         const Eigen::MatrixXd& markerTrackersOnCalBodyInEMFrame=calreadingsFrames[i][IndexEMPointsInEMFrameOnCalObj];
-        
         // @todo For some reason putting numMarkers in for 27 does not work
         cEM.block(outputRow,0,NumEMPointsInEMFrameOnCalObj,3) = markerTrackersOnCalBodyInEMFrame;
     }
@@ -217,7 +217,9 @@ void correctDistortionOnSourceData(
     
     auto StackedEMPtsInEMFrameOnProbe = stackRange(EMPtsInEMFrameOnProbe);
     
-    ScaleToUnitBox(StackedEMPtsInEMFrameOnProbe, minCorner, maxCorner);
+    // scale using the same scaling factor as before, ignoring if it doesn't fit in the 0 to 1 bounds
+    bool ignoreUnitBoxScalingBounds = true;
+    ScaleToUnitBox(StackedEMPtsInEMFrameOnProbe, minCorner, maxCorner,ignoreUnitBoxScalingBounds);
     
     
     //Eigen

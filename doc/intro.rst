@@ -16,17 +16,63 @@ Andrew Hundt and Alex Strickland Computer Integrated Surgery 600.445 Coursework 
 Introduction
 ============
 
-The purpose of the assignment was to develop an algorithm for a 3D point set to 3D point set registration and a pivot calibration.  The problem involved a stereotactic navigation system and an electromagnetic positional tracking device.  Tracking markers were placed on objects so the optical tracking device and an electromagnetic tracking device could measure the 3D positions of objects in space relative to measuring base units.  These objects were then registered so that they could be related in the same coordinate frames.  Pivot calibration posts were placed in the system so pivot calibration could be performed and the 3D position of two different probes could be tracked throughout the system.  The diagram below from the assignment document gives a visual description of the system.
+PA1
+---
+ 
+The purpose of PA1 was to develop an algorithm for a 3D point set to 3D point set registration and a pivot calibration.  The problem involved a stereotactic navigation system and an electromagnetic positional tracking device.  Tracking markers were placed on objects so the optical tracking device and an electromagnetic tracking device could measure the 3D positions of objects in space relative to measuring base units.  These objects were then registered so that they could be related in the same coordinate frames.  Pivot calibration posts were placed in the system so pivot calibration could be performed and the 3D position of two different probes could be tracked throughout the system.  The diagram below from the assignment document gives a visual description of the system.
 
 .. image:: static/CIS_PA1_AssignmentPicture.png
+
+PA2
+---
+
+In addition to all of the steps outlined in PA1, the core purpose of PA2 was to develop an algorithm for distortion correction and to implement it for use with the stereotactic navigation system of PA1.
+In addition to distortion correction, we performed registration of the device coordinate frames to prior CT coordinate frames. 
 
 Mathematical Approach
 =====================
 
+
+Distortion Correction
+---------------------
+
+A number of distortion correction methods are available to correct for inaccuracies among various sensor coordinate systems and the real physical dimensions of the world.  We seleced Bernstein polynomials for
+our implementation due to their numerical stability and accuracy for the specific electromagnetic distortion 
+problem we encounter. The basic idea in this case is to construct a 3D polynomial representing the spatial flexing
+caused by distortions in measurements. 
+
+To reap the best of the numerical stability properties of the Bernstein polynomial we scale the input values
+to the range from 0 to 1. Therefore we scale the values to within the range [0,1] in each dimension, utilizing
+the minimum bounding rectangle (MBR) to determine the scale factor. Then, we construct a 5th degree Bernstein
+polynomial for each point using the polynomial function outlined in slide 18 of the InterpolationReview.pdf 
+lecture notes pictured below. 
+
+.. image:: static/bernstein_polynomial.png
+
+We then stack the polynomials to form the F Matrix, although this polynomial can be increased for higher 
+precision or decreased for higher performance as needed. Once we have these polynomials stacked as a large matrix 
+we solve the least squareds problem utilizing SVD against the ground truth data, as outlined on slide 43 of the lecture
+notes pictured below. 
+
+.. image:: static/bernstein_polynomial_SVD_3D_calibration.png
+
+The output of that equation is the calibration coefficient matrix which can then be multiplied by the stacked F matrix of a distorted point
+set to generate the final corrected and undistorted point set. Multiplication of a stacked matrix is a more efficient alternative to the loop
+of sums from the slides.
+
+
+Tradeoffs
+~~~~~~~~~
+
+One of the particular advantages of Bernstein polynomials is the ability to select the degree of the
+polynomial. The polynomial degree presents an interesting tradeoff, because a higher degree polynomial allows more 
+precise representation of distortions and lower error. This benefit comes at the cost of an exponential increase 
+in computation time for each additional polynomial degree. 
+
 Point Cloud Registration
 ------------------------
 
-A number of least squares methods could be used to determine a transformation matrix for a 3D point set registration.  We selected to use Horn’s method because a rotation matrix is always found and no iterative approximation is involved.  The first step is to find the centroid of the point clouds in the two different coordinate systems.  Then the centroid is subtracted from each point measurement of the separate point clouds so the points will be relative to the centroid.  Next an H matrix is created which is the sum of the products of each corresponding point in the two frames.  A real symmetric G matrix is then created from the sums and differences of the elements in the H matrix which was previously created.  Next, the eigenvalues and corresponding eigenvectors of the G matrix were calculated.  The eigenvector corresponding to the most positive eigenvalue represents the unit quaternion of the matrix.  Once the quaternion is known, the rotation matrix can be found using Rodriguez’s formula.  The translation between the two coordinate systems is next found from the difference between the centroid of the known point cloud and the scaled centroid of the unknown point cloud.  Finally a homogeneous transformation matrix could be made to know the frame transformation between the two point clouds.
+A number of least squares methods could be used to determine a transformation matrix for a 3D point set registration.  We selected Horn’s method because a rotation matrix is always found and no iterative approximation is involved.  The first step is to find the centroid of the point clouds in the two different coordinate systems.  Then the centroid is subtracted from each point measurement of the separate point clouds so the points will be relative to the centroid.  Next an H matrix is created which is the sum of the products of each corresponding point in the two frames.  A real symmetric G matrix is then created from the sums and differences of the elements in the H matrix which was previously created.  Next, the eigenvalues and corresponding eigenvectors of the G matrix were calculated.  The eigenvector corresponding to the most positive eigenvalue represents the unit quaternion of the matrix.  Once the quaternion is known, the rotation matrix can be found using Rodriguez’s formula.  The translation between the two coordinate systems is next found from the difference between the centroid of the known point cloud and the scaled centroid of the unknown point cloud.  Finally a homogeneous transformation matrix could be made to know the frame transformation between the two point clouds.
 
 Pivot Calibration
 -----------------
@@ -58,27 +104,38 @@ Next a pivot calibration algorithm was created which used both the parser and ho
 Structure of the Program
 ========================
 
-The most important files include:
-
-========================   ====================================================================================
-File name                  Description
-========================   ====================================================================================
-**hornRegistration.hpp**   Functions for implemention Horn's method of Point Cloud to Point Cloud registration.
-**PivotCalibration.hpp**   Functions for implementing Pivot Calibration.
-**cisHW1test.cpp**         An extensive set of unit tests for the library.
-**cisHW1main.cpp**         Main executable source, contains cmdline parsing code and produces output data.
-**parseCSV...**            File parsing functions are in **parseCSV_CIS_pointCloud.hpp**.
-========================   ====================================================================================
-
 The software is structured as a set of header only libraries in the include folder, which are utilized by
 the unit tests, main, and any external libraries that choose to use these utilities.
 
-Each function includes substantial doxygen documentation explaining its purpose and usage. This documentation
-can be viewed inline with the source code, or via a generated html sphinx + doxygen website generated using CMake.  Here is a list of the most important functions used in the program is a brief description of each of them.
+
+The most important files include:
+
+
+=============================   ===============================================================================
+File name                       Description
+=============================   ===============================================================================
+**DistortionCalibration.hpp**   Bernstein Polynomial method of distortion correction.
+**hornRegistration.hpp**        Horn's method of Point Cloud to Point Cloud registration.
+**PivotCalibration.hpp**        Pivot Calibration.
+**cisHW1test.cpp**              An extensive set of unit tests for the library relevant to PA1.
+**cisHW2test.cpp**              An extensive set of unit tests for the library relevant to PA2.
+**cisHW1-2.cpp**                Main executable source, contains cmdline parsing code and produces output data.
+**parseCSV...**                 File parsing functions are in **parseCSV_CIS_pointCloud.hpp**.
+=============================   ===============================================================================
+
+
+
+
 
 
 Important Functions and Descriptions
 ------------------------------------
+
+Each function includes substantial doxygen documentation explaining its purpose and usage. This documentation
+can be viewed inline with the source code, or via a generated html sphinx + doxygen website generated using CMake.  Here is a list of the most important functions used in the program is a brief description of each of them.
+
+PA1
+~~~
 
 **EigenMatrix()**         	   
 
@@ -131,6 +188,17 @@ Computes the pivot point position from tracking data using the SVDSolve(),
 registrationToFirstCloud(), and transformToRandMinusIandPMatrices() functions
 
 
+PA2
+~~~
+
+**CorrectDistortion()**
+
+Correct distortions in one point cloud by utilizing distorted and undistorted versions of a second point cloud.
+Bernstein Polynomials are utilized to perform the correction.
+
+
+
+
 Results and Discussion
 ======================
 
@@ -156,7 +224,7 @@ Status of results
 
 
 
-Andrew and Alex spent approximately equal time on the assignment, with significant amounts of time spent pair programming. Both contributed equally to the implementation and debugging of funcitons.
+Andrew and Alex spent approximately equal time on the assignment, with significant amounts of time spent pair programming. Both contributed equally to the implementation and debugging of functions.
 
 Additional Information
 ======================

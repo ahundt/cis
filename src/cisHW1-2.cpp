@@ -279,8 +279,8 @@ void generateOutputFile(AlgorithmData ad, std::string outputDataFolderPath, std:
     }
 
 
-    std::string outputFilename =  outputDataFolderPath + dataFilenamePrefix + "-output1.txt";
-    std::ofstream ofs (outputFilename, std::ofstream::out);
+    std::string outputFilename =  dataFilenamePrefix + "-output1.txt";
+    std::ofstream ofs (outputDataFolderPath+outputFilename, std::ofstream::out);
     output1CISCSV_PA1(ofs,outputFilename,emPivotPoint,optPivotPoint,cExpected);
 
     ofs.close();
@@ -359,8 +359,8 @@ void generateOutputFile(AlgorithmData ad, std::string outputDataFolderPath, std:
     
     if (!ad.em_nav.frames.empty())
     {
-        std::string outputFilename = outputDataFolderPath + dataFilenamePrefix + "-output2.txt";
-        std::ofstream ofs (outputFilename, std::ofstream::out);
+        std::string outputFilename = dataFilenamePrefix + "-output2.txt";
+        std::ofstream ofs (outputDataFolderPath+outputFilename, std::ofstream::out);
         output2CISCSV_PA2(ofs,outputFilename,probeTipPointinCTFrames);
     }
     

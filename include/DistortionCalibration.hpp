@@ -87,7 +87,7 @@ Eigen::MatrixXd FMatrixRow(const Eigen::Vector3d& v,int N = 5, bool debug = fals
 /// @see slide 42 and 43 of InterpolationReview.pdf
 ///
 ///
-/// @param cEM n x numPoints matrix containing the c expected value, aka actual points measured by EM tracker in EM coordinate system, after translation from EM coord system
+/// @param cEM numPoints x n (with n=3 normally) matrix containing the c expected value, aka actual points measured by EM tracker in EM coordinate system, after translation from EM coord system
 /// @param N the polynomial degree
 Eigen::MatrixXd FMatrix(const Eigen::MatrixXd& normalcEM, int N = 5, bool debug = false){
     /// @todo don't recompute pow here and in FMatrixRow
@@ -107,6 +107,49 @@ Eigen::MatrixXd FMatrix(const Eigen::MatrixXd& normalcEM, int N = 5, bool debug 
     return cEMFMatrix;
 }
 
+/// Take a vector of matrices and stack it vertically into one large matrix
+/// with the first matrix in the vector at the top and the last at the bottom.
+///
+/// @pre assumes all matrices have the same dimensions
+template<typename T>
+Eigen::MatrixXd stackRange(const T & vecMat){
+    auto begin = std::begin(vecMat);
+    auto end = std::end(vecMat);
+    auto distance = std::distance(begin,end);
+    if(!distance) return Eigen::MatrixXd();
+    
+    std::size_t rows = begin->rows();
+    std::size_t cols = begin->cols();
+    Eigen::MatrixXd stack(rows*distance,cols);
+    
+    std::size_t i = 0;
+    for(auto mat : vecMat ){
+        stack.block(i*rows, 0, rows, cols) = mat;
+        ++i;
+    }
+    
+    return stack;
+}
+
+/// Takes a set of points and converts it to a matrix of normalized points where are
+/// subsequently used to calculate F values for SVD.
+///
+/// @see slide 43 of InterpolationReview.pdf
+///
+/// @param pointInAllFrames an numPoints x 3 matrix cointaining all the points to be normalized and inserted into an F Matrix for solving with SVD
+Eigen::MatrixXd normalizedFMatrix(const Eigen::MatrixXd& pointsInAllFrames)
+{
+    Eigen::MatrixXd pointsNormalizedToUnitBox(pointsInAllFrames); // aka normal cEM
+    Eigen::Vector3d minCorner;
+    Eigen::Vector3d maxCorner;
+    boundingBox(pointsNormalizedToUnitBox,minCorner,maxCorner);
+    ScaleToUnitBox(pointsNormalizedToUnitBox,minCorner,maxCorner); // normalize into unit box
+    
+    Eigen::MatrixXd FMatForSVD = FMatrix(pointsNormalizedToUnitBox);
+    
+    return FMatForSVD;
+}
+
 ///
 /// Solving for SVD F*C=P, where F is the EMPointsInEMFrameOnCalObj with BernsteinPolynomials applied.
 ///
@@ -114,14 +157,7 @@ Eigen::MatrixXd FMatrix(const Eigen::MatrixXd& normalcEM, int N = 5, bool debug 
 /// @see slide 43 of InterpolationReview.pdf
 Eigen::MatrixXd distortionCalibrationMatrixC(const Eigen::MatrixXd& EMPointsInEMFrameOnCalObj, const Eigen::MatrixXd& OptPointsInEMFrameOnCalibObject ){
     
-    Eigen::MatrixXd normalEMPointsInEMFrameOnCalObj(EMPointsInEMFrameOnCalObj); // aka normal cEM
-    Eigen::Vector3d minCorner;
-    Eigen::Vector3d maxCorner;
-    boundingBox(normalEMPointsInEMFrameOnCalObj,minCorner,maxCorner);
-    ScaleToUnitBox(normalEMPointsInEMFrameOnCalObj,minCorner,maxCorner); // normalize into unit box
-    
-    Eigen::MatrixXd FMatofEMPointsInEMFrameOnCalObj = FMatrix(normalEMPointsInEMFrameOnCalObj);
-    
+    Eigen::MatrixXd FMatofEMPointsInEMFrameOnCalObj = normalizedFMatrix(EMPointsInEMFrameOnCalObj);
     std::cout << "\n\nFMatrix for SVD is rows: "<< FMatofEMPointsInEMFrameOnCalObj.rows() << " cols: " << FMatofEMPointsInEMFrameOnCalObj.cols() << std::endl << std::endl;
     
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(FMatofEMPointsInEMFrameOnCalObj, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -163,15 +199,13 @@ void correctDistortionOnSourceData(
     Eigen::MatrixXd cEM;
     cEM.resize(NumEMPointsInEMFrameOnCalObj*NumFrames,3);
     
+    cExpectedStacked = stackRange(cExpected);
     
     for (std::size_t outputRow = 0, i = 0; i < NumFrames; outputRow+=NumEMPointsInEMFrameOnCalObj, i++){
         const Eigen::MatrixXd& markerTrackersOnCalBodyInEMFrame=calreadingsFrames[i][IndexEMPointsInEMFrameOnCalObj];
         
         // @todo For some reason putting numMarkers in for 27 does not work
         cEM.block(outputRow,0,NumEMPointsInEMFrameOnCalObj,3) = markerTrackersOnCalBodyInEMFrame;
-        //std::cout << "\n\ncEM is\n" << cEM << "\n";
-        cExpectedStacked.block(i*cExpectedFrameRows, 0, cExpectedFrameRows, cExpectedCols) = cExpected[i];
-        //std::cout << "\n\cExpectedStacked is\n" << cExpectedStacked << "\n";
     }
     
     Eigen::MatrixXd dcmC = distortionCalibrationMatrixC(cEM, cExpectedStacked);
@@ -179,8 +213,7 @@ void correctDistortionOnSourceData(
     
     std::cout << "\n\ndistortionCalibrationMatrixC:\n\n" << dcmC;
     
-    //EMPtsInEMFrameOnProbe
-    
+    //Eigen
     
     //std::cout << "\n\nC size is "<< cEM.rows() << std::endl;
     //

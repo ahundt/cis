@@ -37,17 +37,17 @@ BOOST_AUTO_TEST_CASE(BernsteinTest)
 
     // Testing
     double test = boost::math::binomial_coefficient<double>(3, 1);
-    std::cout << "\n\nbinomial coefficient test is " << test << std::endl;
+    if(debug) std::cout << "\n\nbinomial coefficient test is " << test << std::endl;
     double a=5.0;
     int b=3;
     int c=1;
     double Btest = BersteinPolynomial(a, b, c);
-    std::cout << "\n\nBtest is " << Btest << std::endl;
+    if(debug) std::cout << "\n\nBtest is " << Btest << std::endl;
 
     Eigen::MatrixXd test2(1,3);
     test2 << 0, 0.5, 1;
     Eigen::MatrixXd TestF = FMatrix(test2);
-    std::cout << "\n\nF is " << TestF.transpose() << std::endl;
+    if(debug) std::cout << "\n\nF is " << TestF.transpose() << std::endl;
     //std::cout << "\n\nThe size of F is " << TestF.rows() << "x" << TestF.cols() <<std::endl;
 
     // 1-D Unit Test
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(BernsteinTest)
     Eigen::Vector3d maxCorner;
     
     Eigen::MatrixXd undistorted = correctDistortion(Y3distorted, Y3distorted, X3GroundTruth, minCorner, maxCorner);
-    std::cout << "\n\nUnitTestUndistorted\n\n" << undistorted << "\n\nGroundTruth\n\n" << X3GroundTruth;
+    if(debug) std::cout << "\n\nUnitTestUndistorted\n\n" << undistorted << "\n\nGroundTruth\n\n" << X3GroundTruth;
     BOOST_CHECK(isWithinTolerance(undistorted,X3GroundTruth));
 
 }
@@ -130,7 +130,6 @@ BOOST_AUTO_TEST_CASE(EMPivotCalibrationResults)
     CompareOutputFiles(pa2debugd);
     CompareOutputFiles(pa2debuge);
     CompareOutputFiles(pa2debugf);
-    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n\n";
 }
 
 

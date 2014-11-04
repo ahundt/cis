@@ -229,6 +229,33 @@ void output2CISCSV_PA2(std::ostream& ostr, const std::string& outputName = "name
     
 }
 
+
+// Problem 4
+// Takes positions of EM tracker points on the EM probe in the EM frame when the tip is in a CT fiducial
+// Returns points of the CT fiducial locations in EM frame
+// Need to pass dc too when making it into a function
+template<typename T, typename U>
+std::vector<Eigen::Vector3d> fiducialPointInEMFrame(U& em_fiducialsGVector, T& calreadingsFrames, U& cExpected,  Eigen::Vector3d centerToTip){
+    std::vector<Eigen::Vector3d> fiducialPointinEMFramesReturn;
+    
+    
+    const std::size_t homogeneousSize = 4;
+    std::size_t numRowsPerTracker = em_fiducialsGVector[0].rows();
+    Eigen::MatrixXd Gundistorted = correctDistortionOnSourceData(calreadingsFrames,cExpected,em_fiducialsGVector);
+    std::vector<Eigen::MatrixXd> splitUndistortedFrames = splitRows(Gundistorted,numRowsPerTracker);
+    Eigen::MatrixXd FtransformVector = registrationToFirstCloud(splitUndistortedFrames);
+    std::vector<Eigen::MatrixXd> splitHomogeneousTransforms = splitRows(FtransformVector,homogeneousSize);
+    for (auto mat:splitHomogeneousTransforms){
+        Eigen::Affine3d affineFrameForEachFiducial;
+        affineFrameForEachFiducial.matrix() = homogeneousInverse(mat);
+        Eigen::Vector3d fiducialPointinEMFrame = affineFrameForEachFiducial*centerToTip;
+        fiducialPointinEMFramesReturn.push_back(fiducialPointinEMFrame);
+        std::cout << "\n\nfidicualPointinEMFrame is: \n" << fiducialPointinEMFrame << std::endl;
+    }
+    
+    return fiducialPointinEMFramesReturn;
+}
+
 void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, bool debug = false){
 
     Eigen::Vector3d emPivotPoint;
@@ -306,20 +333,8 @@ void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, boo
         // Returns points of the CT fiducial locations in EM frame
         // Need to pass dc too when making it into a function
         
-        std::size_t numRowsPerTracker = ad.em_fiducials.frames[0][0].rows();
-        const std::size_t homogeneousSize = 4;
         std::vector<Eigen::MatrixXd> Gvector = concat(ad.em_fiducials.frames);
-        Eigen::MatrixXd Gundistorted = correctDistortionOnSourceData(ad.calreadings.frames,cExpected,Gvector);
-        std::vector<Eigen::MatrixXd> splitUndistortedFrames = splitRows(Gundistorted,numRowsPerTracker);
-        Eigen::MatrixXd FtransformVector = registrationToFirstCloud(splitUndistortedFrames);
-        std::vector<Eigen::MatrixXd> splitHomogeneousTransforms = splitRows(FtransformVector,homogeneousSize);
-        for (auto mat:splitHomogeneousTransforms){
-            Eigen::Affine3d affineFrameForEachFiducial;
-            affineFrameForEachFiducial.matrix() = homogeneousInverse(mat);
-            Eigen::Vector3d fiducialPointinEMFrame = affineFrameForEachFiducial*dc;
-            fiducialPointinEMFrames.push_back(fiducialPointinEMFrame);
-            std::cout << "\n\nfidicualPointinEMFrame is: \n" << fiducialPointinEMFrame << std::endl;
-        }
+        fiducialPointinEMFrames = fiducialPointInEMFrame(Gvector,ad.calreadings.frames,cExpected,dc);
 
     }
     

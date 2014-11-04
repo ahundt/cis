@@ -218,6 +218,8 @@ void output1CISCSV_PA1(std::ostream& ostr, const std::string& outputName = "name
         
     }
     
+    ostr.flush();
+    
 }
 
 
@@ -235,6 +237,7 @@ void output2CISCSV_PA2(std::ostream& ostr, const std::string& outputName = "name
         
     }
     
+    ostr.flush();
 }
 
 

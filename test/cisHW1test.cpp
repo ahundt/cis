@@ -16,7 +16,7 @@
 #include "PointData.hpp"
 #include "PivotCalibration.hpp"
 #include "PointEstimation.hpp"
-#include "hw1Constants.hpp"
+#include "hwDataConstants.hpp"
 
 static const bool debug = false;
 static const double tolerance = 0.01l;
@@ -255,47 +255,47 @@ BOOST_AUTO_TEST_CASE(testLittleG_EMPivotCalibration)
     AlgorithmData ad;
     
     // a
-    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debugg);
+    ad = initAlgorithmData(relativeDataPath,pa1debugg);
     //visitEachTracker(ad..frames, ad.calreadings.frames, checkHornRegistrationInverses());
     visitSecondTrackerRepeatedly(ad.empivot.frames, ad.empivot.frames, checkHornRegistrationInverses());
 }
-#if 0
+
 BOOST_AUTO_TEST_CASE(testDebugData)
 {
     AlgorithmData ad;
 
     // a
-    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debuga);
+    ad = initAlgorithmData(relativeDataPath,pa1debuga);
     visitEachTracker(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
     visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
 
     // b
-    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debugb);
+    ad = initAlgorithmData(relativeDataPath,pa1debugb);
     visitEachTracker(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
     visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
 
     // c
-    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debugc);
+    ad = initAlgorithmData(relativeDataPath,pa1debugc);
     visitEachTracker(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
     visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
 
     // d
-    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debugd);
+    ad = initAlgorithmData(relativeDataPath,pa1debugd);
     visitEachTracker(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
     visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
 
     // e
-    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debuge);
+    ad = initAlgorithmData(relativeDataPath,pa1debuge);
     visitEachTracker(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
     visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
 
     // f
-    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debugf);
+    ad = initAlgorithmData(relativeDataPath,pa1debugf);
     visitEachTracker(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
     visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
 
     // g
-    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debugg);
+    ad = initAlgorithmData(relativeDataPath,pa1debugg);
     visitEachTracker(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
     visitSecondTrackerRepeatedly(ad.calbody.frames, ad.calreadings.frames, checkHornRegistrationInverses());
 }
@@ -303,7 +303,7 @@ BOOST_AUTO_TEST_CASE(testDebugData)
 BOOST_AUTO_TEST_CASE(solveForCExpected)
 {
     AlgorithmData ad;
-    ad = assembleHW1AlgorithmData(relativeDataPath,pa1debuga);
+    ad = initAlgorithmData(relativeDataPath,pa1debuga);
 
     // a
 	std::vector<Eigen::MatrixXd> cExpected = estimateCExpected(ad.calreadings.frames,ad.calbody.frames,debug);
@@ -347,7 +347,7 @@ void testOnePivotCalibration(std::string relativeDataPath,std::string datapathsu
     //       and do the calibration for it.
 
     // a
-    ad = assembleHW1AlgorithmData(relativeDataPath,datapathsuffix);
+    ad = initAlgorithmData(relativeDataPath,datapathsuffix);
     trackerIndexedData = concat(ad.empivot.frames);
 
     Eigen::Vector3d checkOutput = ad.output1.estElectromagneticPostPos;
@@ -362,7 +362,7 @@ void testTwoPivotCalibration(std::string relativeDataPath,std::string datapathsu
     AlgorithmData ad;
     csvCIS_pointCloudData::TrackerFrames trackerIndexedData;
 
-    ad = assembleHW1AlgorithmData(relativeDataPath,datapathsuffix);
+    ad = initAlgorithmData(relativeDataPath,datapathsuffix);
     trackerIndexedData = swapIndexing(ad.optpivot.frames);
     /// @todo contains two different ways of attempting to do this worked on during debugging
     /// @todo The core functions are likely correct, but we believe that we are using one of the wrong frames, the wrong calibration object, or the wrong ordering and that is causing the offset. We expect a data sourcing and frame transform ordering error rather than a flaw in the underlying algorithms.
@@ -631,4 +631,4 @@ BOOST_AUTO_TEST_CASE(pass3)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-#endif
+

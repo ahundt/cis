@@ -108,7 +108,7 @@ std::pair<Eigen::MatrixXd,Eigen::VectorXd> transformToRandMinusIandPMatrices(con
 /// @return Eigen::VectorXd of size 6, containing ???????? @todo
 Eigen::VectorXd SVDSolveRIp(const std::pair<Eigen::MatrixXd, Eigen::VectorXd>& RIp, bool debug = false)
 {
-    BOOST_VERIFY(RIp.first.rows()>9);
+    BOOST_VERIFY(RIp.first.rows()>2);
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(RIp.first, Eigen::ComputeThinU | Eigen::ComputeThinV);
     Eigen::VectorXd X = svd.solve(-RIp.second);
     if(debug) std::cout << "\n\nSVDSolveRIp - p:\n\n" << X << "\n\n";

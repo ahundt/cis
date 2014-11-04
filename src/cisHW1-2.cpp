@@ -231,7 +231,7 @@ void output2CISCSV_PA2(std::ostream& ostr, const std::string& outputName = "name
 }
 
 
-void hw1GenerateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, bool debug = false){
+void generateOutputFile(AlgorithmData ad, std::string dataFilenamePrefix, bool debug = false){
 
     Eigen::Vector3d emPivotPoint;
     csvCIS_pointCloudData::TrackerDevices EMPtsInEMFrameOnProbe;
@@ -387,7 +387,7 @@ int main(int argc,char**argv) {
         loadPointCloudFromFile(dataSource.em_navPath        ,ad.em_nav              ,pclp.debugParser       );
         loadPointCloudFromFile(dataSource.output2Path       ,ad.output2             ,pclp.debugParser       );
 
-        hw1GenerateOutputFile(ad, dataSource.filenamePrefix,pclp.debug);
+        generateOutputFile(ad, dataSource.filenamePrefix,pclp.debug);
     }
 
 	return 0;

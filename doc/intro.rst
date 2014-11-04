@@ -260,7 +260,17 @@ PA2
 Correct distortions in one point cloud by utilizing distorted and undistorted versions of a second point cloud.
 Bernstein Polynomials are utilized to perform the correction.
 
+Data Flow
+---------
 
+The overall data flow for the program is as follows:
+
+1. **main()** is executed in the executable **cisHW1-2**, created by **cisHW1-2.cpp**.
+2. The function readCommandLine is called to read all command line arguments into the ParsedCommandLineCommands struct
+3. Each data source, aka set of files corresponding to one data set is parsed into an AlgorithmData struct.
+4. generateOutputFile() is called to execute the algorithms on the AlgorithmData.
+5. The major algorithms are called to process the data and produce output objects. See :ref:`Important Functions and Descriptions` for more details on these functions.
+6. **output1CISCSV_PA1()** and **output2CISCSV_PA2** are called to write out **name-output1.txt** and **name-output2.txt**, respectively.
 
 
 Results and Discussion

@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_SUITE(cisPA2test)
 
 BOOST_AUTO_TEST_CASE(BernsteinTest)
 {
-    
+
     // Testing
     double test = boost::math::binomial_coefficient<double>(3, 1);
     std::cout << "\n\nbinomial coefficient test is " << test << std::endl;
@@ -43,12 +43,29 @@ BOOST_AUTO_TEST_CASE(BernsteinTest)
     int c=1;
     double Btest = BersteinPolynomial(a, b, c);
     std::cout << "\n\nBtest is " << Btest << std::endl;
-    
+
     Eigen::MatrixXd test2(1,3);
     test2 << 0, 0.5, 1;
     Eigen::MatrixXd TestF = FMatrix(test2);
     std::cout << "\n\nF is " << TestF.transpose() << std::endl;
     //std::cout << "\n\nThe size of F is " << TestF.rows() << "x" << TestF.cols() <<std::endl;
+
+    // 1-D Unit Test
+    // A uniform distortion is applied to a set of points (y=x^2)
+    // The expected result is that UndistortedUnitTest is about equal to the GroundTruth
+    int max = 100;
+    int min = 0;
+    Eigen::VectorXd X = Eigen::VectorXd::LinSpaced(max+1,min,max);
+    Y = X*X;
+    Eigen::MatrixXd UnitTest = Eigen::Matrix::Zero(X.size,3);
+    Eigen::MatrixXd GroundTruth = Eigen::Matrix::Zero(X.size,3);
+    UnitTest.col(0) = Y;
+    GroundTruth.col(0) = X;
+    Eigen::MatrixXd cIJK = distortionCalibrationMatrixC(UnitTest, GroundTruth, Eigen::Vector3d minCorner, Eigen::Vector3d maxCorner);
+    Eigen::MatrixXd Fmat = FMatrix(UnitTest);
+    UnitTestUndistorted = Fmat*cIJK;
+    BOOST_Verify(isWithinTolerance(UnitTestUndistorted,GroundTruth));
+
 }
 
 

@@ -136,7 +136,6 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
     // load up parameter values from the variable map
     po::readOption(vmap,"dataFolderPath"                   ,dataFolderPath                     ,optional);
     po::readOption(vmap,"outputDataFolderPath"             ,pclp.outputDataFolderPath          ,optional);
-    po::readOption(vmap,"threads"                          ,pclp.threads                       ,optional);
 	po::readOption(vmap,"dataFilenamePrefix"               ,dataFilenamePrefixList             ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_calbody"      ,dataFileNameSuffix_calbody         ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_calreadings"  ,dataFileNameSuffix_calreadings     ,optional);
@@ -148,6 +147,8 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
 	po::readOption(vmap, "dataFileNameSuffix_em_nav"       ,dataFileNameSuffix_em_nav          ,optional);
 	po::readOption(vmap, "dataFileNameSuffix_output2"      ,dataFileNameSuffix_output2         ,optional);
     
+    // enable threads if specified
+    pclp.threads = vmap.count("threads");
     
     if (vmap.count("pa1")) {
         dataFilenamePrefixList = HW1DataFilePrefixes();

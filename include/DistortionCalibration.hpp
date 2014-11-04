@@ -27,7 +27,10 @@ void ScaleToUnitBox(Eigen::MatrixXd& X, const Eigen::Vector3d& maxCorner, const 
     for (int i=0; i<X.cols(); i++){
         for (int j=0; j<X.rows(); j++){
             // scale the x,y,z of the point
-            X(j,i) = (X(j,i)-minCorner(i))/diff(i);
+            auto coord = (X(j,i)-minCorner(i))/diff(i);
+            BOOST_VERIFY(coord <=1); // verify scaling is working
+            BOOST_VERIFY(coord >=0);
+            X(j,i) = coord;
         }
     }
 }
@@ -166,11 +169,15 @@ void correctDistortionOnSourceData(
         
         // @todo For some reason putting numMarkers in for 27 does not work
         cEM.block(outputRow,0,NumEMPointsInEMFrameOnCalObj,3) = markerTrackersOnCalBodyInEMFrame;
-        cExpectedStacked.block(i*cExpectedFrameRows, 0, cExpectedFrameRows, cExpectedCols);
+        //std::cout << "\n\ncEM is\n" << cEM << "\n";
+        cExpectedStacked.block(i*cExpectedFrameRows, 0, cExpectedFrameRows, cExpectedCols) = cExpected[i];
+        //std::cout << "\n\cExpectedStacked is\n" << cExpectedStacked << "\n";
     }
     
     Eigen::MatrixXd dcmC = distortionCalibrationMatrixC(cEM, cExpectedStacked);
     
+    
+    std::cout << "\n\ndistortionCalibrationMatrixC:\n\n" << dcmC;
     
     //EMPtsInEMFrameOnProbe
     

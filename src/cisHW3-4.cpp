@@ -23,6 +23,28 @@
 namespace po = boost::program_options;
 
 
+
+/// Produce an output CIS CSV file
+/// Note: I tried to make an output function but it probably has bugs
+void output1CISCSV_PA3(std::ostream& ostr, const std::string& outputName = "name-output-3.txt", const std::vector<Eigen::Vector3d> & dk = std::vector<Eigen::Vector3d>(), const std::vector<Eigen::Vector3d> & ck = std::vector<Eigen::Vector3d>(), const std::vector<double> & error = std::vector<Eigen::double>()){
+    
+    ostr
+    << dk.size() << " " << outputName << "\n";
+    
+    std::vector<Eigen::Vector3d>::const_iterator dIterator = dk.begin();
+    std::vector<Eigen::Vector3d>::const_iterator cIterator = ck.begin();
+    std::vector<double>::const_iterator eIterator = error.begin();
+    for(; dIterator != dk.end() && cIterator != ck.end() && eIterator != error.end();
+        ++lIt, ++uIt, ++nIt)
+            ostr
+            << dIterator << "   " << cIterator << "   " << eIterator << "\n";
+        }
+    }
+    ostr.flush();
+    
+}
+
+
 /// read the command line options from argc,argv and load them into the params object
 /// @see boost::program_options for details on how the command line parsing library works.
 bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommands & pclp){
@@ -55,10 +77,10 @@ int main(int argc,char**argv) {
 	for (int i=0; i<k; i++){
 		// Need to define a[k], b[k], A, and B from parser info
 		Eigen::Matrix4d Fa = horn(a[k],A); // a: PA3-A-Debug-SampleReadingsTest A: Problem3-BodyA
-		Eigen::Matrix4d Fb = horn(B,b[k]); // b: PA3-A-Debug-SampleReadingsTest B: Problem3-BodyB
-		
-		// Need to convert homogeneous matrices to .affine() to allow these matrices to multiply by a vector
-		dk.push_back = Fb*Fa*Atip; // Atip: Problem3-BodyA (last line)
+		Eigen::Matrix4d FbInverse = horn(B,b[k]); // b: PA3-A-Debug-SampleReadingsTest B: Problem3-BodyB
+        Eigen::Affine3d FaAffine = Fa.matrix();
+        Eigen::Affine3d FbInverseAffine = FbInverse.matrix();
+		dk.push_back = FbInverseAffine*FaAffine*Atip; // Atip: Problem3-BodyA (last line)
 		Eigen::Vector3d sk = Freg*dk;
 		for (int j=0; j<numTriangles; j++){
 			Eigen::Vector3d ckTemp = ICP(dk,std::vector<Eigen::Vector3d> TriangleVertices_j);
@@ -68,12 +90,13 @@ int main(int argc,char**argv) {
 				errorMin = errorTemp;
 			}
 		}
-		ck.push_back = ckMin;
-		errork.push_back = errorMin;
+		ck.push_back() = ckMin;
+		errork.push_back() = errorMin;
 	}
 	
 	// Need output file
 	// for each k: dx, dy, dz, cx, cy, cz, error
+
 	
 	return 0;
 }

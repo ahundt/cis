@@ -3,7 +3,6 @@
 
 Eigen::Vector4d ProjectOnSegment(Eigen::Vector3d c, Eigen::Vector3d p, Eigen::Vector3d q)
 {
-    std::cout << "\n\ntest1\n\n";
     Eigen::Vector3d pMinusQ = q - p;
     double lambda = (c-p).dot(pMinusQ)/(pMinusQ.dot(pMinusQ));
     double zero = 0.0;
@@ -12,40 +11,58 @@ Eigen::Vector4d ProjectOnSegment(Eigen::Vector3d c, Eigen::Vector3d p, Eigen::Ve
     if (lambda <= 0 || lambda >= 1){
         vertexlogic = zero;
     }
-    std::cout << "\n\ntest2\n\n";
     lambda = std::max(zero,std::min(lambda,one));
     Eigen::Vector4d cNew;
-    std::cout << "\n\ntest3\n\n";
     cNew.block<3,1>(0,0) = p+lambda*pMinusQ;
     cNew(3) = vertexlogic;
-    std::cout << cNew;
     return cNew;
 }
 
-Eigen::Vector3d FindClosestPoint(Eigen::Vector3d a, std::vector<Eigen::Vector3d>& vertices)
+bool PointEqualityCheck(Eigen::Vector3d a, Eigen::Vector3d b){
+    bool tf = (a(0) == b(0) && a(1) == b(1) && a(2) == b(2));
+    return tf;
+}
+
+Eigen::Vector3d OutsideOfTriangle(Eigen::Vector3d a, Eigen::Vector3d p, Eigen::Vector3d q, Eigen::Vector3d r)
 {
-    Eigen::Vector3d p = vertices[1];
-    Eigen::Vector3d q = vertices[2];
-    Eigen::Vector3d r = vertices[3];
     Eigen::MatrixXd c(3,4);
     c.block<1,4>(0,0) = ProjectOnSegment(a,r,p).transpose();
     c.block<1,4>(1,0) = ProjectOnSegment(a,p,q).transpose();
     c.block<1,4>(2,0) = ProjectOnSegment(a,q,r).transpose();
-    double vertexlogic = c.col(3).sum();
     Eigen::Vector3d cnew;
-
-    if (vertexlogic == 0) cnew = c.block<3,3>(0,0).colwise().mean();
-    if (vertexlogic == 2){
-        for (int i; i<3; i++){
-            if (c(i,3) == 1) cnew = c.block<1,3>(0,0);
+    if (PointEqualityCheck(c.block<1,3>(0,0),c.block<1,3>(1,0))) cnew = c.block<1,3>(0,0);
+    else if (PointEqualityCheck(c.block<1,3>(0,0),c.block<1,3>(2,0))) cnew = c.block<1,3>(0,0);
+    else if (PointEqualityCheck(c.block<1,3>(1,0),c.block<1,3>(2,0))) cnew = c.block<1,3>(1,0);
+    else{
+        for (int i=0; i<3; i++){
+            if (c(i,3) == 1){
+                cnew = c.block<1,3>(i,0);
+            }
         }
     }
-    if (vertexlogic == 3){
-        if (c(0,0) == c(1,0)) cnew = c.block<1,3>(0,0);
-        else if (c(0,0) == c(2,0)) cnew = c.block<1,3>(0,0);
-        else cnew = c.block<1,3>(1,0);
-    }
     return cnew;
+}
+
+
+Eigen::Vector3d FindClosestPoint(Eigen::Vector3d p, std::vector<Eigen::Vector3d>& vertices)
+{
+    Eigen::Vector3d p1 = vertices[1];
+    Eigen::Vector3d p2 = vertices[2];
+    Eigen::Vector3d p3 = vertices[3];
+    Eigen::Vector3d u = p2-p1;
+    Eigen::Vector3d v = p3-p1;
+    Eigen::Vector3d w = p-p1;
+    Eigen::Vector3d n = u.cross(v);
+    double gamma = u.cross(w).dot(n)/(n.dot(n));
+    double beta = w.cross(v).dot(n)/(n.dot(n));
+    double alpha = 1-gamma-beta;
+    Eigen::Vector3d projectedPoint;
+    if ((alpha <= 0 || alpha >= 1) || (beta <= 0 || beta >= 1) || (gamma <= 0 || gamma >= 1)){
+        projectedPoint = OutsideOfTriangle(p,p1,p2,p3);
+    }
+    else projectedPoint = alpha*p1+beta*p2+gamma*p3;
+
+    return projectedPoint;
 }
 
 

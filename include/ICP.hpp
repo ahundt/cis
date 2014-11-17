@@ -1,6 +1,12 @@
 #ifndef _ICP_HPP_
 #define _ICP_HPP_
 
+/// Finds the nearest point on a line segment to a point in space.  Called by the function OutsideOfTriangle
+/// to determine where the nearest point is to each side of the triangle.
+/// @param a is the point in space
+/// @param p is one end of the line segment represented by an Eigen::Vector3d
+/// @param q is the other end of the line segment represented by an Eigen::Vector3d
+/// @see page 8 of PointPairs.pdf from the notes
 Eigen::Vector4d ProjectOnSegment(Eigen::Vector3d c, Eigen::Vector3d p, Eigen::Vector3d q)
 {
     Eigen::Vector3d pMinusQ = q - p;
@@ -18,11 +24,21 @@ Eigen::Vector4d ProjectOnSegment(Eigen::Vector3d c, Eigen::Vector3d p, Eigen::Ve
     return cNew;
 }
 
+/// Determines if two points are equal.  Used by the function OutsideOfTriangle to determine if the nearest
+/// point on the triangle lies on a vertice
+/// @param a is the point in space
+/// @param p is the first vertice of the triangle represented by an Eigen::Vector3d
 bool PointEqualityCheck(Eigen::Vector3d a, Eigen::Vector3d b){
     bool tf = (a(0) == b(0) && a(1) == b(1) && a(2) == b(2));
     return tf;
 }
 
+/// Finds the closest point on the triangle to a point in space if the closest point lies on an edge or vertice
+/// @param a is the point in space
+/// @param p is the first vertice of the triangle represented by an Eigen::Vector3d
+/// @param q is the second vertice of the triangle represented by an Eigen::Vector3d
+/// @param r is the third vertice of the triangle represented by an Eigen::Vector3d
+/// @see page 8 of PointPairs.pdf from the notes
 Eigen::Vector3d OutsideOfTriangle(Eigen::Vector3d a, Eigen::Vector3d p, Eigen::Vector3d q, Eigen::Vector3d r)
 {
     Eigen::MatrixXd c(3,4);
@@ -43,7 +59,12 @@ Eigen::Vector3d OutsideOfTriangle(Eigen::Vector3d a, Eigen::Vector3d p, Eigen::V
     return cnew;
 }
 
-
+/// Finds the closest point on the triangle to a point in space.  If the closest point lies with in triangle,
+/// then the function finds the nearest point internally.  Else if the closest point lies on an edge or vertice,
+/// the function OutsideOfTriangle() is called to find the nearest point
+/// @param a is the point in space represented by an Eigen::Vector3d
+/// @param vertices are the three vertices of the triangle represented by standard vector of Eigen::Vector3d
+/// @see page 7 of PointPairs.pdf from the notes
 Eigen::Vector3d FindClosestPoint(Eigen::Vector3d p, std::vector<Eigen::Vector3d>& vertices)
 {
     Eigen::Vector3d p1 = vertices[1];

@@ -96,6 +96,13 @@ int main(int argc,char**argv) {
 	
 	// Need output file
 	// for each k: dx, dy, dz, cx, cy, cz, error
+    /*
+    std::string outputFilename =  dataFilenamePrefix + "-output1.txt";
+    std::ofstream ofs (outputFilename, std::ofstream::out);
+    output1CISCSV_PA3(ofs,outputFilename,ck,dk,error);
+    
+    ofs.close();
+    */
 
 	
 	return 0;

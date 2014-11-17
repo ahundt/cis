@@ -43,3 +43,6 @@
 basis_include_directories(${EIGEN3_INCLUDE_DIR} ${Boost_INCLUDE_DIR})
 basis_add_executable(cisHW1-2.cpp)
 basis_target_link_libraries(cisHW1-2 ${PCL_LIBRARIES} ${Boost_LIBRARIES})
+
+basis_add_executable(cisHW3-4.cpp)
+basis_target_link_libraries(cisHW3-4 ${PCL_LIBRARIES} ${Boost_LIBRARIES})

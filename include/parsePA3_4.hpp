@@ -4,12 +4,17 @@
 #include "parse.hpp"
 
 struct cisMesh {
-	Eigen::MatrixXd vertices;
-	Eigen::MatrixXd vertexIndexTriangleIndex;
+	std::vector<Eigen::Vector3d> vertices;
+	std::vector<Eigen::VectorXd> vertexTriangleNeighborIndex;
 };
 
-csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = false){
-    csvCIS_pointCloudData outputData;
+struct sampleReadings {
+	Eigen::MatrixXd AbodyLED;
+	Eigen::MatrixXd BbodyLED;
+};
+
+cisMesh parseMesh(std::string csv, bool debug = false){
+    cisMesh outputData;
     if(csv.empty()) return outputData;
        
     std::vector<std::string> strs;
@@ -29,7 +34,26 @@ csvCIS_pointCloudData parseCSV_CIS_pointCloud(std::string csv, bool debug = fals
 	// parse first line differently
     std::vector<std::string>::iterator currentStringLineIterator = strs.begin();
 	std::vector<std::string> firstLineStrings;
+	
+	boost::split(firstLineStrings, *currentStringLineIterator, boost::is_any_of(", "), boost::token_compress_on);
+	++currentStringLineIterator;
+	
+	// read number of vertices
+	int nVertices = boost::lexical_cast<int>(firstLineStrings[0]);
+	for(int i = 0; i < nVerticies; ++i, ++currentStringLineIterator){
+		vertices.push_back(Eigen::Vector3d(readPointString(*currentStringLineIterator)));
+	}
+	
+	// read number of triangles
+	int nTriangles = boost::lexical_cast<int>(firstLineStrings[0]);
+	for(int i = 0; i < nVerticies; ++i, ++currentStringLineIterator){
+		vertexTriangleNeighborIndex.push_back(readPointString(*currentStringLineIterator));
+	}
+	
+	return outputData;
 }
+
+
 
 
 

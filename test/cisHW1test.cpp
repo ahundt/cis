@@ -13,10 +13,10 @@
 // local includes
 #include "matrixOperations.hpp"
 #include "hornRegistration.hpp"
-#include "PointData.hpp"
+#include "parsePA1_2.hpp"
 #include "PivotCalibration.hpp"
 #include "PointEstimation.hpp"
-#include "hwDataConstants.hpp"
+#include "PA1_2_DataConstants.hpp"
 
 static const bool debug = false;
 static const double tolerance = 0.01l;

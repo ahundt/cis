@@ -13,10 +13,10 @@
 
 // local includes
 #include "matrixOperations.hpp"
-#include "PointData.hpp"
+#include "parsePA1_2.hpp"
 #include "PivotCalibration.hpp"
 #include "PointEstimation.hpp"
-#include "hwDataConstants.hpp"
+#include "PA1_2_DataConstants.hpp"
 #include "DistortionCalibration.hpp"
 #include "ICP.hpp"
 

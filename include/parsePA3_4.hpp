@@ -165,5 +165,28 @@ problemBody parseSampleBody(std::string csv, bool debug = false){
 
 
 
+/// Paths to the files containing source data
+struct DataSourcePA3_4 {
+	
+	static const std::string BodyA = "BodyA";
+	static const std::string BodyB = "BodyB";
+	static const std::string SampleReadings = "SampleReadings";
+	static const std::string Answer = "Answer";
+	static const std::string Output = "Output";
+	
+    // filename prefix that goes in front of the filename string
+    std::string  filenamePrefix;
+    // map from file type to full paths to the files    
+	std::map<std::string,std::string> dataTypeToPath;
+	
+};
+
+struct ParsedCommandLineCommands {
+    bool                    debug;
+    bool                    debugParser;
+    bool                    threads;
+    std::string             outputDataFolderPath;
+    std::vector<DataSource> dataSources;
+};
 
 #endif // _PARSE_CSV_CIS_POINTCLOUD_HPP_

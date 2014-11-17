@@ -46,15 +46,34 @@ int main(int argc,char**argv) {
 	// Code Outline once data has been parsed
 	/////////////////////////////////////////
 	
-	std::vector<Eigen::Vector3d> ck;
+	Eigen::Vector3d ckMin;
+	double errorMin;
+	std::<Eigen::Vector3d> dk;
+	std::<Eigen::Vector3d> ck;
+	std::<double> errork;
 	Eigen::Matrix4d Freg = Eigen::Matrix4d::Identity();
 	for (int i=0; i<k; i++){
+		// Need to define a[k], b[k], A, and B from parser info
 		Eigen::Matrix4d Fa = horn(a[k],A); // a: PA3-A-Debug-SampleReadingsTest A: Problem3-BodyA
 		Eigen::Matrix4d Fb = horn(B,b[k]); // b: PA3-A-Debug-SampleReadingsTest B: Problem3-BodyB
-		Eigen::Vector3d dk = Fb*Fa*Atip; // Atip: Problem3-BodyA (last line)
+		
+		// Need to convert homogeneous matrices to .affine() to allow these matrices to multiply by a vector
+		dk.push_back = Fb*Fa*Atip; // Atip: Problem3-BodyA (last line)
+		Eigen::Vector3d sk = Freg*dk;
 		for (int j=0; j<numTriangles; j++){
-			ck.push_back = ICP(dk,std::vector<Eigen::Vector3d> Triangle_j);
+			Eigen::Vector3d ckTemp = ICP(dk,std::vector<Eigen::Vector3d> TriangleVertices_j);
+			double errorTemp = (tempCk-dk).norm();
+			if (errorTemp < errorMin || j == 0){
+				ckMin = tempCk;
+				errorMin = errorTemp;
+			}
 		}
+		ck.push_back = ckMin;
+		errork.push_back = errorMin;
 	}
+	
+	// Need output file
+	// for each k: dx, dy, dz, cx, cy, cz, error
+	
 	return 0;
 }

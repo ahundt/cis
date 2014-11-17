@@ -1,7 +1,7 @@
 #ifndef _ICP_HPP_
 #define _ICP_HPP_
 
-/// Finds the nearest point on a line segment to a point in space.  Called by the function OutsideOfTriangle
+/// Finds the nearest point on a line segment to a point in space.  Called by the function OutsideOfTriangle()
 /// to determine where the nearest point is to each side of the triangle.
 /// @param a is the point in space
 /// @param p is one end of the line segment represented by an Eigen::Vector3d
@@ -85,6 +85,8 @@ Eigen::Vector3d FindClosestPoint(Eigen::Vector3d p, std::vector<Eigen::Vector3d>
 
     return projectedPoint;
 }
+
+// write ICPregistration function from main data once all of the files have been parsed
 
 
 #endif // _ICP_HPP_

@@ -14,3 +14,7 @@ Features
 **Distortion Correction**
 
 - Bernstein Polynomial based distortion correction.
+
+**Iterative Closest Point**
+
+- Solver for finding the closest matching set of points to a mesh.

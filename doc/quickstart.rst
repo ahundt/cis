@@ -50,7 +50,7 @@ or :doc:`download` a pre-packaged ``.tar.gz`` of the latest release and unpack i
 Configure the build
 ~~~~~~~~~~~~~~~~~~~
 
-Configure the build system using CMake 2.8.4 or a more recent version:
+Configure the build system using CMake 3.0.0 or a more recent version:
 
 .. code-block:: bash
     
@@ -63,6 +63,10 @@ Configure the build system using CMake 2.8.4 or a more recent version:
 - Make sure that option ``BUILD_PROJECT_TOOL`` is enabled.
 - Press ``g`` to generate the Makefiles.
 
+Note that if you do not have the **BASIS** dependency, an error will appear. 
+Simply running the CMake steps a second time will cause BASIS
+to automatically download and install.
+
 Build and install CIS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -72,7 +76,7 @@ CMake has generated Makefiles for GNU Make. The build is thus triggered by the m
     
     make
 
-To install BASIS after the successful build, run the following command:
+To install CIS after the successful build, run the following command:
 
 .. code-block:: bash
     
@@ -109,14 +113,12 @@ Using the Bourne Again SHell (bash):
 Test the Example
 ~~~~~~~~~~~~~~~~
 
-Excepteur sint occaecat cupidatat non proident, 
-sunt in culpa qui officia deserunt mollit anim 
-id est laborum.
+The following is an example of how to run the main cisHW1-2 executable, cisHW3-4 is similar.
 
 
 .. code-block:: bash
     
-	./cisHW1main --dataFilenamePrefix pa1-debug-a --dataFolderPath /path/to/cis/data/PA1-2/
+	./cisHW1-2 --dataFilenamePrefix pa1-debug-a --dataFolderPath /path/to/cis/data/PA1-2/
 
 
 	PivotCalibration result for pa1-debug-a-empivot.txt:
@@ -136,82 +138,161 @@ Command Line Format
 The command line format follows standard conventions, plus the ability to store
 a response file, typically named *.rsp, which saves additional command line
 parameters for future use and convenience. The available command line parameters
-and descriptions for the primary cisHW1main executable file are below.
+and descriptions for the primary **cisHW1-2** executable file are below.
 
 .. code-block:: bash
     
-    ./cisHW1main
+    ./cisHW1-2
     
-	General Options:
-	  --responseFile arg                    File containing additional command line
-	                                        parameters
-	  --help                                produce help message
-	  --debug                               enable debug output
-	  --debugParser                         display debug information for data file
-	                                        parser
+    General Options:
+      --responseFile arg                    File containing additional command line
+                                            parameters
+      --help                                produce help message
+      --debug                               enable debug output
+      --debugParser                         display debug information for data file
+                                            parser
+    
+    Algorithm Options:
+      --threads                             run each source data file in a separate
+                                            thread
+    
+    Data Options:
+      --pa1                                 set automatic programming assignment 1
+                                            source data parameters, overrides
+                                            DataFilenamePrefix, exclusive of pa1
+      --pa2                                 set automatic programming assignment 2
+                                            source data parameters, overrides
+                                            DataFilenamePrefix, exclusive of pa2
+      --dataFolderPath arg (=/Users/athundt/source/cis/build/bin)
+                                            folder containing data files, defaults
+                                            to current working directory
+      --outputDataFolderPath arg (=/Users/athundt/source/cis/build/bin)
+                                            folder for output data files, defaults
+                                            to current working directory
+      --dataFilenamePrefix arg              constant prefix of data filename path.
+                                            Specify this multiple times to run on
+                                            many data sources at once
+      --dataFileNameSuffix_calbody arg (=-calbody.txt)
+                                            suffix of data filename path
+      --dataFileNameSuffix_calreadings arg (=-calreadings.txt)
+                                            suffix of data filename path
+      --dataFileNameSuffix_empivot arg (=-empivot.txt)
+                                            suffix of data filename path
+      --dataFileNameSuffix_optpivot arg (=-optpivot.txt)
+                                            suffix of data filename path
+      --dataFileNameSuffix_output1 arg (=-output1.txt)
+                                            suffix of data filename path
+      --dataFileNameSuffix_ct_fiducials arg (=-ct-fiducials.txt)
+                                            suffix of data filename path
+      --dataFileNameSuffix_em_fiducials arg (=-em-fiducialss.txt)
+                                            suffix of data filename path
+      --dataFileNameSuffix_em_nav arg (=-EM-nav.txt)
+                                            suffix of data filename path
+      --dataFileNameSuffix_output2 arg (=-output2.txt)
+                                            suffix of data filename path
+      --calbodyPath arg                     full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --calreadingsPath arg                 full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --empivotPath arg                     full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --optpivotPath arg                    full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --output1Path arg                     full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --ct_fiducialsPath arg                full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --em_fiducialsPath arg                full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --em_navPath arg                      full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --output2Path arg                     full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
 
-	Algorithm Options:
+The available command line parameters and descriptions for the primary 
+**cisHW3-4** executable file are below.
 
-	Data Options:
-	  --pa1                                 set automatic programming assignment 1 
-	                                        source data parameters, overrides 
-	                                        DataFilenamePrefix, exclusive of pa2
-	  --pa2                                 set automatic programming assignment 2 
-	                                        source data parameters, overrides 
-	                                        DataFilenamePrefix, exclusive of pa1
-	  --dataFolderPath arg (=/Users/athundt/source/cis/xcodebuild/bin/Debug)
-	                                        folder containing data files, defaults 
-	                                        to current working directory
-	  --dataFilenamePrefix arg              constant prefix of data filename path. 
-	                                        Specify this multiple times to run on 
-	                                        many data sources at once
-	  --dataFileNameSuffix_calbody arg (=-calbody.txt)
-	                                        suffix of data filename path
-	  --dataFileNameSuffix_calreadings arg (=-calreadings.txt)
-	                                        suffix of data filename path
-	  --dataFileNameSuffix_empivot arg (=-empivot.txt)
-	                                        suffix of data filename path
-	  --dataFileNameSuffix_optpivot arg (=-optpivot.txt)
-	                                        suffix of data filename path
-	  --dataFileNameSuffix_output1 arg (=-output1.txt)
-	                                        suffix of data filename path
-	  --dataFileNameSuffix_ct_fiducials arg (=-ct-fiducials.txt)
-	                                        suffix of data filename path
-	  --dataFileNameSuffix_em_fiducials arg (=-em-fiducialss.txt)
-	                                        suffix of data filename path
-	  --dataFileNameSuffix_em_nav arg (=-EM-nav.txt)
-	                                        suffix of data filename path
-	  --dataFileNameSuffix_output2 arg (=-output2.txt)
-	                                        suffix of data filename path
-	  --calbodyPath arg                     full path to data txt file, optional 
-	                                        alternative to prefix+suffix name 
-	                                        combination
-	  --calreadingsPath arg                 full path to data txt file, optional 
-	                                        alternative to prefix+suffix name 
-	                                        combination
-	  --empivotPath arg                     full path to data txt file, optional 
-	                                        alternative to prefix+suffix name 
-	                                        combination
-	  --optpivotPath arg                    full path to data txt file, optional 
-	                                        alternative to prefix+suffix name 
-	                                        combination
-	  --output1Path arg                     full path to data txt file, optional 
-	                                        alternative to prefix+suffix name 
-	                                        combination
-	  --ct_fiducialsPath arg                full path to data txt file, optional 
-	                                        alternative to prefix+suffix name 
-	                                        combination
-	  --em_fiducialsPath arg                full path to data txt file, optional 
-	                                        alternative to prefix+suffix name 
-	                                        combination
-	  --em_navPath arg                      full path to data txt file, optional 
-	                                        alternative to prefix+suffix name 
-	                                        combination
-	  --output2Path arg                     full path to data txt file, optional 
-	                                        alternative to prefix+suffix name 
-	                                        combination
+.. code-block:: bash
 
-
+    ./cisHW3-4
+    
+    General Options:
+      --responseFile arg                    File containing additional command line
+                                            parameters
+      --help                                produce help message
+      --debug                               enable debug output
+      --debugParser                         display debug information for data file
+                                            parser
+    
+    Algorithm Options:
+      --threads                             run each source data file in a separate
+                                            thread
+    
+    Data Options:
+      --pa3                                 set automatic programming assignment 3
+                                            source data parameters, overrides
+                                            DataFilenamePrefix, exclusive of pa4
+      --pa4                                 set automatic programming assignment 4
+                                            source data parameters, overrides
+                                            DataFilenamePrefix, exclusive of pa3
+      --dataFolderPath arg (=/Users/athundt/source/cis/build/bin)
+                                            folder containing data files, defaults
+                                            to current working directory
+      --outputDataFolderPath arg (=/Users/athundt/source/cis/build/bin)
+                                            folder for output data files, defaults
+                                            to current working directory
+      --dataFilenamePrefix arg              constant prefix of data filename path.
+                                            Specify this multiple times to run on
+                                            many data sources at once
+      --dataFilenameProblemPrefix arg (=Problem3)
+                                            constant prefix of data typically
+                                            starting with "Problem" filename path.
+                                            Specify this multiple times to run on
+                                            many data sources at once
+      --suffixAnswer arg (=-Answer.txt)     suffix of data filename path
+      --suffixOutput arg (=-Output.txt)     suffix of data filename path
+      --suffixSample arg (=-SampleReadingsTest.txt)
+                                            suffix of data filename path
+      --suffixMesh arg (=Mesh.sur)          suffix of data filename path
+      --suffixBodyA arg (=-BodyA.txt)       suffix of data filename path
+      --suffixBodyB arg (=-BodyB.txt)       suffix of data filename path
+      --AnswerPath arg                      full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --OutputPath arg                      full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --SamplePath arg                      full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --MeshPath arg                        full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --BodyAPath arg                       full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --BodyBPath arg                       full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --em_fiducialsPath arg                full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --em_navPath arg                      full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+      --output2Path arg                     full path to data txt file, optional
+                                            alternative to prefix+suffix name
+                                            combination
+    
 
 Unit Test
 ~~~~~~~~~
@@ -245,7 +326,7 @@ or move on to the various :doc:`How-to Guides <howto>`.
 Advanced Information
 ====================
 
-For advanced documentation, please see the doxygen API documentation, unit tests, software manual. If you cannot view
+For advanced documentation, please see the doxygen API documentation, unit tests, and software manual. If you cannot view
 these files and documents, they are visible as inline source code documentation and and restructured text files
 found in the /doc folder.  
 

@@ -10,6 +10,7 @@
 #include <vector>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/filesystem.hpp>
 
 // project includes
 #include "matrixOperations.hpp"
@@ -49,13 +50,12 @@ double trimAndConvertToDouble(std::string str, bool debug = false){
 }
 
 
-Eigen::VectorXd readPointString(const std::string& pointString, bool debug = true){
+Eigen::VectorXd readPointString(const std::string& pointString, bool debug = false){
     std::string mutablePointString = pointString;
     // start by removing spaces and tabs from the ends
     boost::trim(mutablePointString);
     // there is data here, load the point in
     std::vector<std::string> pointStrings;
-    std::cout << pointString << "\n";
     boost::split( pointStrings, mutablePointString, boost::is_any_of(" \t,"), boost::token_compress_on);
     
     if(debug) printStringVector(pointStrings,true, "point:");

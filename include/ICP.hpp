@@ -78,7 +78,7 @@ Eigen::Vector3d FindClosestPoint(const Eigen::Vector3d& p, const std::vector<Eig
     double beta = w.cross(v).dot(n)/(n.dot(n));
     double alpha = 1-gamma-beta;
     Eigen::Vector3d projectedPoint;
-    if ((alpha <= 0 || alpha >= 1) || (beta <= 0 || beta >= 1) || (gamma <= 0 || gamma >= 1)){
+    if ((alpha < 0 || alpha > 1) || (beta < 0 || beta > 1) || (gamma < 0 || gamma > 1)){
         projectedPoint = OutsideOfTriangle(p,p1,p2,p3);
     }
     else projectedPoint = alpha*p1+beta*p2+gamma*p3;

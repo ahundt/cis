@@ -33,13 +33,13 @@ namespace po = boost::program_options;
 
 /// Produce an output CIS CSV file
 /// Note: I tried to make an output function but it probably has bugs
-void output1CISCSV_PA3(std::ostream& ostr, const std::string& outputName = "name-output-3.txt", const std::vector<Eigen::Vector3d> & dk = std::vector<Eigen::Vector3d>(), const std::vector<Eigen::Vector3d> & ck = std::vector<Eigen::Vector3d>(), const std::vector<double> & error = std::vector<double>()){
+template<typename T>
+void output1CISCSV_PA3(std::ostream& ostr, const std::string& outputName = "name-output-3.txt", const T & dk = std::vector<Eigen::Vector3d>(), const T & ck = std::vector<Eigen::Vector3d>(), const std::vector<double> & error = std::vector<double>()){
     
-    ostr
-    << dk.size() << " " << outputName << "\n";
+    ostr << dk.size() << " " << outputName << "\n";
     
-    std::vector<Eigen::Vector3d>::const_iterator dIterator = dk.begin();
-    std::vector<Eigen::Vector3d>::const_iterator cIterator = ck.begin();
+    typename T::const_iterator dIterator = dk.begin();
+    typename T::const_iterator cIterator = ck.begin();
     std::vector<double>::const_iterator eIterator = error.begin();
     for(; dIterator != dk.end() && cIterator != ck.end() && eIterator != error.end();
         ++dIterator, ++cIterator, ++eIterator){
@@ -218,20 +218,15 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
 
 void generateOutputFilePA3_4(AlgorithmDataPA3_4 ad, std::string outputDataFolderPath, std::string dataFilenamePrefix, bool debug = false){
 	
-	/////////////////////////////////////////
-	// Code Outline once data has been parsed
-	/////////////////////////////////////////
-	
 	Eigen::Vector3d ckMin;
-	double errorMin=1000000;
 	std::vector<Eigen::Vector3d> dk;
 	std::vector<Eigen::Vector3d> ck;
 	std::vector<double> errork;
 	Eigen::Affine3d Freg;
     Freg.setIdentity();
     
-	for (int i=0; i<ad.sampleReadings.NA.size(); i++){
-		// Need to define a[k], b[k], A, and B from parser info
+    for (int i=0; i<ad.sampleReadings.NA.size(); i++){
+        double errorMin=std::numeric_limits<double>::max();
 		Eigen::Affine3d FaAffine(hornRegistration(ad.bodyA.markerLEDs,ad.sampleReadings.NA[i])); // a: PA3-A-Debug-SampleReadingsTest A: Problem3-BodyA
 		Eigen::Affine3d FbInverseAffine(hornRegistration(ad.sampleReadings.NB[i], ad.bodyB.markerLEDs)); // b: PA3-A-Debug-SampleReadingsTest B: Problem3-BodyB
         dk.push_back(Eigen::Vector3d(FbInverseAffine*FaAffine*ad.bodyA.tip)); // Atip: Problem3-BodyA (last line)
@@ -248,20 +243,9 @@ void generateOutputFilePA3_4(AlgorithmDataPA3_4 ad, std::string outputDataFolder
 		errork.push_back(errorMin);
 	}
     
-    std::cout << "\n\ndx, dy, dz, cx, cy, cz, error\n";
-    for (int i=0; i<dk.size(); i++){
-        std::cout << dk[0] << " , " << dk[1] << " , " << dk[2] << " , "
-                  << ck[0] << " , " << ck[1] << " , " << ck[2] << " , "
-                  << errork[0] << " , " << errork[1] << " , " << errork[2] << "\n";
-    }
-    std::cout << "\n\n";
-	
-	// Need output file
-	// for each k: dx, dy, dz, cx, cy, cz, error
-    
-    std::string outputFilename =  dataFilenamePrefix + "-output.txt";
+    std::string outputFilename =  dataFilenamePrefix + "-Output.txt";
     std::ofstream ofs (outputFilename, std::ofstream::out);
-    output1CISCSV_PA3(ofs,outputFilename,ck,dk,errork);
+    output1CISCSV_PA3(ofs,outputFilename,dk,ck,errork);
     
     ofs.close();
     

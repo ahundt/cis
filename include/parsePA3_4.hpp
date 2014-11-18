@@ -36,7 +36,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-CisMesh parseMesh(std::string csv, bool debug = true){
+CisMesh parseMesh(std::string csv, bool debug = false){
     CisMesh outputData;
     if(csv.empty()) return outputData;
        
@@ -111,7 +111,7 @@ ProblemBody parseProblemBody(std::string csv, bool debug = false){
 	for(int i = 0; i < nVertices; ++i, ++currentStringLineIterator){
         leds.block<1,3>(i,0) = readPointString(*currentStringLineIterator).transpose();
 	}
-    std::cout << "\n\nleds:\n" << leds << "\n\n";
+    if(debug) std::cout << "\n\nleds:\n" << leds << "\n\n";
     outputData.markerLEDs = leds;
 	outputData.tip = Eigen::Vector3d(readPointString(*currentStringLineIterator));
 	

@@ -41,12 +41,14 @@ distortion correction, we performed registration of the device coordinate frames
 PA3
 ---
 
-The purpose of PA3 was to develop an iterative-closest point (ICP) registration algorithm. The problem involved a 3D 
-triangular surface mesh of a bone found in CT coordinates and two rigid bodies, one rigidly attached to the bone and one 
-to be used as a pointer. LED markers were attached to the two rigid bodies so that the coordinates could be determined in 
-optical coordinates. An ICP registration was implemented so that a the closest point on the triangular mesh could be 
-found to a number of points where the tip of the pointer contacted the bone. The diagram below from the assignment document
-gives a visual description of the system.
+The purpose of PA3 was to develop an iterative-closest point (ICP) registration algorithm. The problem
+involved a 3D triangular surface mesh of a bone found in CT coordinates and two rigid bodies. One rigid body
+is rigidly attached to the bone and one to be used as a pointer. LED markers were attached to the two rigid
+bodies so that the coordinates could be determined in optical coordinates. An ICP registration was implemented
+so that a the closest point on the triangular mesh could be found to a number of points where the tip of the
+pointer contacted the bone. The diagram below from the assignment document gives a visual description of the
+system.
+
 
 .. image:: static/PA3_Problem_Drawing.png
 

@@ -41,11 +41,11 @@ distortion correction, we performed registration of the device coordinate frames
 PA3
 ---
 
-The purpose of PA3 was to develop an iterative-closest point (ICP) registration algorithm.  The problem involved a 3D 
+The purpose of PA3 was to develop an iterative-closest point (ICP) registration algorithm. The problem involved a 3D 
 triangular surface mesh of a bone found in CT coordinates and two rigid bodies, one rigidly attached to the bone and one 
-to be used as a pointer.  LED markers were attached to the two rigid bodies so that the coordinates could be determined in 
-optical coordinates.  An ICP registration was implemented so that a the closest point on the triangular mesh could be 
-found to a number of points where the tip of the pointer contacted the bone.  The diagram below from the assignment document
+to be used as a pointer. LED markers were attached to the two rigid bodies so that the coordinates could be determined in 
+optical coordinates. An ICP registration was implemented so that a the closest point on the triangular mesh could be 
+found to a number of points where the tip of the pointer contacted the bone. The diagram below from the assignment document
 gives a visual description of the system.
 
 .. image:: static/PA3_Problem_Drawing.png
@@ -131,51 +131,25 @@ probe and the probe tip could be approximated using the SVD matrices and the tra
  * \[1] Horn, Closed-form solution of absolute orientation using unit quaternions, Optical Society of America (1987)
 
  
-ICP Registration
-----------------
-
-Next an ICP Registration algorithm was created which used both the parser and hornRegistration algorithms
-mentioned above.  First, each point of tracker data was parsed into Eigen vectors of (x,y,z) coordinates which 
-corresponded to the position of the trackers attached to the rigid bodies, A and B, in optical coordinates  Next, another 
-set of tracker data was parsed into Eigen vectors of (x,y,z) coordinates which corresponded to the position of the 
-trackers attached to the rigid bodies in their body coordinates.  The transformation matrix from the body frame to the 
-optical tracker frame was then computed using the hornRegistration function described above.  Then the coordinates tip of 
-the rigid body A with respect to rigid body B was found by multiplying the vector of the tip in body A coordinates by the 
-transformations previously found.  
-
-Next, the mesh data was parsed so the vertices of each triangle was known.  Then ICP registration could be used to find 
-the point on the mesh that was closest to the tip of rigid body A.  First, the transformation from the CT mesh coordinates 
-to the rigid body B coordinates was assumed to be the identity matrix.  Once this assumption was made, sample points were 
-found by multiply the transformation from CT mesh coordinates to the rigid body B coordinates by the tip of the pointer A 
-in rigid body A coordinates.  Now these sample points were used to which points on the CT mesh they were closest to with 
-the given transformation.  The simplest FindNearestPoint function was implemented in which the the nearest point to the 
-sample points on the CT mesh was calulated for every triangle in the mesh.  The error between the two points for each 
-triangle was calculated by taking the norm between the points and the smallest error corresponded to the nearest point on 
-the mesh to the pointer tip A.
-
-A more efficient method would be to run the FindNearestPoint function on only some of the triangles that passed initial 
-criteria instead of all of the triangles.  This would be done by using a data structure such as a bounding box or some 
-type of hierarchical data structure.
- 
  
 Finding the Closest Point on a Triangle
 ---------------------------------------
  
 If the vertices of a triangle are know and there is a point in space, then the closest point that lies on the triangle to 
-the point in space can be found.  This is done by using the equations (from the Point Pairs lecture slides) given below:
+the point in space can be found. This is done by using the equations (from the Point Pairs lecture slides) given below:
 
 .. image:: static/PA3_Eq1.png
 
 .. image:: static/PA3_Eq2.png
 
 Where a is the point in space, p, q, and r are the vertices of the triangles, and c is the closest point that lies on the 
-triangle.  If the following constraints (from the Point Pairs lecture slides) are true:
+triangle. If the following constraints (from the Point Pairs lecture slides) are true:
  
  .. image:: static/PA3_Constraint1.png
  
-Then the c is the closest point and lies within the triangle's boundaries.  A 2x2 linear system can then be solved using
-an explicit least squares approach to find lambda and mu.  If the closest point lies on the boundaries of the triangle, 
-then the point must be projected onto every side of the triangle.  The equations (from the Point Pairs lecture slides)
+Then the c is the closest point and lies within the triangle's boundaries. A 2x2 linear system can then be solved using
+an explicit least squares approach to find lambda and mu. If the closest point lies on the boundaries of the triangle, 
+then the point must be projected onto every side of the triangle. The equations (from the Point Pairs lecture slides)
 below how this is implemented:
 
 .. image:: static/PA3_Eq3.png
@@ -183,18 +157,18 @@ below how this is implemented:
 .. image:: static/PA3_Eq4.png
 
 Where p and q are the two end points of the line segment, c is the point to be projected on the line segment, c* is the 
-projected point on the line segment, and lambda* is the ratio of normalized length from p to c*.  If two of the three c* 
-projections lie on the same vertice, then the closest point on the triangle is that vertice.  Otherwise, the closest point 
-will be the c* projection on the side whose value for lambda* satisfies the conditions of being between one and zero.  
+projected point on the line segment, and lambda* is the ratio of normalized length from p to c*. If two of the three c* 
+projections lie on the same vertice, then the closest point on the triangle is that vertice. Otherwise, the closest point 
+will be the c* projection on the side whose value for lambda* satisfies the conditions of being between one and zero. 
 Then the equation (from the Point Pairs lecture slides) below is implemented to find the closest point c*:
 
 .. image:: static/PA3_Eq5.png
 
 ICP
 ---
-The ICP approach for this programming assignment was very simple.  For every triangle in the mesh, the find the closest
-point method was implemented.  Once closest point was found, the error between the two points was computed by taking the
-norm.  Then the triangle, whose pointed produced the smallest error, was said to be the closest point on the mesh. 
+The ICP approach for this programming assignment was very simple. For every triangle in the mesh, the find the closest
+point method was implemented. Once closest point was found, the error between the two points was computed by taking the
+norm. Then the triangle, whose pointed produced the smallest error, was said to be the closest point on the mesh. 
 
 
  
@@ -247,7 +221,7 @@ probe and the position of the probe tip.
 Distortion Calibration
 ----------------------
 
-Next we create a distortion calibration algorithm, which followed the mathematical procedure outlined above.  First,
+Next we create a distortion calibration algorithm, which followed the mathematical procedure outlined above. First,
 the data was parsed and stored in a large vector so the the maximum and minimum values could be obtained in the X, Y,
 and Z dimensions of the data set. Then the values of the data set were scaled to between [0 1] to create a minimum 
 bounding box. We calculate Bernstein polynomials for each point and stack them into the F matrix. The Eigen library
@@ -265,6 +239,33 @@ and the measured points could be undistorted. Then these values were used with k
 frame to find a transformation matrix Freg that would take you from the EM frame to the CT frame. Finally the tip of the
 EM probe could be measured in the CT frame.
 
+ 
+ICP Registration
+----------------
+
+Next an ICP Registration algorithm was created which used both the parser and hornRegistration algorithms
+mentioned above. First, each point of tracker data was parsed into Eigen vectors of (x,y,z) coordinates which 
+corresponded to the position of the trackers attached to the rigid bodies, A and B, in optical coordinates  Next, another 
+set of tracker data was parsed into Eigen vectors of (x,y,z) coordinates which corresponded to the position of the 
+trackers attached to the rigid bodies in their body coordinates. The transformation matrix from the body frame to the 
+optical tracker frame was then computed using the hornRegistration function described above. Then the coordinates tip of 
+the rigid body A with respect to rigid body B was found by multiplying the vector of the tip in body A coordinates by the 
+transformations previously found. 
+
+Next, the mesh data was parsed so the vertices of each triangle was known. Then ICP registration could be used to find
+the point on the mesh that was closest to the tip of rigid body A. First, the transformation from the CT mesh coordinates
+to the rigid body B coordinates was assumed to be the identity matrix. Once this assumption was made, sample points were
+found by multiply the transformation from CT mesh coordinates to the rigid body B coordinates by the tip of the pointer A
+in rigid body A coordinates. Now these sample points were used to which points on the CT mesh they were closest to with
+the given transformation. The simplest FindNearestPoint function was implemented in which the the nearest point to the
+sample points on the CT mesh was calulated for every triangle in the mesh. The error between the two points for each
+triangle was calculated by taking the norm between the points and the smallest error corresponded to the nearest point on
+the mesh to the pointer tip A.
+
+
+A more efficient method would be to run the FindNearestPoint function on only some of the triangles that passed initial 
+criteria instead of all of the triangles. This would be done by using a data structure such as a bounding box or some 
+type of hierarchical data structure.
 
 
 Structure of the Program
@@ -303,7 +304,7 @@ Important Functions and Descriptions
 ------------------------------------
 
 Each function includes substantial doxygen documentation explaining its purpose and usage. This documentation
-can be viewed inline with the source code, or via a generated html sphinx + doxygen website generated using CMake.  
+can be viewed inline with the source code, or via a generated html sphinx + doxygen website generated using CMake. 
 Here is a list of the most important functions used in the program is a brief description of each of them.
 
 PA1
@@ -311,7 +312,7 @@ PA1
 
 **EigenMatrix()**         	   
 
-Computes the eigenvalues and corresponding eigenvectors from a given G matrix.  It 
+Computes the eigenvalues and corresponding eigenvectors from a given G matrix. It 
 outputs a rotation matrix corresponding to the unit quaternion of the largest 
 positive eigenvalue
 
@@ -321,7 +322,7 @@ Creates a 4x4 homogeneous matrix from a derived rotational matrix and translatio
 
 **hornRegistration()**
 
-Computes the homogeneous transformation matrix F given a set of two cloud points.  
+Computes the homogeneous transformation matrix F given a set of two cloud points. 
 It is comprised of the various functions listed above
 
 **homogeneousInverse()**		   
@@ -398,8 +399,8 @@ PA3
 
 **FindClosestPoint()**
 
-Finds the closest point on the triangle to a point in space.  If the closest point lies with in triangle, then the
-function finds the nearest point internally.  Else if the closest point lies on an edge or vertice, the function
+Finds the closest point on the triangle to a point in space. If the closest point lies with in triangle, then the
+function finds the nearest point internally. Else if the closest point lies on an edge or vertice, the function
 OutsideOfTriangle() is called to find the nearest point.
 
 **OutsideOfTriangle()**
@@ -408,12 +409,12 @@ Finds the closest point on the triangle to a point in space if the closest point
 
 **ProjectOnSegment()**
 
-Finds the nearest point on a line segment to a point in space.  Called by the function OutsideOfTriangle() to determine
+Finds the nearest point on a line segment to a point in space. Called by the function OutsideOfTriangle() to determine
 where the nearest point is to each side of the triangle.
 
 **PointEqualityCheck()**
 
-Determines if two points are equal.  Used by the function OutsideOfTriangle to determine if the nearest point on the
+Determines if two points are equal. Used by the function OutsideOfTriangle to determine if the nearest point on the
 triangle lies on a vertice
 
 
@@ -450,8 +451,8 @@ Finding the Closest Point on a Triangle
 
 We have also been able to ensure that finding the closest point on a triangle algorithm is working correctly by assigning
 vertices to an arbitrary triangle and then testing points in space where we knew what the closest point on the triangle
-was.  We tested the different special cases of the problem as the closest point lying within the boundaries of the
-triangle, on one of the sides of the triangle, and on one of the vertices of the triangle.  Our algorithm was able to
+was. We tested the different special cases of the problem as the closest point lying within the boundaries of the
+triangle, on one of the sides of the triangle, and on one of the vertices of the triangle. Our algorithm was able to
 return the nearest point for every case.
 
 

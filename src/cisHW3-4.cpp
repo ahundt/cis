@@ -43,7 +43,7 @@ void output1CISCSV_PA3(std::ostream& ostr, const std::string& outputName = "name
     std::vector<double>::const_iterator eIterator = error.begin();
     for(; dIterator != dk.end() && cIterator != ck.end() && eIterator != error.end();
         ++dIterator, ++cIterator, ++eIterator){
-            ostr  << *dIterator << "   " << *cIterator << "   " << *eIterator << "\n";
+            ostr  << (*dIterator)(0) << "   "  << (*dIterator)(1) << "   "  << (*dIterator)(2) << "   " << (*cIterator)(0) << "   "  << (*cIterator)(1) << "   "  << (*cIterator)(2) << "   " << *eIterator << "\n";
     }
 
     ostr.flush();
@@ -258,13 +258,13 @@ void generateOutputFilePA3_4(AlgorithmDataPA3_4 ad, std::string outputDataFolder
 	
 	// Need output file
 	// for each k: dx, dy, dz, cx, cy, cz, error
-    /*
-    std::string outputFilename =  dataFilenamePrefix + "-output1.txt";
+    
+    std::string outputFilename =  dataFilenamePrefix + "-output.txt";
     std::ofstream ofs (outputFilename, std::ofstream::out);
-    output1CISCSV_PA3(ofs,outputFilename,ck,dk,error);
+    output1CISCSV_PA3(ofs,outputFilename,ck,dk,errork);
     
     ofs.close();
-    */
+    
 }
 
 /**************************************************************************/

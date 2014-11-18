@@ -461,11 +461,24 @@ return the nearest point for every case.
 Status of results
 =================
 
+PA 2
+----
+
 We have encountered errors in our software that we have narrowed down to points after the EM distortion calibration
 steps, because we have been able to verify our Bernstein functions using unit tests and debug data. However, a bug
 remains in either the steps for calculating Freg or finding each of the CT fiducial. Since the underlying components are
 largely well tested, we expect the bug to be in the transform or data flow steps of the generateOutputFile() function in
 cisHW1-2.cpp or the function definitions in PA2.hpp.
+
+PA 3
+----
+
+Our initial algorithm passed our unit tests and gave us similar errors to the output data files. We concluded that our we
+were able to successfully implement the first iteration of an ICP registration. Although the simlpest linear method was
+implemented, our program was able to run the program of all debug and unknown data sets in less than thirty seconds even
+in debug mode. Adding threads and running in release mode made our program run even faster. A data structure was not
+needed for this assignment because we concluded that there was no problem with the speed of the program. For PA 4, we will
+revaluate this conclusion as the ICP will need to iterate multiple times, greatly increasing our runtime.
  
 
 Tabular Summary of PA 3 Unknown Data Results
@@ -499,6 +512,10 @@ Point Number        Error in G Data   Error in H Data   Error in I Data
   **Max Error**      **2.61080**        **2.43422**        **5.54007**
 =================   ===============   ===============   ===============
 
+The error in debug data sets is consistent with the error in the output files. On the unknown output, the overall error
+bounds seem reasonable when compared to the debug data sets.  We expect our algorithms are not the most substantial source
+of error in these results and instead are attributed to noise or other sources of error.
+
 
 Error Propagation
 -----------------
@@ -507,6 +524,8 @@ Barring errors due to software bugs, error propagation can occur based on severa
 measurement in a single direction, this can offset error and cause it to propagate along transform chains and even
 amplify error.
 
+PA 2
+~~~~
 
 Error sources and propagation can come from a variety of sources, including EM distortion, EM Noise, and OT jiggle. 
 We were able to account for the EM distortion through our distortion calibration functions. It is expected that some
@@ -522,9 +541,20 @@ structures that are known in advance that can be used to estimate and account fo
 Additionally, inaccurate sensors due to large random variation are an example of error which cannot be removed through 
 distortion calibration. 
 
+PA 3
+~~~~
+
+Possible error sources and propagation were due to simulated noise.  The early debug sets had the least amount of
+simulated noise corresponding to very low error while the later debug sets and unknown sets had a greater simulated noise
+corresponding to a slightly larger error.  The simulated noise could have been attributed to a number of sources including
+Optical distortion, Optical Noise, Optical jiggle, CT distortion, or CT Noise.
+
 
 Results Metric
 --------------
+
+PA 2
+~~~~
 
 We know that our distortion is correct and we can measure its accuracy because we can compare the old values 
 of EM pivot to the newly undistorted values that we encounter. By comparing to prior ground truth values we 
@@ -535,6 +565,13 @@ as an average, or with other statistical tools. We can also detect certain sourc
 functions. We also utilize the **BOOST_VERIFY** macro and the checkWitinTolerances() function to verify that functions
 are being called and returning values that or correct to within certain tolerances, considering the limits of the
 particular algorithms we are using. 
+
+PA 3
+~~~~
+
+Our metric for error is the norm between the sample points and the nearest points on the CT mesh.  The norm was small in
+most cases so we concluded that our implementation of ICP registration was successful.  In PA 4, we will expand on our
+current ICP by iterating and setting an error bound to obtain more accurate results.
 
 Andrew and Alex spent approximately equal time on the assignment, with significant amounts of time spent pair
 programming. Both contributed equally to the implementation and debugging of functions.

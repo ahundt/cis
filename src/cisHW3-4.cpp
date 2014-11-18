@@ -43,7 +43,7 @@ void output1CISCSV_PA3(std::ostream& ostr, const std::string& outputName = "name
     std::vector<double>::const_iterator eIterator = error.begin();
     for(; dIterator != dk.end() && cIterator != ck.end() && eIterator != error.end();
         ++dIterator, ++cIterator, ++eIterator){
-            ostr  << (*dIterator)(0) << "   "  << (*dIterator)(1) << "   "  << (*dIterator)(2) << "   " << (*cIterator)(0) << "   "  << (*cIterator)(1) << "   "  << (*cIterator)(2) << "   " << *eIterator << "\n";
+            ostr  << (*dIterator)(0) << "   "  << (*dIterator)(1) << "  "  << (*dIterator)(2) << "  " << (*cIterator)(0) << "   "  << (*cIterator)(1) << "  "  << (*cIterator)(2) << "  " << *eIterator << "\n";
     }
 
     ostr.flush();

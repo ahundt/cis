@@ -235,10 +235,11 @@ Eigen::MatrixXd correctDistortion(const Eigen::MatrixXd& distortedToCorrect, con
 
 
 /// @todo move elsewhere and remove dependency on parsing data structure
+template<typename T, typename U>
 Eigen::MatrixXd correctDistortionOnSourceData(
-                                   const csvCIS_pointCloudData::TrackerFrames& calreadingsFrames,
+                                   const T& calreadingsFrames, // typicaly std::vector<std::vector<Eigen::MatrixXd> >
                                    const std::vector<Eigen::MatrixXd>&         cExpected,
-                                   const csvCIS_pointCloudData::TrackerDevices& EMPtsInEMFrameOnProbe
+                                   const U& EMPtsInEMFrameOnProbe  // typicaly std::vector<std::vector<Eigen::MatrixXd> >
                                    ){
     
     static const int firstFrame = 0;

@@ -49,29 +49,6 @@ struct ParsedCommandLineCommands {
     std::vector<DataSource> dataSources;
 };
 
-/// The user may specify an exact path for a data source, or simply the folder path and filename prefix.
-/// This funciton will detect which option and select the correctly assembled files.
-///
-/// @throws std::runtime_error if none of the options correspond to an actual existing file.
-void assemblePathIfFullPathNotSupplied(std::string dataFolderPath, std::string dataFilenamePrefix, std::string suffix, std::string& dataFilePath,bool requiredFile = true){
-	
-	if(boost::filesystem::exists(dataFilePath)) return;
-	
-	if (dataFilePath.empty() || !boost::filesystem::exists(dataFilePath) ) {
-		dataFilePath = dataFolderPath+dataFilenamePrefix+suffix;
-    }
-    
-    if(!boost::filesystem::exists(dataFilePath) && !requiredFile){
-        dataFilePath = "";
-        return;
-    }
-    
-	if (dataFilePath.empty() || !boost::filesystem::exists(dataFilePath) ) {
-      throw std::runtime_error("File "+dataFilePath + " does not exist!");
-    }
-	
-}
-
 /// Initialize an AlgorithmData object utilizing the data files stored in the specified path and file prefix,
 /// utilizing the hard coded default filename suffixes. Used for unit testing.
 AlgorithmData initAlgorithmData(std::string datafolderpath, std::string dataFilenamePrefix, bool debug = false){

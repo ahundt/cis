@@ -85,7 +85,7 @@ namespace boost
                // Load the file and tokenize it
                std::ifstream ifs(filesList[fileNum].c_str());
                if (!ifs) {
-                  std::cout << "Could not open the response file\n";
+                   std::runtime_error("Could not open the response file " + std::string(filesList[fileNum].c_str()) + " is missing");
                   return false;
                }
                // Read the whole file into a string

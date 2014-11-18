@@ -1,6 +1,10 @@
 #ifndef _HORN_REGISTRATION_HPP_
 #define _HORN_REGISTRATION_HPP_
 
+#include <string>    // for `std::string`
+#include <ostream>   // for `std::ostream &` in `operator<<`
+#include <iostream>  // for std::cout
+
 #include "matrixOperations.hpp"
 
 /// creates Hmatrix for Horn's method

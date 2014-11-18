@@ -1,5 +1,5 @@
-#ifndef _HW_CONSTANTS_H_
-#define _HW_CONSTANTS_H_
+#ifndef _PA3_4_CONSTANTS_H_
+#define _PA3_4_CONSTANTS_H_
 
 #include <string>
 #include <vector>
@@ -89,4 +89,4 @@ std::vector<std::string> HW2DataFilePrefixes(){
 	return defaultPrefixes;
 }
 
-#endif // _HW_CONSTANTS_H_
+#endif // _PA3_4_CONSTANTS_H_

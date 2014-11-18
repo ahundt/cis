@@ -33,24 +33,7 @@ namespace po = boost::program_options;
 
 /// Produce an output CIS CSV file
 /// Note: I tried to make an output function but it probably has bugs
-//void output1CISCSV_PA3(std::ostream& ostr, const std::string& outputName = "name-output-3.txt", const std::vector<Eigen::Vector3d> & dk = std::vector<Eigen::Vector3d>(), const std::vector<Eigen::Vector3d> & ck = std::vector<Eigen::Vector3d>(), const std::vector<double> & error = std::vector<Eigen::double>()){
-//    
-//    ostr
-//    << dk.size() << " " << outputName << "\n";
-//    
-//    std::vector<Eigen::Vector3d>::const_iterator dIterator = dk.begin();
-//    std::vector<Eigen::Vector3d>::const_iterator cIterator = ck.begin();
-//    std::vector<double>::const_iterator eIterator = error.begin();
-//    for(; dIterator != dk.end() && cIterator != ck.end() && eIterator != error.end();
-//        ++lIt, ++uIt, ++nIt)
-//            ostr
-//            << dIterator << "   " << cIterator << "   " << eIterator << "\n";
-//        }
-//    }
-//    ostr.flush();
-//    
-//}
-void output1CISCSV_PA3(std::ostream& ostr, const std::string& outputName = "name-output-3.txt", const std::vector<Eigen::Vector3d> & dk = std::vector<Eigen::Vector3d>(), const std::vector<Eigen::Vector3d> & ck = std::vector<Eigen::Vector3d>(), const std::vector<double> & error = std::vector<Eigen::double>()){
+void output1CISCSV_PA3(std::ostream& ostr, const std::string& outputName = "name-output-3.txt", const std::vector<Eigen::Vector3d> & dk = std::vector<Eigen::Vector3d>(), const std::vector<Eigen::Vector3d> & ck = std::vector<Eigen::Vector3d>(), const std::vector<double> & error = std::vector<double>()){
     
     ostr
     << dk.size() << " " << outputName << "\n";
@@ -59,11 +42,10 @@ void output1CISCSV_PA3(std::ostream& ostr, const std::string& outputName = "name
     std::vector<Eigen::Vector3d>::const_iterator cIterator = ck.begin();
     std::vector<double>::const_iterator eIterator = error.begin();
     for(; dIterator != dk.end() && cIterator != ck.end() && eIterator != error.end();
-        ++dIterator, ++cIterator, ++eIterator)
-            ostr
-            << dIterator << "   " << cIterator << "   " << eIterator << "\n";
-        }
+        ++dIterator, ++cIterator, ++eIterator){
+            ostr  << *dIterator << "   " << *cIterator << "   " << *eIterator << "\n";
     }
+
     ostr.flush();
     
 }

@@ -38,6 +38,19 @@ In addition to all of the steps outlined in PA1, the core purpose of PA2 was to 
 distortion correction and to implement it for use with the stereotactic navigation system of PA1. In addition to
 distortion correction, we performed registration of the device coordinate frames to prior CT coordinate frames.
 
+PA3
+---
+
+The purpose of PA3 was to develop an iterative-closest point (ICP) registration algorithm.  The problem involved a 3D 
+triangular surface mesh of a bone found in CT coordinates and two rigid bodies, one rigidly attached to the bone and one 
+to be used as a pointer.  LED markers were attached to the two rigid bodies so that the coordinates could be determined in 
+optical coordinates.  An ICP registration was implemented so that a the closest point on the triangular mesh could be 
+found to a number of points where the tip of the pointer contacted the bone.  The diagram below from the assignment document
+gives a visual description of the system.
+
+.. image:: static/PA3_Problem_Drawing.png
+
+
 
 Mathematical Approach
 =====================
@@ -117,7 +130,75 @@ probe and the probe tip could be approximated using the SVD matrices and the tra
 
  * \[1] Horn, Closed-form solution of absolute orientation using unit quaternions, Optical Society of America (1987)
 
+ 
+ICP Registration
+----------------
 
+Next an ICP Registration algorithm was created which used both the parser and hornRegistration algorithms
+mentioned above.  First, each point of tracker data was parsed into Eigen vectors of (x,y,z) coordinates which 
+corresponded to the position of the trackers attached to the rigid bodies, A and B, in optical coordinates  Next, another 
+set of tracker data was parsed into Eigen vectors of (x,y,z) coordinates which corresponded to the position of the 
+trackers attached to the rigid bodies in their body coordinates.  The transformation matrix from the body frame to the 
+optical tracker frame was then computed using the hornRegistration function described above.  Then the coordinates tip of 
+the rigid body A with respect to rigid body B was found by multiplying the vector of the tip in body A coordinates by the 
+transformations previously found.  
+
+Next, the mesh data was parsed so the vertices of each triangle was known.  Then ICP registration could be used to find 
+the point on the mesh that was closest to the tip of rigid body A.  First, the transformation from the CT mesh coordinates 
+to the rigid body B coordinates was assumed to be the identity matrix.  Once this assumption was made, sample points were 
+found by multiply the transformation from CT mesh coordinates to the rigid body B coordinates by the tip of the pointer A 
+in rigid body A coordinates.  Now these sample points were used to which points on the CT mesh they were closest to with 
+the given transformation.  The simplest FindNearestPoint function was implemented in which the the nearest point to the 
+sample points on the CT mesh was calulated for every triangle in the mesh.  The error between the two points for each 
+triangle was calculated by taking the norm between the points and the smallest error corresponded to the nearest point on 
+the mesh to the pointer tip A.
+
+A more efficient method would be to run the FindNearestPoint function on only some of the triangles that passed initial 
+criteria instead of all of the triangles.  This would be done by using a data structure such as a bounding box or some 
+type of hierarchical data structure.
+ 
+ 
+Finding the Closest Point on a Triangle
+---------------------------------------
+ 
+If the vertices of a triangle are know and there is a point in space, then the closest point that lies on the triangle to 
+the point in space can be found.  This is done by using the equations (from the Point Pairs lecture slides) given below:
+
+.. image:: static/PA3_Eq1.png
+
+.. image:: static/PA3_Eq2.png
+
+Where a is the point in space, p, q, and r are the vertices of the triangles, and c is the closest point that lies on the 
+triangle.  If the following constraints (from the Point Pairs lecture slides) are true:
+ 
+ .. image:: static/PA3_Constraint1.png
+ 
+Then the c is the closest point and lies within the triangle's boundaries.  A 2x2 linear system can then be solved using
+an explicit least squares approach to find lambda and mu.  If the closest point lies on the boundaries of the triangle, 
+then the point must be projected onto every side of the triangle.  The equations (from the Point Pairs lecture slides)
+below how this is implemented:
+
+.. image:: static/PA3_Eq3.png
+
+.. image:: static/PA3_Eq4.png
+
+Where p and q are the two end points of the line segment, c is the point to be projected on the line segment, c* is the 
+projected point on the line segment, and lambda* is the ratio of normalized length from p to c*.  If two of the three c* 
+projections lie on the same vertice, then the closest point on the triangle is that vertice.  Otherwise, the closest point 
+will be the c* projection on the side whose value for lambda* satisfies the conditions of being between one and zero.  
+Then the equation (from the Point Pairs lecture slides) below is implemented to find the closest point c*:
+
+.. image:: static/PA3_Eq5.png
+
+ICP
+---
+The ICP approach for this programming assignment was very simple.  For every triangle in the mesh, the find the closest
+point method was implemented.  Once closest point was found, the error between the two points was computed by taking the
+norm.  Then the triangle, whose pointed produced the smallest error, was said to be the closest point on the mesh. 
+
+
+ 
+ 
 Algorithmic Approach:
 =====================
 
@@ -129,9 +210,7 @@ rotations, and frame transformations. The Boost library was also used to write a
 aspects of our algorithms. The first step was to write parser code that could interpret the given data. The
 parser needed to interpret which data set was being entered, the number of frames in each data set, and which
 markers were being tracked in the data set. The parser would store the data as Eigen matrices to be easily used
-for our algorithms. A diagram below shows how the parser function interpreted and stored the data.
-
-
+for our algorithms.
 
 Transforms
 ----------
@@ -199,13 +278,17 @@ The most important files include:
 =============================   ===============================================================================
 File name                       Description
 =============================   ===============================================================================
+**ICP.hpp**                     Algorithm for finding ICP registration.
+**hornRegistration.hpp**        Horn's method of Point Cloud to Point Cloud registration.
 **DistortionCalibration.hpp**   Bernstein Polynomial method of distortion correction.
-**PA2.hpp**                     **fiducialPointInEMFrame()** and **probeTipPointinCTFrame()** PA2 #4,6
 **hornRegistration.hpp**        Horn's method of Point Cloud to Point Cloud registration.
 **PivotCalibration.hpp**        Pivot Calibration.
+**PA2.hpp**                     **fiducialPointInEMFrame()** and **probeTipPointinCTFrame()** PA2 #4,6
 **cisHW1test.cpp**              An extensive set of unit tests for the library relevant to PA1.
 **cisHW2test.cpp**              An extensive set of unit tests for the library relevant to PA2.
+**cisHW3test.cpp**              An extensive set of unit tests for the library relevant to PA3.
 **cisHW1-2.cpp**                Main executable source, contains cmdline parsing code and produces output data.
+**cisHW3-4.cpp**                Main executable source, contains cmdline parsing code and produces output data.
 **parseCSV...**                 File parsing functions are in **parseCSV_CIS_pointCloud.hpp**.
 =============================   ===============================================================================
 
@@ -307,6 +390,30 @@ Uses measured positions of EM tracker points on the EM probe in the EM frame whe
 and returns points of the CT fiducial locations in EM frame.
 
 
+PA3
+~~~
+
+**FindClosestPoint()**
+
+Finds the closest point on the triangle to a point in space.  If the closest point lies with in triangle, then the
+function finds the nearest point internally.  Else if the closest point lies on an edge or vertice, the function
+OutsideOfTriangle() is called to find the nearest point.
+
+**OutsideOfTriangle()**
+
+Finds the closest point on the triangle to a point in space if the closest point lies on an edge or vertice
+
+**ProjectOnSegment()**
+
+Finds the nearest point on a line segment to a point in space.  Called by the function OutsideOfTriangle() to determine
+where the nearest point is to each side of the triangle.
+
+**PointEqualityCheck()**
+
+Determines if two points are equal.  Used by the function OutsideOfTriangle to determine if the nearest point on the
+triangle lies on a vertice
+
+
 
 Results and Discussion
 ======================
@@ -326,12 +433,8 @@ Point Cloud Registration
 We have been able to ensure that point cloud to point cloud registration is working correctly by finding the
 transformation of one point cloud to another and then the opposite. Multiplying these two transformation
 matrices together resulted in an identity matrix which would be expected. We tested the input data set as well,
-ensuring that we were within the given tolerance range. Our program produces nearly exact results when the data
-was run with no error. When error such as EM distortion, EM noise, and OT jiggle, were introduced in the data,
-our results were still very close to the expected results and were well within our tolerance range. This shows
-the strength of Horn’s method and since it requires no special case exceptions for a solution, we concluded it
-was the best method of the one's taught in class.
-
+ensuring that we were within the given tolerance range. This shows the strength of Horn’s method and since it requires no
+special case exceptions for a solution, we concluded it was the best method of the one's taught in class.
 
 Calibration
 -----------
@@ -339,25 +442,28 @@ Calibration
 The position of the tip of the probe when calibrate by EM also gave us results well within our tolerance
 levels. Our results were less accurate when error was introduced, but not to an unreasonable degree.
 
+Finding the Closest Point on a Triangle
+---------------------------------------
 
+We have also been able to ensure that finding the closest point on a triangle algorithm is working correctly by assigning
+vertices to an arbitrary triangle and then testing points in space where we knew what the closest point on the triangle
+was.  We tested the different special cases of the problem as the closest point lying within the boundaries of the
+triangle, on one of the sides of the triangle, and on one of the vertices of the triangle.  Our algorithm was able to
+return the nearest point for every case.
 
 
 Status of results
 =================
 
 We have encountered errors in our software that we have narrowed down to points after the EM distortion calibration steps, 
-because we have been able to verify our Bernstein functions using unit tests and debug data. However, a bug remains in either
-the steps for calculating Freg or finding each of the CT fiducial. Since the underlying components are largely well tested,
-we expect the bug to be in the transform or data flow steps of the generateOutputFile() function in cisHW1-2.cpp or the function
+because we have been able to verify our Bernstein functions using unit tests and debug data. However, a bug remains in either the steps for calculating Freg or finding each of the CT fiducial. Since the underlying components are largely well tested, we expect the bug to be in the transform or data flow steps of the generateOutputFile() function in cisHW1-2.cpp or the function
 definitions in PA2.hpp. 
 
 
 Error Propagation
 -----------------
 
-
-Barring errors due to software bugs, error propagation can occur based on several sources. If there is systemic biased measurement in a single direction,
-this can offset error and cause it to propagate along transform chains and even amplify error. 
+Barring errors due to software bugs, error propagation can occur based on several sources. If there is systemic biased measurement in a single direction, this can offset error and cause it to propagate along transform chains and even amplify error. 
 
 Error sources and propagation can come from a variety of sources, including EM distortion, EM Noise, and OT jiggle. 
 We were able to account for the EM distortion through our distortion calibration functions. It is expected that some
@@ -365,10 +471,7 @@ amount of EM Noise, distortion, and jiggle will be propagated throughout the sys
 
 
 One example of how error can propagate is if both the optical tracker and EM tracker are off with a common distortion
-component, it is possible for this information to cause the Bernstein curve to misestimate the actual curve, and consequently
-cause the registration between the CT scan and the other sensors to have a higher error. In this way errors can propagate
-through the whole system. This particular example can be mitigated through the use of fixed physical structures that are
-known in advance that can be used to estimate and account for such systemic errors. 
+component, it is possible for this information to cause the Bernstein curve to misestimate the actual curve, and consequently cause the registration between the CT scan and the other sensors to have a higher error. In this way errors can propagate through the whole system. This particular example can be mitigated through the use of fixed physical structures that are known in advance that can be used to estimate and account for such systemic errors. 
 
 Additionally, inaccurate sensors due to large random variation are an example of error which cannot be removed through 
 distortion calibration. 

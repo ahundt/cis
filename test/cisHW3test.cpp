@@ -20,8 +20,6 @@
 static const bool debug = false;
 static const double tolerance = 0.01l;
 
-/// @todo The unit test requires a symlink from the executable folder to the location of the PA1-2 data folder, fix this using CMake.
-
 template<typename T>
 bool isWithinTolerance(const T& result, const T& groundTruth, double toleranceVal = tolerance){
     return (result.isApprox(groundTruth,toleranceVal) || (result - groundTruth).norm() < toleranceVal);

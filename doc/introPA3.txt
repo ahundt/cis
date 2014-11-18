@@ -13,9 +13,30 @@ Overview
 
 Andrew Hundt and Alex Strickland Computer Integrated Surgery 600.445 Coursework Repository
 
-
 Introduction
 ============
+
+PA1
+---
+ 
+The purpose of PA1 was to develop an algorithm for a 3D point set to 3D point set registration and a pivot
+calibration. The problem involved a stereotactic navigation system and an electromagnetic positional tracking
+device. Tracking markers were placed on objects so the optical tracking device and an electromagnetic tracking
+device could measure the 3D positions of objects in space relative to measuring base units. These objects were
+then registered so that they could be related in the same coordinate frames. Pivot calibration posts were placed
+in the system so pivot calibration could be performed and the 3D position of two different probes could be
+tracked throughout the system. The diagram below from the assignment document gives a visual description of the
+system.
+
+
+.. image:: static/CIS_PA1_AssignmentPicture.png
+
+PA2
+---
+
+In addition to all of the steps outlined in PA1, the core purpose of PA2 was to develop an algorithm for
+distortion correction and to implement it for use with the stereotactic navigation system of PA1. In addition to
+distortion correction, we performed registration of the device coordinate frames to prior CT coordinate frames.
 
 PA3
 ---
@@ -30,8 +51,52 @@ of the system.
 .. image:: static/PA3_Problem_Drawing.png
 
 
+
 Mathematical Approach
 =====================
+
+
+Distortion Correction
+---------------------
+
+A number of distortion correction methods are available to correct for inaccuracies among various sensor
+coordinate systems and the real physical dimensions of the world. We seleced Bernstein polynomials for our
+implementation due to their numerical stability and accuracy for the specific electromagnetic distortion problem
+we encounter. The basic idea in this case is to construct a 3D polynomial representing the spatial flexing
+caused by distortions in measurements.
+
+
+To reap the best of the numerical stability properties of the Bernstein polynomial we scale the input values to
+the range from 0 to 1. Therefore we scale the values to within the range [0,1] in each dimension, utilizing the
+minimum bounding rectangle (MBR) to determine the scale factor. Then, we construct a 5th degree Bernstein
+polynomial for each point using the polynomial function outlined in slide 18 of the InterpolationReview.pdf
+lecture notes pictured below.
+
+
+.. image:: static/bernstein_polynomial.png
+
+We then stack the polynomials to form the F Matrix, although this polynomial can be increased for higher
+precision or decreased for higher performance as needed. Once we have these polynomials stacked as a large
+matrix we solve the least squareds problem utilizing SVD against the ground truth data, as outlined on slide 43
+of the lecture notes pictured below.
+
+
+.. image:: static/bernstein_polynomial_SVD_3D_calibration.png
+
+The output of that equation is the calibration coefficient matrix which can then be multiplied by the stacked F
+matrix of a distorted point set to generate the final corrected and undistorted point set. Multiplication of a
+stacked matrix is a more efficient alternative to the loop of sums from the slides.
+
+
+
+Tradeoffs
+~~~~~~~~~
+
+One of the particular advantages of Bernstein polynomials is the ability to select the degree of the polynomial.
+The polynomial degree presents an interesting tradeoff, because a higher degree polynomial allows more precise
+representation of distortions and lower error. This benefit comes at the cost of an exponential increase in
+computation time for each additional polynomial degree.
+
 
 Point Cloud Registration
 ------------------------
@@ -50,7 +115,48 @@ centroid of the known point cloud and the scaled centroid of the unknown point c
 transformation matrix could be made to know the frame transformation between the two point clouds.
 
 
+Pivot Calibration
+-----------------
+
+For the pivot calibration, singular value decomposition was used to estimate the orientation of the probe by
+finding the positions of the centroid of the tracked markers on the probe and the tip of the probe. First, a
+matrix was created which consisted of the rotation matrices calculated in each frame and the negative identity
+matrix found using Horn’s method.\[1] Next, a vector was created which consisted of the stack of the translation
+vectors in each frame also found using Horn’s method. The singular value decomposition of the matrix was
+performed to split the matrix into the matrices containing the singular values, the left-singular vectors, and
+the right singular vectors. Once this was done, the vector between the centroid of the tracked markers on the
+probe and the probe tip could be approximated using the SVD matrices and the translation vectors of each frame.
+
+
  * \[1] Horn, Closed-form solution of absolute orientation using unit quaternions, Optical Society of America (1987)
+
+ 
+ICP Registration
+----------------
+
+Next an ICP Registration algorithm was created which used both the parser and hornRegistration algorithms
+mentioned above.  First, each point of tracker data was parsed into Eigen vectors of (x,y,z) coordinates which 
+corresponded to the position of the trackers attached to the rigid bodies, A and B, in optical coordinates  Next, another 
+set of tracker data was parsed into Eigen vectors of (x,y,z) coordinates which corresponded to the position of the 
+trackers attached to the rigid bodies in their body coordinates.  The transformation matrix from the body frame to the 
+optical tracker frame was then computed using the hornRegistration function described above.  Then the coordinates tip of 
+the rigid body A with respect to rigid body B was found by multiplying the vector of the tip in body A coordinates by the 
+transformations previously found.  
+
+Next, the mesh data was parsed so the vertices of each triangle was known.  Then ICP registration could be used to find 
+the point on the mesh that was closest to the tip of rigid body A.  First, the transformation from the CT mesh coordinates 
+to the rigid body B coordinates was assumed to be the identity matrix.  Once this assumption was made, sample points were 
+found by multiply the transformation from CT mesh coordinates to the rigid body B coordinates by the tip of the pointer A 
+in rigid body A coordinates.  Now these sample points were used to which points on the CT mesh they were closest to with 
+the given transformation.  The simplest FindNearestPoint function was implemented in which the the nearest point to the 
+sample points on the CT mesh was calulated for every triangle in the mesh.  The error between the two points for each 
+triangle was calculated by taking the norm between the points and the smallest error corresponded to the nearest point on 
+the mesh to the pointer tip A.
+
+A more efficient method would be to run the FindNearestPoint function on only some of the triangles that passed initial 
+criteria instead of all of the triangles.  This would be done by using a data structure such as a bounding box or some 
+type of hierarchical data structure.
+ 
  
 Finding the Closest Point on a Triangle
 ---------------------------------------
@@ -91,6 +197,8 @@ point method was implemented.  Once closest point was found, the error between t
 norm.  Then the triangle, whose pointed produced the smallest error, was said to be the closest point on the mesh. 
 
 
+ 
+ 
 Algorithmic Approach:
 =====================
 
@@ -121,31 +229,40 @@ Finally, the translation vector between the two centroids was calculated and a 4
 matrix was created by using another function that takes a rotation matrix and a translation vector and outputs
 the corresponding transformation matrix.
 
-ICP Registration
-----------------
 
-Next an ICP Registration algorithm was created which used both the parser and hornRegistration algorithms
-mentioned above.  First, each point of tracker data was parsed into Eigen vectors of (x,y,z) coordinates which 
-corresponded to the position of the trackers attached to the rigid bodies, A and B, in optical coordinates  Next, another 
-set of tracker data was parsed into Eigen vectors of (x,y,z) coordinates which corresponded to the position of the 
-trackers attached to the rigid bodies in their body coordinates.  The transformation matrix from the body frame to the 
-optical tracker frame was then computed using the hornRegistration function described above.  Then the coordinates tip of 
-the rigid body A with respect to rigid body B was found by multiplying the vector of the tip in body A coordinates by the 
-transformations previously found.  
+Pivot Calibration
+-----------------
 
-Next, the mesh data was parsed so the vertices of each triangle was known.  Then ICP registration could be used to find 
-the point on the mesh that was closest to the tip of rigid body A.  First, the transformation from the CT mesh coordinates 
-to the rigid body B coordinates was assumed to be the identity matrix.  Once this assumption was made, sample points were 
-found by multiply the transformation from CT mesh coordinates to the rigid body B coordinates by the tip of the pointer A 
-in rigid body A coordinates.  Now these sample points were used to which points on the CT mesh they were closest to with 
-the given transformation.  The simplest FindNearestPoint function was implemented in which the the nearest point to the 
-sample points on the CT mesh was calulated for every triangle in the mesh.  The error between the two points for each 
-triangle was calculated by taking the norm between the points and the smallest error corresponded to the nearest point on 
-the mesh to the pointer tip A.
+Next a pivot calibration algorithm was created which used both the parser and hornRegistration algorithms
+mentioned above. First, the tracker data was parsed into separate matrices which corresponded to each frame of
+tracked data. Each matrix of frame data was compared to the base matrix frame using the hornRegistration
+function described above and the corresponding homogeneous transformation from the base frame to the current
+frame was found. The rotational component of each frame was put into an Eigen matrix and the translational
+component of each frame was put into an Eigen vector with the form described in the mathematical approach above.
+The function of JacobiSVD of the Eigen library was then used to solve the least squares vector between the
+rotational matrix and translation vectors. The least squares vector contained approximated orientation of the
+probe and the position of the probe tip.
 
-A more efficient method would be to run the FindNearestPoint function on only some of the triangles that passed initial 
-criteria instead of all of the triangles.  This would be done by using a data structure such as a bounding box or some 
-type of hierarchical data structure.
+
+Distortion Calibration
+----------------------
+
+Next we create a distortion calibration algorithm, which followed the mathematical procedure outlined above.  First,
+the data was parsed and stored in a large vector so the the maximum and minimum values could be obtained in the X, Y,
+and Z dimensions of the data set. Then the values of the data set were scaled to between [0 1] to create a minimum 
+bounding box. We calculate Bernstein polynomials for each point and stack them into the F matrix. The Eigen library
+is utilized to calculate the SVD of Fc=p, where F is the F matrix of Bernstein Polynomials, c is the calibration
+coefficient matrix, and p is the undistorted points matrix that you compare the distorted points to. A separate
+set of points can be scaled according to the same distortion parameters from above and the distortion associated with their
+measurement can be corrected.  Once this is done, an the same Fmatrix calculated above can be calculated for this new
+set of points.  Then the c calibration coefficient matrix was multiplied by the Fmatrix to find the undistorted points in
+the new coordinate system.  Once the data was undistorted, we were able to run a new pivot calibration with the
+undistorted points to see how well our undistortion works.  The next step was to use the distortion matrix to find 
+CT fiducials in the EM frame.  The new data was scaled by the same scaling function as above and put into a new Fmatrix.  
+In this way, a new Fmatrix could be found and the measured points could be undistorted.  Then these values were used
+with known values of points measured in the CT frame to find a transformation matrix Freg that would take you from
+the EM frame to the CT frame.  Finally the tip of the EM probe could be measured in the CT frame.
+
 
 
 Structure of the Program
@@ -163,7 +280,14 @@ File name                       Description
 =============================   ===============================================================================
 **ICP.hpp**                     Algorithm for finding ICP registration.
 **hornRegistration.hpp**        Horn's method of Point Cloud to Point Cloud registration.
+**DistortionCalibration.hpp**   Bernstein Polynomial method of distortion correction.
+**hornRegistration.hpp**        Horn's method of Point Cloud to Point Cloud registration.
+**PivotCalibration.hpp**        Pivot Calibration.
+**PA2.hpp**                     **fiducialPointInEMFrame()** and **probeTipPointinCTFrame()** PA2 #4,6
+**cisHW1test.cpp**              An extensive set of unit tests for the library relevant to PA1.
+**cisHW2test.cpp**              An extensive set of unit tests for the library relevant to PA2.
 **cisHW3test.cpp**              An extensive set of unit tests for the library relevant to PA3.
+**cisHW1-2.cpp**                Main executable source, contains cmdline parsing code and produces output data.
 **cisHW3-4.cpp**                Main executable source, contains cmdline parsing code and produces output data.
 **parseCSV...**                 File parsing functions are in **parseCSV_CIS_pointCloud.hpp**.
 =============================   ===============================================================================
@@ -197,6 +321,73 @@ Creates a 4x4 homogeneous matrix from a derived rotational matrix and translatio
 Computes the homogeneous transformation matrix F given a set of two cloud points.  
 It is comprised of the various functions listed above
 
+**homogeneousInverse()**		   
+
+Computes the inverse of a given homogeneous matrix 
+
+**registrationToFirstCloud()**   
+
+Parses the data and runs the hornRegistration function for pivot calibration
+
+**transformToRandMinusIandPMatrices()**   
+
+Creates the A and b components of the form Ax=b for singular value decomposition.
+A is of the form [R|-I] while b is of the form [-p] where R is the stack of 
+rotational matrices of the F transformation matrices, I is stack of 3x3 identity 
+matrices, and p is the stack of the translational vectors of the F transformation 
+matrices.
+
+**SVDSolve()**				   
+
+Computes the x of the least squares problem Ax=b using singular value decomposition
+when the stack of matrices in given
+
+
+**Hmatrix()**   			
+	
+Computes a sum of the products H matrix given a set of two cloud points
+
+**Gmatrix()**					  
+ 
+Computes a sum of the differences of the given H matrix
+
+**pivotCalibration()**
+
+Computes the pivot point position from tracking data using the SVDSolve(), 
+registrationToFirstCloud(), and transformToRandMinusIandPMatrices() functions
+
+
+PA2
+~~~
+
+**CorrectDistortion()**
+
+Correct distortions in one point cloud by utilizing distorted and undistorted versions of a second point cloud.
+Bernstein Polynomials are utilized to perform the correction.
+
+**BernsteinPolynomial()**
+
+Find the solution to the Berstein polynomial when at varying degrees and points depending on the input.
+
+**Fmatrix()**
+
+Multiplies the Bernstein polynomial into a matrix so that a function of every degree of i, j, and k are found
+and a distortion calibration can be done using the matrix.
+
+**ScaleToUnitBox()**
+
+Calculates maximum and minimum values in the X,Y, and z coordinates of a point cloud and then normalizes the 
+value of every single opint.
+
+**probeTipPointinCTF()**
+
+Uses measured positions of EM tracker points on the EM probe in the EM frame when the tip is in a CT fiducial
+and returns the point of the fiducial dimple (solves problem 5).
+
+**fiducialPointInEMFrame()**
+
+Uses measured positions of EM tracker points on the EM probe in the EM frame when the tip is in a CT fiducial
+and returns points of the CT fiducial locations in EM frame.
 
 
 PA3
@@ -224,7 +415,6 @@ triangle lies on a vertice
 
 
 
-
 Results and Discussion
 ======================
 
@@ -246,6 +436,11 @@ matrices together resulted in an identity matrix which would be expected. We tes
 ensuring that we were within the given tolerance range. This shows the strength of Horn’s method and since it requires no
 special case exceptions for a solution, we concluded it was the best method of the one's taught in class.
 
+Calibration
+-----------
+
+The position of the tip of the probe when calibrate by EM also gave us results well within our tolerance
+levels. Our results were less accurate when error was introduced, but not to an unreasonable degree.
 
 Finding the Closest Point on a Triangle
 ---------------------------------------

@@ -283,12 +283,13 @@ The most important files include:
 =============================   ===============================================================================
 File name                       Description
 =============================   ===============================================================================
-**ICP.hpp**                     Algorithm for finding ICP registration.
+**IterativeClosestPoint.hpp**   Algorithm for finding ICP registration.
 **hornRegistration.hpp**        Horn's method of Point Cloud to Point Cloud registration.
 **DistortionCalibration.hpp**   Bernstein Polynomial method of distortion correction.
 **hornRegistration.hpp**        Horn's method of Point Cloud to Point Cloud registration.
 **PivotCalibration.hpp**        Pivot Calibration.
 **PA2.hpp**                     **fiducialPointInEMFrame()** and **probeTipPointinCTFrame()** PA2 #4,6
+**PA3.hpp**                     Implements icp solving of specific PA3 system.
 **cisHW1test.cpp**              An extensive set of unit tests for the library relevant to PA1.
 **cisHW2test.cpp**              An extensive set of unit tests for the library relevant to PA2.
 **cisHW3test.cpp**              An extensive set of unit tests for the library relevant to PA3.
@@ -398,6 +399,10 @@ and returns points of the CT fiducial locations in EM frame.
 
 PA3
 ~~~
+
+**icpPointMeshRegistration()**
+
+Primary function implementing the math specific to the system specified in PA3.
 
 **FindClosestPoint()**
 

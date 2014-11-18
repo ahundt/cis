@@ -14,7 +14,7 @@
 #include <Eigen/Dense>
 
 // local includes
-#include "ICP.hpp"
+#include "IterativeClosestPoint.hpp"
 
 
 static const bool debug = false;

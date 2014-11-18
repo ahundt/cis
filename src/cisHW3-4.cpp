@@ -25,7 +25,8 @@
 #include "PA3_4_DataConstants.hpp"
 #include "parsePA3_4.hpp"
 #include "DistortionCalibration.hpp"
-#include "ICP.hpp"
+#include "IterativeClosestPoint.hpp"
+#include "PA3.hpp"
 
 namespace po = boost::program_options;
 

@@ -253,15 +253,17 @@ and Z dimensions of the data set. Then the values of the data set were scaled to
 bounding box. We calculate Bernstein polynomials for each point and stack them into the F matrix. The Eigen library
 is utilized to calculate the SVD of Fc=p, where F is the F matrix of Bernstein Polynomials, c is the calibration
 coefficient matrix, and p is the undistorted points matrix that you compare the distorted points to. A separate
-set of points can be scaled according to the same distortion parameters from above and the distortion associated with their
-measurement can be corrected.  Once this is done, an the same Fmatrix calculated above can be calculated for this new
-set of points.  Then the c calibration coefficient matrix was multiplied by the Fmatrix to find the undistorted points in
-the new coordinate system.  Once the data was undistorted, we were able to run a new pivot calibration with the
-undistorted points to see how well our undistortion works.  The next step was to use the distortion matrix to find 
-CT fiducials in the EM frame.  The new data was scaled by the same scaling function as above and put into a new Fmatrix.  
-In this way, a new Fmatrix could be found and the measured points could be undistorted.  Then these values were used
-with known values of points measured in the CT frame to find a transformation matrix Freg that would take you from
-the EM frame to the CT frame.  Finally the tip of the EM probe could be measured in the CT frame.
+set of points can be scaled according to the same distortion parameters from above and the distortion associated with
+their measurement can be corrected. 
+
+Once this is done, an the same Fmatrix calculated above can be calculated for this new set of points. Then the c
+calibration coefficient matrix was multiplied by the Fmatrix to find the undistorted points in the new coordinate system.
+Once the data was undistorted, we were able to run a new pivot calibration with the undistorted points to see how well
+our undistortion works. The next step was to use the distortion matrix to find CT fiducials in the EM frame. The new data
+was scaled by the same scaling function as above and put into a new Fmatrix. In this way, a new Fmatrix could be found
+and the measured points could be undistorted. Then these values were used with known values of points measured in the CT
+frame to find a transformation matrix Freg that would take you from the EM frame to the CT frame. Finally the tip of the
+EM probe could be measured in the CT frame.
 
 
 
@@ -301,7 +303,8 @@ Important Functions and Descriptions
 ------------------------------------
 
 Each function includes substantial doxygen documentation explaining its purpose and usage. This documentation
-can be viewed inline with the source code, or via a generated html sphinx + doxygen website generated using CMake.  Here is a list of the most important functions used in the program is a brief description of each of them.
+can be viewed inline with the source code, or via a generated html sphinx + doxygen website generated using CMake.  
+Here is a list of the most important functions used in the program is a brief description of each of them.
 
 PA1
 ~~~
@@ -455,9 +458,12 @@ return the nearest point for every case.
 Status of results
 =================
 
-We have encountered errors in our software that we have narrowed down to points after the EM distortion calibration steps, 
-because we have been able to verify our Bernstein functions using unit tests and debug data. However, a bug remains in either the steps for calculating Freg or finding each of the CT fiducial. Since the underlying components are largely well tested, we expect the bug to be in the transform or data flow steps of the generateOutputFile() function in cisHW1-2.cpp or the function
-definitions in PA2.hpp. 
+We have encountered errors in our software that we have narrowed down to points after the EM distortion calibration
+steps, because we have been able to verify our Bernstein functions using unit tests and debug data. However, a bug
+remains in either the steps for calculating Freg or finding each of the CT fiducial. Since the underlying components are
+largely well tested, we expect the bug to be in the transform or data flow steps of the generateOutputFile() function in
+cisHW1-2.cpp or the function definitions in PA2.hpp.
+ 
 
 Tabular Summary of Results
 --------------------------
@@ -495,7 +501,10 @@ Average Error   	1.20048    		0.71629    		1.77302
 Error Propagation
 -----------------
 
-Barring errors due to software bugs, error propagation can occur based on several sources. If there is systemic biased measurement in a single direction, this can offset error and cause it to propagate along transform chains and even amplify error. 
+Barring errors due to software bugs, error propagation can occur based on several sources. If there is systemic biased
+measurement in a single direction, this can offset error and cause it to propagate along transform chains and even
+amplify error.
+
 
 Error sources and propagation can come from a variety of sources, including EM distortion, EM Noise, and OT jiggle. 
 We were able to account for the EM distortion through our distortion calibration functions. It is expected that some
@@ -503,7 +512,10 @@ amount of EM Noise, distortion, and jiggle will be propagated throughout the sys
 
 
 One example of how error can propagate is if both the optical tracker and EM tracker are off with a common distortion
-component, it is possible for this information to cause the Bernstein curve to misestimate the actual curve, and consequently cause the registration between the CT scan and the other sensors to have a higher error. In this way errors can propagate through the whole system. This particular example can be mitigated through the use of fixed physical structures that are known in advance that can be used to estimate and account for such systemic errors. 
+component, it is possible for this information to cause the Bernstein curve to misestimate the actual curve, and
+consequently cause the registration between the CT scan and the other sensors to have a higher error. In this way errors
+can propagate through the whole system. This particular example can be mitigated through the use of fixed physical
+structures that are known in advance that can be used to estimate and account for such systemic errors.
 
 Additionally, inaccurate sensors due to large random variation are an example of error which cannot be removed through 
 distortion calibration. 

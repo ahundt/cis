@@ -33,6 +33,7 @@ namespace po = boost::program_options;
 
 /// Produce an output CIS CSV file
 /// Note: I tried to make an output function but it probably has bugs
+<<<<<<< Updated upstream
 //void output1CISCSV_PA3(std::ostream& ostr, const std::string& outputName = "name-output-3.txt", const std::vector<Eigen::Vector3d> & dk = std::vector<Eigen::Vector3d>(), const std::vector<Eigen::Vector3d> & ck = std::vector<Eigen::Vector3d>(), const std::vector<double> & error = std::vector<Eigen::double>()){
 //    
 //    ostr
@@ -50,6 +51,7 @@ namespace po = boost::program_options;
 //    ostr.flush();
 //    
 //}
+=======
 void output1CISCSV_PA3(std::ostream& ostr, const std::string& outputName = "name-output-3.txt", const std::vector<Eigen::Vector3d> & dk = std::vector<Eigen::Vector3d>(), const std::vector<Eigen::Vector3d> & ck = std::vector<Eigen::Vector3d>(), const std::vector<double> & error = std::vector<Eigen::double>()){
     
     ostr
@@ -67,6 +69,7 @@ void output1CISCSV_PA3(std::ostream& ostr, const std::string& outputName = "name
     ostr.flush();
     
 }
+>>>>>>> Stashed changes
 
 
 /// read the command line options from argc,argv and load them into the params object

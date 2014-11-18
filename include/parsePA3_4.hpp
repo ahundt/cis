@@ -2,25 +2,41 @@
 #define _PARSE_CSV_CIS_POINTCLOUD_HPP_
 
 #include "parse.hpp"
+#include <Eigen/StdVector>
 
 struct CisMesh {
 	std::vector<Eigen::Vector3d> vertices;
 	std::vector<Eigen::VectorXd> vertexTriangleNeighborIndex;
+    
+public:
+    /// avoid issues with eigen alignment
+    /// @see http://eigen.tuxfamily.org/dox/group__TopicStructHavingEigenMembers.html
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 struct ProblemBody {
-	std::vector<Eigen::Vector3d> markerLEDs;
+	Eigen::MatrixXd markerLEDs;
 	Eigen::Vector3d tip;
+    
+public:
+    /// avoid issues with eigen alignment
+    /// @see http://eigen.tuxfamily.org/dox/group__TopicStructHavingEigenMembers.html
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 struct SampleReadings {
 	std::string title;
-	std::vector<std::vector<Eigen::Vector3d> > NA;
-	std::vector<std::vector<Eigen::Vector3d> > NB;
-	std::vector<std::vector<Eigen::Vector3d> > ND;
+	std::vector<Eigen::MatrixXd> NA;
+	std::vector<Eigen::MatrixXd> NB;
+	std::vector<Eigen::MatrixXd> ND;
+    
+public:
+    /// avoid issues with eigen alignment
+    /// @see http://eigen.tuxfamily.org/dox/group__TopicStructHavingEigenMembers.html
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-CisMesh parseMesh(std::string csv, bool debug = false){
+CisMesh parseMesh(std::string csv, bool debug = true){
     CisMesh outputData;
     if(csv.empty()) return outputData;
        
@@ -52,8 +68,9 @@ CisMesh parseMesh(std::string csv, bool debug = false){
 	}
 	
 	// read number of triangles
-	int nTriangles = boost::lexical_cast<int>(firstLineStrings[0]);
-	for(int i = 0; i < nVertices; ++i, ++currentStringLineIterator){
+	int nTriangles = boost::lexical_cast<int>(*currentStringLineIterator);
+    ++currentStringLineIterator;
+    for(int i = 0; i < nTriangles; ++i, ++currentStringLineIterator){
 		outputData.vertexTriangleNeighborIndex.push_back(readPointString(*currentStringLineIterator));
 	}
 	
@@ -86,13 +103,16 @@ ProblemBody parseProblemBody(std::string csv, bool debug = false){
 	
 	boost::split(firstLineStrings, *currentStringLineIterator, boost::is_any_of(", "), boost::token_compress_on);
 	++currentStringLineIterator;
-	
+    
 	// read number of vertices
 	int nVertices = boost::lexical_cast<int>(firstLineStrings[0]);
+    
+    Eigen::MatrixXd leds(nVertices,3);
 	for(int i = 0; i < nVertices; ++i, ++currentStringLineIterator){
-		outputData.markerLEDs.push_back(Eigen::Vector3d(readPointString(*currentStringLineIterator)));
+        leds.block<1,3>(i,0) = readPointString(*currentStringLineIterator).transpose();
 	}
-	
+    std::cout << "\n\nleds:\n" << leds << "\n\n";
+    outputData.markerLEDs = leds;
 	outputData.tip = Eigen::Vector3d(readPointString(*currentStringLineIterator));
 	
 	return outputData;
@@ -106,7 +126,8 @@ std::vector<Eigen::Vector3d> readNXrecords(T& currentStringLineIterator, T& end,
 	bool currentIsZero = false;
 	
 	// read NA records
-	for(int i = 0; (i < NS) && currentStringLineIterator != end; ++i, ++currentStringLineIterator){
+	for(int i = 0; (i < NS) && currentStringLineIterator != end; ++currentStringLineIterator){
+        if(currentStringLineIterator->empty()) continue; // skip blank lines
 		Eigen::Vector3d point(readPointString(*currentStringLineIterator));
 		currentIsZero = (point == zero);
 		
@@ -114,13 +135,14 @@ std::vector<Eigen::Vector3d> readNXrecords(T& currentStringLineIterator, T& end,
 		else if((point != zero) && (!currentIsZero)) sample.push_back(point); // don't add zero points to the list
 		
 		previousWasZero = currentIsZero;
+        ++i;
 	}
 	
 	return sample;
 }
 
 
-SampleReadings parseSampleReadings(std::string csv, bool debug = false){
+SampleReadings parseSampleReadings(std::string csv, int numAPoints, int numBPoints, bool debug = false){
     SampleReadings outputData;
 	
     if(csv.empty()) return outputData;
@@ -151,12 +173,14 @@ SampleReadings parseSampleReadings(std::string csv, bool debug = false){
 	++currentStringLineIterator;
 	
 	for(int j = 0; j < nSamps; ++j){
+        /// @todo consider eliminating the extraneous concatToMatrix step and insert into MatrixXd from the start
+        
 		// read NA records
-		outputData.NA.push_back(readNXrecords(currentStringLineIterator,endStringLineIterator,NS));
+		outputData.NA.push_back(concatToMatrix(readNXrecords(currentStringLineIterator,endStringLineIterator,numAPoints)));
 		// read NB records
-		outputData.NB.push_back(readNXrecords(currentStringLineIterator,endStringLineIterator,NS));
+		outputData.NB.push_back(concatToMatrix(readNXrecords(currentStringLineIterator,endStringLineIterator,numBPoints)));
 		// read ND records
-		outputData.ND.push_back(readNXrecords(currentStringLineIterator,endStringLineIterator,NS));
+		outputData.ND.push_back(concatToMatrix(readNXrecords(currentStringLineIterator,endStringLineIterator,NS-numAPoints-numBPoints)));
 	
     }
 	

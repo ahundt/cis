@@ -23,7 +23,7 @@ static const std::string pa3e("PA3-E-Debug");
 static const std::string pa3f("PA3-F-Debug");
 static const std::string pa3g("PA3-G-Unknown");
 static const std::string pa3h("PA3-H-Unknown");
-static const std::string pa3i("PA3-I-Unknown");
+//static const std::string pa3i("PA3-I-Unknown"); // there is no I in the data set
 static const std::string pa3j("PA3-J-Unknown");
 
 std::vector<std::string> PA3DataFilePrefixes(){
@@ -37,7 +37,7 @@ std::vector<std::string> PA3DataFilePrefixes(){
     defaultPrefixes.push_back(pa3f);
     defaultPrefixes.push_back(pa3g);
     defaultPrefixes.push_back(pa3h);
-    defaultPrefixes.push_back(pa3i);
+    //defaultPrefixes.push_back(pa3i); // there is no I in the data set
     defaultPrefixes.push_back(pa3j);
 	
 	return defaultPrefixes;

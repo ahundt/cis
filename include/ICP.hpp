@@ -7,7 +7,7 @@
 /// @param p is one end of the line segment represented by an Eigen::Vector3d
 /// @param q is the other end of the line segment represented by an Eigen::Vector3d
 /// @see page 8 of PointPairs.pdf from the notes
-Eigen::Vector4d ProjectOnSegment(Eigen::Vector3d c, Eigen::Vector3d p, Eigen::Vector3d q)
+Eigen::Vector4d ProjectOnSegment(const Eigen::Vector3d& c, const Eigen::Vector3d& p, const Eigen::Vector3d& q)
 {
     Eigen::Vector3d pMinusQ = q - p;
     double lambda = (c-p).dot(pMinusQ)/(pMinusQ.dot(pMinusQ));
@@ -28,7 +28,7 @@ Eigen::Vector4d ProjectOnSegment(Eigen::Vector3d c, Eigen::Vector3d p, Eigen::Ve
 /// point on the triangle lies on a vertice
 /// @param a is the point in space
 /// @param p is the first vertice of the triangle represented by an Eigen::Vector3d
-bool PointEqualityCheck(Eigen::Vector3d a, Eigen::Vector3d b){
+bool PointEqualityCheck(const Eigen::Vector3d& a, const Eigen::Vector3d& b){
     bool tf = (a(0) == b(0) && a(1) == b(1) && a(2) == b(2));
     return tf;
 }
@@ -39,7 +39,7 @@ bool PointEqualityCheck(Eigen::Vector3d a, Eigen::Vector3d b){
 /// @param q is the second vertice of the triangle represented by an Eigen::Vector3d
 /// @param r is the third vertice of the triangle represented by an Eigen::Vector3d
 /// @see page 8 of PointPairs.pdf from the notes
-Eigen::Vector3d OutsideOfTriangle(Eigen::Vector3d a, Eigen::Vector3d p, Eigen::Vector3d q, Eigen::Vector3d r)
+Eigen::Vector3d OutsideOfTriangle(const Eigen::Vector3d& a, const Eigen::Vector3d& p, const Eigen::Vector3d& q, const Eigen::Vector3d& r)
 {
     Eigen::MatrixXd c(3,4);
     c.block<1,4>(0,0) = ProjectOnSegment(a,r,p).transpose();
@@ -65,11 +65,11 @@ Eigen::Vector3d OutsideOfTriangle(Eigen::Vector3d a, Eigen::Vector3d p, Eigen::V
 /// @param a is the point in space represented by an Eigen::Vector3d
 /// @param vertices are the three vertices of the triangle represented by standard vector of Eigen::Vector3d
 /// @see page 7 of PointPairs.pdf from the notes
-Eigen::Vector3d FindClosestPoint(Eigen::Vector3d p, std::vector<Eigen::Vector3d>& vertices)
+Eigen::Vector3d FindClosestPoint(const Eigen::Vector3d& p, const std::vector<Eigen::Vector3d>& vertices, const Eigen::VectorXd& triangle)
 {
-    Eigen::Vector3d p1 = vertices[1];
-    Eigen::Vector3d p2 = vertices[2];
-    Eigen::Vector3d p3 = vertices[3];
+    Eigen::Vector3d p1 = vertices[triangle(0)];
+    Eigen::Vector3d p2 = vertices[triangle(1)];
+    Eigen::Vector3d p3 = vertices[triangle(2)];
     Eigen::Vector3d u = p2-p1;
     Eigen::Vector3d v = p3-p1;
     Eigen::Vector3d w = p-p1;

@@ -10,7 +10,7 @@
 /// creates Hmatrix for Horn's method
 /// @see {Rigid3D3DCalculations.pdf slide 17's more detailed explanation alongside Arun's method
 ///      and slide 25 (horn's) for this step as part of Horn's Method}
-Eigen::Matrix3d Hmatrix(Eigen::MatrixXd a, Eigen::MatrixXd b)
+Eigen::Matrix3d Hmatrix(const Eigen::MatrixXd& a, const Eigen::MatrixXd& b)
 {
     BOOST_VERIFY(a.cols()==b.cols());
     Eigen::Matrix3d H;
@@ -29,7 +29,7 @@ Eigen::Matrix3d Hmatrix(Eigen::MatrixXd a, Eigen::MatrixXd b)
 /// creates Gmatrix from Hmatrix using Horn's method
 /// aka the Quaternion Method for Rotation R
 /// @see Rigid3D3DCalculations.pdf slide 25
-Eigen::Matrix4d Gmatrix(Eigen::Matrix3d H)
+Eigen::Matrix4d Gmatrix(const Eigen::Matrix3d& H)
 {
     Eigen::Vector3d delta;
     delta(0) = H(1,2)-H(2,1);
@@ -63,7 +63,7 @@ bool operator()(const std::pair<K,V>& lhs, const std::pair<K,V>& rhs)
 /// @see Rigid3D3DCalculations.pdf slide 25
 ///
 /// @return quaternion representing the rotation
-Eigen::Quaternion<double> EigenMatrix(Eigen::Matrix4d G,bool debug = false)
+Eigen::Quaternion<double> EigenMatrix(const Eigen::Matrix4d& G,bool debug = false)
 {
     Eigen::EigenSolver<Eigen::Matrix4d> es(G);
     Eigen::VectorXcd EValues = es.eigenvalues();
@@ -104,7 +104,7 @@ Eigen::Quaternion<double> EigenMatrix(Eigen::Matrix4d G,bool debug = false)
 }
 
 /// @deprecated old aruns method, not as numerically stable as horn's method, which is preferred
-Eigen::Matrix3d ArunsMethod(Eigen::Matrix3d Hsum)
+Eigen::Matrix3d ArunsMethod(const Eigen::Matrix3d& Hsum)
 {
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(Hsum, Eigen::ComputeThinU | Eigen::ComputeThinV);
     Eigen::MatrixXd U = svd.matrixU();

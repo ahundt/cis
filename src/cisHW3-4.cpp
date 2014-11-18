@@ -86,8 +86,8 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
 
     // create algorithm command line options
     dataOptions.add_options()
-            ("pa1", "set automatic programming assignment 1 source data parameters, overrides DataFilenamePrefix, exclusive of pa1")
-            ("pa2", "set automatic programming assignment 2 source data parameters, overrides DataFilenamePrefix, exclusive of pa2")
+            ("pa3", "set automatic programming assignment 3 source data parameters, overrides DataFilenamePrefix, exclusive of pa4")
+            ("pa4", "set automatic programming assignment 4 source data parameters, overrides DataFilenamePrefix, exclusive of pa3")
     
             ("dataFolderPath"                   ,po::value<std::string>()->default_value(currentPath)       ,"folder containing data files, defaults to current working directory"   )
             ("outputDataFolderPath"             ,po::value<std::string>()->default_value(currentPath)       ,"folder for output data files, defaults to current working directory"   )
@@ -200,12 +200,13 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
     for(auto&& prefix : dataFilenamePrefixList){
         DataSourcePA3_4 dataSource;
         dataSource.filenamePrefix = prefix;
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix       ,dataFileNameSuffix_AnswerPath  ,dataSource.BodyA            ,required);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix       ,dataFileNameSuffix_OutputPath  ,dataSource.BodyB            ,required);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix       ,dataFileNameSuffix_SamplePath  ,dataSource.SampleReadings   ,required);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenameProblemPrefix,dataFileNameSuffix_MeshPath    ,dataSource.Answer           ,required);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenameProblemPrefix,dataFileNameSuffix_BodyAPath   ,dataSource.Output           ,optional);
-        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenameProblemPrefix,dataFileNameSuffix_BodyBPath   ,dataSource.Mesh             ,optional);
+        dataSource.filenameProblemPrefix = dataFilenameProblemPrefix;
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenameProblemPrefix       ,dataFileNameSuffix_BodyAPath   ,dataSource.BodyA            ,required);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenameProblemPrefix       ,dataFileNameSuffix_BodyBPath   ,dataSource.BodyB            ,required);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix              ,dataFileNameSuffix_SamplePath  ,dataSource.SampleReadings   ,required);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix              ,dataFileNameSuffix_AnswerPath  ,dataSource.Answer           ,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenamePrefix              ,dataFileNameSuffix_OutputPath  ,dataSource.Output           ,optional);
+        assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenameProblemPrefix       ,dataFileNameSuffix_MeshPath    ,dataSource.Mesh             ,required);
 
         pclp.dataSources.push_back(dataSource);
     }
@@ -220,35 +221,41 @@ void generateOutputFilePA3_4(AlgorithmDataPA3_4 ad, std::string outputDataFolder
 	/////////////////////////////////////////
 	// Code Outline once data has been parsed
 	/////////////////////////////////////////
-//	
-//	Eigen::Vector3d ckMin;
-//	double errorMin;
-//	std::vector<Eigen::Vector3d> dk;
-//	std::vector<Eigen::Vector3d> ck;
-//	std::vector<double> errork;
-//    int k; // WARNING: K IS NOT INITIALIZED<<<<<<<<<<<<<<<<<<<<<<<
-//    std::vector<Eigen::Vector3d> a; /// WARNING: JUST A GUESS<<<<<<<<<<<<<<
-//	Eigen::Matrix4d Freg = Eigen::Matrix4d::Identity();
-//	for (int i=0; i<k; i++){
-//		// Need to define a[k], b[k], A, and B from parser info
-//		Eigen::Matrix4d Fa = horn(a[k],A); // a: PA3-A-Debug-SampleReadingsTest A: Problem3-BodyA
-//		Eigen::Matrix4d FbInverse = horn(B,b[k]); // b: PA3-A-Debug-SampleReadingsTest B: Problem3-BodyB
-//        Eigen::Affine3d FaAffine = Fa.matrix();
-//        Eigen::Affine3d FbInverseAffine = FbInverse.matrix();
-//		dk.push_back = FbInverseAffine*FaAffine*Atip; // Atip: Problem3-BodyA (last line)
-//		Eigen::Vector3d sk = Freg*dk;
-//		for (int j=0; j<numTriangles; j++){
-//			Eigen::Vector3d ckTemp = ICP(dk,std::vector<Eigen::Vector3d> TriangleVertices_j);
-//			double errorTemp = (tempCk-dk).norm();
-//			if (errorTemp < errorMin || j == 0){
-//				ckMin = tempCk;
-//				errorMin = errorTemp;
-//			}
-//		}
-//		ck.push_back() = ckMin;
-//		errork.push_back() = errorMin;
-//	}
-//	
+	
+	Eigen::Vector3d ckMin;
+	double errorMin=1000000;
+	std::vector<Eigen::Vector3d> dk;
+	std::vector<Eigen::Vector3d> ck;
+	std::vector<double> errork;
+	Eigen::Affine3d Freg;
+    Freg.setIdentity();
+    
+	for (int i=0; i<ad.sampleReadings.NA.size(); i++){
+		// Need to define a[k], b[k], A, and B from parser info
+		Eigen::Affine3d FaAffine(hornRegistration(ad.bodyA.markerLEDs,ad.sampleReadings.NA[i])); // a: PA3-A-Debug-SampleReadingsTest A: Problem3-BodyA
+		Eigen::Affine3d FbInverseAffine(hornRegistration(ad.sampleReadings.NB[i], ad.bodyB.markerLEDs)); // b: PA3-A-Debug-SampleReadingsTest B: Problem3-BodyB
+        dk.push_back(Eigen::Vector3d(FbInverseAffine*FaAffine*ad.bodyA.tip)); // Atip: Problem3-BodyA (last line)
+		Eigen::Vector3d sk = Freg*dk[i];
+        for (auto&& triangle : ad.mesh.vertexTriangleNeighborIndex){
+			Eigen::Vector3d ckTemp = FindClosestPoint(sk, ad.mesh.vertices, triangle);
+			double errorTemp = (ckTemp-dk[i]).norm();
+			if (errorTemp < errorMin){
+				ckMin = ckTemp;
+				errorMin = errorTemp;
+			}
+		}
+		ck.push_back(ckMin);
+		errork.push_back(errorMin);
+	}
+    
+    std::cout << "\n\ndx, dy, dz, cx, cy, cz, error\n";
+    for (int i=0; i<dk.size(); i++){
+        std::cout << dk[0] << " , " << dk[1] << " , " << dk[2] << " , "
+                  << ck[0] << " , " << ck[1] << " , " << ck[2] << " , "
+                  << errork[0] << " , " << errork[1] << " , " << errork[2] << "\n";
+    }
+    std::cout << "\n\n";
+	
 	// Need output file
 	// for each k: dx, dy, dz, cx, cy, cz, error
     /*
@@ -282,7 +289,7 @@ int main(int argc,char**argv) {
         ad.bodyA          = parseProblemBody    (loadStringFromFile(dataSource.BodyA)            ,pclp.debugParser       );
         ad.bodyB          = parseProblemBody    (loadStringFromFile(dataSource.BodyB)            ,pclp.debugParser       );
 		ad.mesh           = parseMesh           (loadStringFromFile(dataSource.Mesh)             ,pclp.debugParser       );
-		ad.sampleReadings = parseSampleReadings (loadStringFromFile(dataSource.SampleReadings)   ,pclp.debugParser       );
+		ad.sampleReadings = parseSampleReadings (loadStringFromFile(dataSource.SampleReadings)   , ad.bodyA.markerLEDs.rows(), ad.bodyB.markerLEDs.rows() ,pclp.debugParser       );
 
         if(pclp.threads) {
             // run all data sources in separate threads to speed up execution

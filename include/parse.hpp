@@ -38,31 +38,32 @@ void printStringVector(std::vector<std::string> sv, bool newline = true, std::st
 }
 
 /// trim whitespace on the ends of a string and convert the text to a double
-double trimAndConvertToDouble(std::string str){
+double trimAndConvertToDouble(std::string str, bool debug = false){
     
     // start by removing spaces and tabs
     boost::trim(str);
     // debug output
-    // std::cout << "afterTrim:" << str << "\n";
+    if(debug) std::cout << "afterTrim:" << str << "\n";
     // convert string to double
     return boost::lexical_cast<double>(str);
 }
 
 
-Eigen::VectorXd readPointString(const std::string& pointString, bool debug = false){
+Eigen::VectorXd readPointString(const std::string& pointString, bool debug = true){
+    std::string mutablePointString = pointString;
+    // start by removing spaces and tabs from the ends
+    boost::trim(mutablePointString);
     // there is data here, load the point in
     std::vector<std::string> pointStrings;
-    boost::split( pointStrings, pointString, boost::is_any_of(","), boost::token_compress_on);
+    std::cout << pointString << "\n";
+    boost::split( pointStrings, mutablePointString, boost::is_any_of(" \t,"), boost::token_compress_on);
     
-    // 3 values in a point
-    BOOST_VERIFY(pointStrings.size() == 3);
-    
-    if(debug) printStringVector(pointStrings, "point:");
+    if(debug) printStringVector(pointStrings,true, "point:");
 	
 	Eigen::VectorXd point(pointStrings.size());
 	
 	for(int i = 0; i < pointStrings.size(); ++i){
-		point(i) = trimAndConvertToDouble(pointStrings[0]);
+		point(i) = trimAndConvertToDouble(pointStrings[i]);
 	}
     
     return point;
@@ -97,7 +98,7 @@ const std::vector<T> concat(const std::vector<std::vector<T> >& uv){
 
 
 
-/// @brief combine a vector<vector<T> > into a single vector<T>
+/// @brief split a large Eigen::MatrixXd by rows into a vector of smaller MatrixXd
 std::vector<Eigen::MatrixXd> splitRows(const Eigen::MatrixXd& mat,std::size_t numRowsPerMat){
     
     std::vector<Eigen::MatrixXd> vec;
@@ -109,6 +110,18 @@ std::vector<Eigen::MatrixXd> splitRows(const Eigen::MatrixXd& mat,std::size_t nu
     }
     
     return vec;
+}
+
+Eigen::MatrixXd concatToMatrix(const std::vector<Eigen::Vector3d>& points){
+    Eigen::MatrixXd mat;
+    mat.resize(points.size(),3);
+    int i = 0;
+    for(Eigen::Vector3d point : points){
+        mat.block<1,3>(i,0) = point.transpose();
+        ++i;
+    }
+    
+    return mat;
 }
 
 
@@ -131,7 +144,7 @@ void assemblePathIfFullPathNotSupplied(std::string dataFolderPath, std::string d
     }
     
     if (dataFilePath.empty() || !boost::filesystem::exists(dataFilePath) ) {
-        throw std::runtime_error("File "+dataFilePath + " does not exist!");
+        throw std::runtime_error("File "+ dataFilePath + " does not exist!");
     }
     
 }

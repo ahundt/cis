@@ -223,13 +223,16 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
 /// run the PA3 algorithm and create then write the output file
 void generateOutputFilePA3_4(AlgorithmDataPA3_4 ad, std::string outputDataFolderPath, std::string dataFilenamePrefix, bool debug = false){
 	
-    
-    std::vector<Eigen::Vector3d> dk;
-    std::vector<Eigen::Vector3d> ck;
+    Eigen::MatrixXd ckMat;
+	Eigen::MatrixXd dkMat;
     std::vector<double> errork;
     
-    icpPointMeshRegistration(ad.sampleReadings.NA, ad.sampleReadings.NB, ad.bodyA.tip, ad.bodyA.markerLEDs, ad.bodyB.markerLEDs, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,dk,ck,errork);
+    icpPointMeshRegistration(ad.sampleReadings.NA, ad.sampleReadings.NB, ad.bodyA.tip, ad.bodyA.markerLEDs, ad.bodyB.markerLEDs, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,ckMat,dkMat,errork);
     
+
+    std::vector<Eigen::Vector3d> dk(splitVectors(dkMat));
+    std::vector<Eigen::Vector3d> ck(splitVectors(ckMat));
+	
     std::string outputFilename =  dataFilenamePrefix + "-Output.txt";
     std::ofstream ofs (outputFilename, std::ofstream::out);
     output1CISCSV_PA3(ofs,outputFilename,dk,ck,errork);

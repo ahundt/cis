@@ -52,4 +52,38 @@ const std::string DefaultAnswer = "-Answer.txt";
 const std::string DefaultOutput = "-Output.txt";
 const std::string DefaultMesh = "Mesh.sur";
 
+
+static const std::string pa4problemPrefix("Problem4");
+
+static const std::string pa4a("PA4-A-Debug");
+static const std::string pa4b("PA4-B-Debug");
+static const std::string pa4c("PA4-C-Debug");
+static const std::string pa4d("PA4-D-Debug");
+static const std::string pa4e("PA4-E-Debug");
+static const std::string pa4f("PA4-F-Debug");
+static const std::string pa4g("PA4-G-Unknown");
+static const std::string pa4h("PA4-H-Unknown");
+static const std::string pa4j("PA4-J-Unknown");
+static const std::string pa4k("PA4-K-Unknown");
+
+
+
+std::vector<std::string> PA4DataFilePrefixes(){
+    
+    std::vector<std::string> defaultPrefixes;
+    defaultPrefixes.push_back(pa4a);
+    defaultPrefixes.push_back(pa4b);
+    defaultPrefixes.push_back(pa4c);
+    defaultPrefixes.push_back(pa4d);
+    defaultPrefixes.push_back(pa4e);
+    defaultPrefixes.push_back(pa4f);
+    defaultPrefixes.push_back(pa4g);
+    defaultPrefixes.push_back(pa4h);
+    defaultPrefixes.push_back(pa4j);
+    defaultPrefixes.push_back(pa4k);
+	
+	return defaultPrefixes;
+}
+
+
 #endif // _HW_CONSTANTS_H_

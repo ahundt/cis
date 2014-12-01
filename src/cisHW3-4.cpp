@@ -92,8 +92,8 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
     
             ("dataFolderPath"                   ,po::value<std::string>()->default_value(currentPath)       ,"folder containing data files, defaults to current working directory"   )
             ("outputDataFolderPath"             ,po::value<std::string>()->default_value(currentPath)       ,"folder for output data files, defaults to current working directory"   )
-            ("dataFilenamePrefix"               ,po::value<std::vector<std::string> >()->default_value(PA3DataFilePrefixes(),""),"constant prefix of data filename path. Specify this multiple times to run on many data sources at once"   )
-			("dataFilenameProblemPrefix"               ,po::value<std::string >()->default_value(pa3problemPrefix),"constant prefix of data typically starting with \"Problem\" filename path. Specify this multiple times to run on many data sources at once"   )
+            ("dataFilenamePrefix"               ,po::value<std::vector<std::string> >()->default_value(PA4DataFilePrefixes(),""),"constant prefix of data filename path. Specify this multiple times to run on many data sources at once"   )
+			("dataFilenameProblemPrefix"               ,po::value<std::string >()->default_value(pa4problemPrefix),"constant prefix of data typically starting with \"Problem\" filename path. Specify this multiple times to run on many data sources at once"   )
 		  	("suffixAnswer"    ,po::value<std::string>()->default_value(DefaultAnswer         ),"suffix of data filename path"   )
 		  	("suffixOutput"    ,po::value<std::string>()->default_value(DefaultOutput         ),"suffix of data filename path"   )
 		  	("suffixSample"    ,po::value<std::string>()->default_value(DefaultSampleReadings ),"suffix of data filename path"   )
@@ -176,8 +176,10 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
     
     if (vmap.count("pa3")) {
         dataFilenamePrefixList = PA3DataFilePrefixes();
+		dataFilenameProblemPrefix = pa3problemPrefix;
     } else if (vmap.count("pa4")) {
-        dataFilenamePrefixList = PA3DataFilePrefixes();
+        dataFilenamePrefixList = PA4DataFilePrefixes();
+		dataFilenameProblemPrefix = pa4problemPrefix;
     }
     
 

@@ -50,7 +50,7 @@ const std::string DefaultBodyB = "-BodyB.txt";
 const std::string DefaultSampleReadings = "-SampleReadingsTest.txt";
 const std::string DefaultAnswer = "-Answer.txt";
 const std::string DefaultOutput = "-Output.txt";
-const std::string DefaultMesh = "Mesh.sur";
+const std::string DefaultMesh = "MeshFile.sur"; // note: pa3 there is a Mesh.sur and a MeshFile.sur, since all other PAs use MeshFile.sur we default to that.
 
 
 static const std::string pa4problemPrefix("Problem4");

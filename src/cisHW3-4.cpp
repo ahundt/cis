@@ -224,14 +224,15 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
 void generateOutputFilePA3_4(AlgorithmDataPA3_4 ad, std::string outputDataFolderPath, std::string dataFilenamePrefix, bool debug = false){
 	
     Eigen::MatrixXd ckMat;
-	Eigen::MatrixXd dkMat;
+	
     std::vector<double> errork;
     Eigen::Affine3d Freg;
 	
+    Eigen::MatrixXd dkMat = dkKnownMeshPointsBaseFrame(ad.sampleReadings.NA, ad.sampleReadings.NB, ad.bodyA.tip, ad.bodyA.markerLEDs, ad.bodyB.markerLEDs);
     if(true){ // original slower way
-        multiStepIcpPointMeshRegistration(ad.sampleReadings.NA, ad.sampleReadings.NB, ad.bodyA.tip, ad.bodyA.markerLEDs, ad.bodyB.markerLEDs, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,Freg,ckMat,dkMat,errork);
+        multiStepIcpPointMeshRegistration(dkMat, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,Freg,ckMat,errork);
     } else { // new cool fast big data structure way
-        optimizedICP(ad.sampleReadings.NA, ad.sampleReadings.NB, ad.bodyA.tip, ad.bodyA.markerLEDs, ad.bodyB.markerLEDs, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,Freg,ckMat,dkMat,errork);
+        optimizedICP(dkMat, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,Freg,ckMat,errork);
     }
     
 

@@ -65,7 +65,7 @@ Eigen::Vector3d OutsideOfTriangle(const Eigen::Vector3d& a, const Eigen::Vector3
 /// @param a is the point in space represented by an Eigen::Vector3d
 /// @param vertices are the three vertices of the triangle represented by standard vector of Eigen::Vector3d
 /// @see page 7 of PointPairs.pdf from the notes
-Eigen::Vector3d FindClosestPoint(const Eigen::Vector3d& p, const std::vector<Eigen::Vector3d>& vertices, const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, const Eigen::Vector3d& p3)
+Eigen::Vector3d FindClosestPoint(const Eigen::Vector3d& p, const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, const Eigen::Vector3d& p3)
 {
     Eigen::Vector3d u = p2-p1;
     Eigen::Vector3d v = p3-p1;
@@ -89,7 +89,7 @@ Eigen::Vector3d FindClosestPoint(const Eigen::Vector3d& p, const std::vector<Eig
     Eigen::Vector3d p2 = vertices[triangle(1)];
     Eigen::Vector3d p3 = vertices[triangle(2)];
 
-    return FindClosestPoint(p,vertices,p1,p2,p3);
+    return FindClosestPoint(p,p1,p2,p3);
 }
 
 #endif // _ITERATIVE_CLOSEST_POINT_HPP_

@@ -56,7 +56,7 @@ namespace cis {
 /// @param[in]  Atip location of tip of pointerA in pointer A body coordinates
 /// @param[in]  bodyAmarkerLEDs location of LED markers on pointer A in pointer A body coordinates
 /// @param[in]  bodyAmarkerLEDs location of LED markers on fiducial B in fiducial B body coordinatesnd 3 correspond to neighbors. -1 indicates not a neighbor. List of triangles on mesh, corresponding to bone surface.
-/// @return dk location of Atip in fiducial B body coordinates, nx3 matrix of transposed vectors
+/// @return dkList location of Atip in fiducial B body coordinates, nx3 matrix of transposed vectors
 Eigen::MatrixXd
 dkKnownMeshPointsBaseFrame(const std::vector<Eigen::MatrixXd>& NA,
                                 const std::vector<Eigen::MatrixXd>& NB,
@@ -64,7 +64,7 @@ dkKnownMeshPointsBaseFrame(const std::vector<Eigen::MatrixXd>& NA,
                                 const Eigen::MatrixXd& bodyAmarkerLEDs,
                                 const Eigen::MatrixXd& bodyBmarkerLEDs){
     
-    Eigen::MatrixXd dk(NA.size(),3);
+    Eigen::MatrixXd dkList(NA.size(),3);
     
     for (int i=0; i<NA.size(); i++){
         Eigen::Affine3d FaAffine(hornRegistration(bodyAmarkerLEDs,NA[i])); // a: PA3-A-Debug-SampleReadingsTest A: Problem3-BodyA
@@ -72,37 +72,41 @@ dkKnownMeshPointsBaseFrame(const std::vector<Eigen::MatrixXd>& NA,
         
         // Atip: Problem3-BodyA (last line)
         Eigen::Vector3d dk_i(Eigen::Vector3d(FbInverseAffine*FaAffine*Atip));
-        dk.block<1,3>(i,0) = dk_i.transpose();
+        dkList.block<1,3>(i,0) = dk_i.transpose();
     }
     
-    return dk;
+    return dkList;
 }
 
 /// perform ICPregistration on source data consisting of sensor data,
 /// prior known body data, and a triangle mesh.
 ///
-/// @param[out] dk location of Atip in fiducial B body coordinates, nx3 matrix of transposed vectors
+/// @param[out] dkList location of Atip in fiducial B body coordinates, nx3 matrix of transposed vectors
 /// @param[in]  vertices list of vertices on mesh, corresponding to bone surface
 /// @param[in]  vertexTriangleNeighborIndex list of 1x6 vectors. First 3 Elements are indices into vertices list, Second 3 correspond to neighbors. -1 indicates not a neighbor. List of triangles on mesh, corresponding to bone surface.
 /// @param[out] ck location of CT mesh closest to sample points, nx3 matrix of transposed vectors
 /// @param[out] errork norm between ck and dk
 void icpPointMeshRegistration(
-                              const Eigen::MatrixXd& dk,
+                              const Eigen::MatrixXd& dkList,
                               const std::vector<Eigen::Vector3d>& vertices,
                               const std::vector<Eigen::VectorXd>& vertexTriangleNeighborIndex,
-							  Eigen::Affine3d& Freg,
-                              Eigen::MatrixXd& ck,
+                              Eigen::Affine3d& Freg,
+                              Eigen::MatrixXd& skList,
+                              Eigen::MatrixXd& ckList,
                               std::vector<double>& errork){
     
     errork.clear();
-    ck.resize(dk.rows(),3);
+    ckList.resize(dkList.rows(),3);
+    skList.resize(dkList.rows(),3);
     
-    for (int i=0; i<dk.rows(); i++){
+    for (int i=0; i<dkList.rows(); i++){
         double errorMin=std::numeric_limits<double>::max();
 	    Eigen::Vector3d ckMin;
-        Eigen::Vector3d dk_i(dk.block<1,3>(i,0).transpose());
+        Eigen::Vector3d dk_i(dkList.block<1,3>(i,0).transpose());
         
         Eigen::Vector3d sk(Freg*dk_i);
+        skList.block<1,3>(i,0) = sk.transpose();
+        
         //if(i % NA.size() == 3) std::cout << "\n\nsk[3]\n\n" << sk << "\n\n";
         for (auto&& triangle : vertexTriangleNeighborIndex){
             Eigen::Vector3d ckTemp = FindClosestPoint(sk, vertices, triangle);
@@ -112,28 +116,29 @@ void icpPointMeshRegistration(
                 errorMin = errorTemp;
             }
         }
-		ck.block<1,3>(i,0) = ckMin.transpose();
+		ckList.block<1,3>(i,0) = ckMin.transpose();
         errork.push_back(errorMin);
     }
 	
-	Freg = hornRegistration(dk,ck);
+	Freg = hornRegistration(dkList,ckList);
 }
 
 
 /// perform ICPregistration on source data consisting of sensor data,
 /// prior known body data, and a triangle mesh.
 ///
-/// @param[out] dk location of Atip in fiducial B body coordinates, nx3 matrix of transposed vectors
+/// @param[out] dkList location of Atip in fiducial B body coordinates, n x 3 matrix of transposed vectors
 /// @param[in]  vertices list of vertices on mesh, corresponding to bone surface
 /// @param[in]  vertexTriangleNeighborIndex list of 1x6 vectors. First 3 Elements are indices into vertices list, Second 3 correspond to neighbors. -1 indicates not a neighbor. List of triangles on mesh, corresponding to bone surface.
 /// @param[out] ck location of CT mesh closest to sample points, nx3 matrix of transposed vectors
 /// @param[out] errork norm between ck and dk
 void multiStepIcpPointMeshRegistration(
-                              const Eigen::MatrixXd& dk,
+                              const Eigen::MatrixXd& dkList,
                               const std::vector<Eigen::Vector3d>& vertices,
                               const std::vector<Eigen::VectorXd>& vertexTriangleNeighborIndex,
-                              Eigen::Affine3d& Freg,
-                              Eigen::MatrixXd& ck,
+                                       Eigen::Affine3d& Freg,
+                                       Eigen::MatrixXd& skList,
+                                       Eigen::MatrixXd& ckList,
                               std::vector<double>& errork){
 
     bool debug = true;
@@ -141,7 +146,7 @@ void multiStepIcpPointMeshRegistration(
 	for(int i = 0; i < 300; ++i){
         
         if(debug) std::cout << "\n\nFreg before iteration " << i << ":\n\n" << Freg.matrix() << "\n\n";
-		icpPointMeshRegistration(dk,vertices,vertexTriangleNeighborIndex,Freg,ck,errork);
+		icpPointMeshRegistration(dkList,vertices,vertexTriangleNeighborIndex,Freg,skList,ckList,errork);
 	}
 }
 
@@ -165,21 +170,24 @@ void multiStepIcpPointMeshRegistration(
 /// @param[out] errork norm between ck and dk
 template<typename RTREE>
 void optimizedICPStep(
-                      const Eigen::MatrixXd& dk,
+                      const Eigen::MatrixXd& dkList,
                               const RTREE& rtree,
-                              Eigen::Affine3d& Freg,
-                              Eigen::MatrixXd& ck,
+                      Eigen::Affine3d& Freg,
+                      Eigen::MatrixXd& skList,
+                      Eigen::MatrixXd& ckList,
                               std::vector<double>& errork){
     
     errork.clear();
-    ck.resize(dk.rows(),3);
+    ckList.resize(dkList.rows(),3);
+    skList.resize(dkList.rows(),3);
     
-    for (int i=0; i<dk.rows(); ++i){
+    for (int i=0; i<dkList.rows(); ++i){
         double errorMin=std::numeric_limits<double>::max();
         Eigen::Vector3d ckMin;
-        Eigen::Vector3d dk_i(dk.block<1,3>(i,0).transpose());
+        Eigen::Vector3d dk_i(dkList.block<1,3>(i,0).transpose());
         
         Eigen::Vector3d sk(Freg*dk_i);
+        skList.block<1,3>(i,0) = sk.transpose();
         
         // starting query size will affect performance
         /// @todo consider making querySize a parameter
@@ -221,11 +229,11 @@ void optimizedICPStep(
             querySize *=2;
         }
         
-        ck.block<1,3>(i,0) = ckMin.transpose();
+        ckList.block<1,3>(i,0) = ckMin.transpose();
         errork.push_back(errorMin);
     }
     
-    Freg = hornRegistration(dk,ck);
+    Freg = hornRegistration(dkList,ckList);
 }
 
 
@@ -245,11 +253,12 @@ void optimizedICPStep(
 /// @param[out] ck location of CT mesh closest to sample points, nx3 matrix of transposed vectors
 /// @param[out] errork norm between ck and dk
 void optimizedICP(
-                  const Eigen::MatrixXd& dk,
+                  const Eigen::MatrixXd& dkList,
                   const std::vector<Eigen::Vector3d>& vertices,
                   const std::vector<Eigen::VectorXd>& vertexTriangleNeighborIndex,
                   Eigen::Affine3d& Freg,
-                  Eigen::MatrixXd& ck,
+                  Eigen::MatrixXd& skList,
+                  Eigen::MatrixXd& ckList,
                   std::vector<double>& errork){
     
     bool debug = true;
@@ -293,7 +302,7 @@ void optimizedICP(
     for(int i = 0; i < 1000; ++i){
         
         if(debug) std::cout << "\n\nFreg before iteration " << i << ":\n\n" << Freg.matrix() << "\n\n";
-        optimizedICPStep(dk,rtree,Freg,ck,errork);
+        optimizedICPStep(dkList,rtree,Freg,skList,ckList,errork);
     }
 }
 

@@ -11,6 +11,16 @@
 #include <boost/geometry/geometries/polygon.hpp>
 #include <boost/geometry/algorithms/correct.hpp>
 
+
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/max.hpp>
+#include <boost/accumulators/statistics/min.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
+#include <boost/accumulators/statistics/rolling_mean.hpp>
+#include <boost/accumulators/statistics/rolling_variance.hpp>
+
 #include <boost/geometry/index/rtree.hpp>
 
 #include <cmath>
@@ -20,6 +30,7 @@
 
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
+namespace acc = boost::accumulators;
 
 
 
@@ -123,30 +134,106 @@ void icpPointMeshRegistration(
 	Freg = hornRegistration(dkList,ckList);
 }
 
+/// TerminationCirteria is used to evaluate when the ICP algorithm should stop
+struct TerminationCriteria {
+    typedef acc::accumulator_set< double, acc::features< acc::tag::min, acc::tag::max, acc::tag::mean, acc::tag::variance, acc::tag::count, acc::tag::rolling_mean, acc::tag::rolling_variance > > accumulator_type;
+    
+    TerminationCriteria():
+        meanErrorThreshold(0.01),
+        maxErrorThreshold(0.1),
+        minVarianceInMeanErrorBetweenIterations(1e-10),
+        maxIterationCount(300),
+        minIterationCount(10),
+        trackProgress(true),
+        m_acc(new accumulator_type(acc::tag::rolling_window::window_size = minIterationCount)),
+        m_iterationMeanAcc(new accumulator_type(acc::tag::rolling_window::window_size = minIterationCount)){}
+    
+    void operator()(double i){
+        (*m_acc)(i);
+    }
+    
+    bool shouldTerminate(){
+        // should have run at least once, plus both the mean and max error should be below a threshold
+        bool shouldTerminate_b =
+                   (
+                      minIterationCount                            < acc::count(*m_iterationMeanAcc) // must meet minimum iteration count
+                   && acc::mean(*m_acc)                            < meanErrorThreshold              // the mean error should be sufficiently low
+                   && acc::extract_result< acc::tag::max >(*m_acc) < maxErrorThreshold               // the max error should be sufficiently low
+                   )
+                || (  acc::count(*m_iterationMeanAcc)              > maxIterationCount )             // don't exceed max iterations
+                || (
+                      minIterationCount                            < acc::count(*m_iterationMeanAcc) // must meet minimum iteration count
+                   && acc::rolling_variance(*m_iterationMeanAcc)   < minVarianceInMeanErrorBetweenIterations // if the optimization is having no effect (small rolling variance), terminate
+                   );
+        
+        if(trackProgress && shouldTerminate_b) std::cout << "\n\n>> Algorithm " << description << " complete. <<\n\n";
+        
+        return shouldTerminate_b;
+    }
+    
+    /// resets accumulated statistics, not termination criteria
+    void nextIteration(){
+       (*m_iterationMeanAcc)(acc::mean(*m_acc));
+        if(trackProgress) std::cout << "\n"
+                  <<  "iteration: " << acc::count(*m_iterationMeanAcc)                      << "/" << maxIterationCount
+                  << " mean: "      << acc::mean(*m_acc)                            << "/" << meanErrorThreshold
+                  << " max: "       << acc::extract_result< acc::tag::max >(*m_acc) << "/" << maxErrorThreshold
+                  << " rVarOfMean: "  << acc::rolling_variance(*m_iterationMeanAcc) << "/" << minVarianceInMeanErrorBetweenIterations
+                  << " "            << description                                  << "\n";
+        m_acc.reset(new accumulator_type(acc::tag::rolling_window::window_size = minIterationCount));
+    }
+    
+    
+    double meanErrorThreshold;
+    double maxErrorThreshold;
+    double minChangeMeanChangeThreshold;
+    double minVarianceInMeanErrorBetweenIterations;
+    int    maxCount;
+    int    maxIterationCount;
+    int    minIterationCount;
+    std::string description;
+    bool trackProgress;
+    
+    boost::shared_ptr<accumulator_type> m_acc;
+    boost::shared_ptr<accumulator_type> m_iterationMeanAcc;
+    
+    
+};
 
 /// perform ICPregistration on source data consisting of sensor data,
 /// prior known body data, and a triangle mesh.
 ///
-/// @param[out] dkList location of Atip in fiducial B body coordinates, n x 3 matrix of transposed vectors
+/// @param[in,out]
+/// @param[in] dkList location of Atip in fiducial B body coordinates, n x 3 matrix of transposed vectors
 /// @param[in]  vertices list of vertices on mesh, corresponding to bone surface
 /// @param[in]  vertexTriangleNeighborIndex list of 1x6 vectors. First 3 Elements are indices into vertices list, Second 3 correspond to neighbors. -1 indicates not a neighbor. List of triangles on mesh, corresponding to bone surface.
 /// @param[out] ck location of CT mesh closest to sample points, nx3 matrix of transposed vectors
 /// @param[out] errork norm between ck and dk
+template<typename TerminationType = TerminationCriteria>
 void multiStepIcpPointMeshRegistration(
                               const Eigen::MatrixXd& dkList,
                               const std::vector<Eigen::Vector3d>& vertices,
                               const std::vector<Eigen::VectorXd>& vertexTriangleNeighborIndex,
-                                       Eigen::Affine3d& Freg,
-                                       Eigen::MatrixXd& skList,
-                                       Eigen::MatrixXd& ckList,
-                              std::vector<double>& errork){
+                              TerminationType& terminationCriteria,
+                              Eigen::Affine3d& Freg,
+                              Eigen::MatrixXd& skList,
+                              Eigen::MatrixXd& ckList,
+                              std::vector<double>& errork,
+                              bool debug = false){
 
-    bool debug = true;
     Freg.setIdentity();
-	for(int i = 0; i < 300; ++i){
+    
+    for(int i = 0; !terminationCriteria.shouldTerminate(); i++){
         
         if(debug) std::cout << "\n\nFreg before iteration " << i << ":\n\n" << Freg.matrix() << "\n\n";
+        
+        if(i) terminationCriteria.nextIteration();
 		icpPointMeshRegistration(dkList,vertices,vertexTriangleNeighborIndex,Freg,skList,ckList,errork);
+        
+        for(auto && err : errork){
+            terminationCriteria(err);
+        }
+        
 	}
 }
 
@@ -252,16 +339,18 @@ void optimizedICPStep(
 /// @param[out] dk location of Atip in fiducial B body coordinates, nx3 matrix of transposed vectors
 /// @param[out] ck location of CT mesh closest to sample points, nx3 matrix of transposed vectors
 /// @param[out] errork norm between ck and dk
+template<typename TerminationType = TerminationCriteria>
 void optimizedICP(
                   const Eigen::MatrixXd& dkList,
                   const std::vector<Eigen::Vector3d>& vertices,
                   const std::vector<Eigen::VectorXd>& vertexTriangleNeighborIndex,
+                  TerminationType& terminationCriteria,
                   Eigen::Affine3d& Freg,
                   Eigen::MatrixXd& skList,
                   Eigen::MatrixXd& ckList,
-                  std::vector<double>& errork){
+                  std::vector<double>& errork,
+                  bool debug = false){
     
-    bool debug = true;
     Freg.setIdentity();
     
     
@@ -299,10 +388,15 @@ void optimizedICP(
         rtree.insert(std::make_pair(b, polygon));
     }
     
-    for(int i = 0; i < 1000; ++i){
+    for(int i = 0; !terminationCriteria.shouldTerminate(); i++){
         
         if(debug) std::cout << "\n\nFreg before iteration " << i << ":\n\n" << Freg.matrix() << "\n\n";
+        terminationCriteria.nextIteration();
         optimizedICPStep(dkList,rtree,Freg,skList,ckList,errork);
+        
+        for(auto && err : errork){
+            terminationCriteria(err);
+        }
     }
 }
 

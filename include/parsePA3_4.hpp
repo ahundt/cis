@@ -42,8 +42,6 @@ CisMesh parseMesh(std::string csv, bool debug = false){
        
     std::vector<std::string> strs;
     
-    // by default if no frame count is specified, there is only one frame
-    int numFrames = 1;
     // split into separate strings by newlines
 	boost::split(strs, csv, boost::is_any_of("\n"));
     
@@ -85,8 +83,6 @@ ProblemBody parseProblemBody(std::string csv, bool debug = false){
        
     std::vector<std::string> strs;
     
-    // by default if no frame count is specified, there is only one frame
-    int numFrames = 1;
     // split into separate strings by newlines
 	boost::split(strs, csv, boost::is_any_of("\n"));
     
@@ -149,8 +145,6 @@ SampleReadings parseSampleReadings(std::string csv, int numAPoints, int numBPoin
        
     std::vector<std::string> strs;
     
-    // by default if no frame count is specified, there is only one frame
-    int numFrames = 1;
     // split into separate strings by newlines
 	boost::split(strs, csv, boost::is_any_of("\n"));
     

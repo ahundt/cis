@@ -228,12 +228,14 @@ void generateOutputFilePA3_4(AlgorithmDataPA3_4 ad, std::string outputDataFolder
 	
     std::vector<double> errork;
     Eigen::Affine3d Freg;
+    TerminationCriteria tc;
+    tc.description = dataFilenamePrefix;
 	
     Eigen::MatrixXd dkMat = dkKnownMeshPointsBaseFrame(ad.sampleReadings.NA, ad.sampleReadings.NB, ad.bodyA.tip, ad.bodyA.markerLEDs, ad.bodyB.markerLEDs);
     if(true){ // original slower way
-        multiStepIcpPointMeshRegistration(dkMat, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,Freg,skMat,ckMat,errork);
+        multiStepIcpPointMeshRegistration(dkMat, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,tc,Freg,skMat,ckMat,errork,debug);
     } else { // new cool fast big data structure way
-        optimizedICP(dkMat, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,Freg,skMat,ckMat,errork);
+        optimizedICP(dkMat, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,tc,Freg,skMat,ckMat,errork,debug);
     }
     
 

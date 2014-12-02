@@ -226,8 +226,9 @@ void generateOutputFilePA3_4(AlgorithmDataPA3_4 ad, std::string outputDataFolder
     Eigen::MatrixXd ckMat;
 	Eigen::MatrixXd dkMat;
     std::vector<double> errork;
-    
-    icpPointMeshRegistration(ad.sampleReadings.NA, ad.sampleReadings.NB, ad.bodyA.tip, ad.bodyA.markerLEDs, ad.bodyB.markerLEDs, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,ckMat,dkMat,errork);
+    Eigen::Affine3d Freg;
+	
+    multiStepIcpPointMeshRegistration(ad.sampleReadings.NA, ad.sampleReadings.NB, ad.bodyA.tip, ad.bodyA.markerLEDs, ad.bodyB.markerLEDs, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,Freg,ckMat,dkMat,errork);
     
 
     std::vector<Eigen::Vector3d> dk(splitVectors(dkMat));

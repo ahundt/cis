@@ -45,6 +45,7 @@ void icpPointMeshRegistration(const std::vector<Eigen::MatrixXd>& NA,
     
 	    Eigen::Vector3d ckMin;
         Eigen::Vector3d sk(Freg*dk_i);
+        if(i % NA.size() == 3) std::cout << "\n\nsk[3]\n\n" << sk << "\n\n";
         for (auto&& triangle : vertexTriangleNeighborIndex){
             Eigen::Vector3d ckTemp = FindClosestPoint(sk, vertices, triangle);
             double errorTemp = (ckTemp-dk_i).norm();
@@ -88,9 +89,11 @@ void multiStepIcpPointMeshRegistration(const std::vector<Eigen::MatrixXd>& NA,
                               Eigen::MatrixXd& ck,
                               std::vector<double>& errork){
 
+    bool debug = true;
     Freg.setIdentity();
-	for(int i = 0; i < 10; ++i){
-		
+	for(int i = 0; i < 300; ++i){
+        
+        if(debug) std::cout << "\n\nFreg before iteration " << i << ":\n\n" << Freg.matrix() << "\n\n";
 		icpPointMeshRegistration(NA,NB,Atip,bodyAmarkerLEDs,bodyBmarkerLEDs,vertices,vertexTriangleNeighborIndex,Freg,dk,ck,errork);
 	}
 }

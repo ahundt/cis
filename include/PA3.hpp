@@ -30,8 +30,8 @@ void icpPointMeshRegistration(const std::vector<Eigen::MatrixXd>& NA,
                               Eigen::MatrixXd& dk,
                               Eigen::MatrixXd& ck,
                               std::vector<double>& errork){
-	
-	ck.resize(NA.size(),3);
+    
+    ck.resize(NA.size(),3);
 	dk.resize(NA.size(),3);
     
     for (int i=0; i<NA.size(); i++){

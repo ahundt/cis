@@ -179,7 +179,7 @@ dkKnownMeshPointsBaseFrame(const std::vector<Eigen::MatrixXd>& NA,
 /// @param[in]  vertexTriangleNeighborIndex list of 1x6 vectors. First 3 Elements are indices into vertices list, Second 3 correspond to neighbors. -1 indicates not a neighbor. List of triangles on mesh, corresponding to bone surface.
 /// @param[out] ck location of CT mesh closest to sample points, nx3 matrix of transposed vectors
 /// @param[out] errork norm between ck and dk
-void icpPointMeshRegistration(
+void ICPwithSimpleSearchStep(
                               const Eigen::MatrixXd& dkList,
                               const std::vector<Eigen::Vector3d>& vertices,
                               const std::vector<Eigen::VectorXd>& vertexTriangleNeighborIndex,
@@ -226,7 +226,7 @@ void icpPointMeshRegistration(
 /// @param[out] ck location of CT mesh closest to sample points, nx3 matrix of transposed vectors
 /// @param[out] errork norm between ck and dk
 template<typename TerminationType = TerminationCriteria>
-void multiStepIcpPointMeshRegistration(
+void ICPwithSimpleSearch(
                               const Eigen::MatrixXd& dkList,
                               const std::vector<Eigen::Vector3d>& vertices,
                               const std::vector<Eigen::VectorXd>& vertexTriangleNeighborIndex,
@@ -244,7 +244,7 @@ void multiStepIcpPointMeshRegistration(
         if(debug) std::cout << "\n\nFreg before iteration " << i << ":\n\n" << Freg.matrix() << "\n\n";
         
         if(i) terminationCriteria.nextIteration();
-		icpPointMeshRegistration(dkList,vertices,vertexTriangleNeighborIndex,Freg,skList,ckList,errork);
+		ICPwithSimpleSearchStep(dkList,vertices,vertexTriangleNeighborIndex,Freg,skList,ckList,errork);
         
         for(auto && err : errork){
             terminationCriteria(err);
@@ -270,7 +270,7 @@ void multiStepIcpPointMeshRegistration(
 /// @param[out] errork norm between ck and dk
 /// @param[out] errork norm between ck and dk
 template<typename RTREE>
-void optimizedICPStep(
+void ICPwithSpatialIndexStep(
                       const Eigen::MatrixXd& dkList,
                       const RTREE& rtree,
                       Eigen::Affine3d& Freg,
@@ -339,22 +339,16 @@ void optimizedICPStep(
 
 
 /// perform ICPregistration on source data consisting of sensor data,
-/// prior known body data, and a triangle mesh.
+/// prior known body data, and a triangle mesh. Uses a spatial index for iteration.
 ///
-/// @pre NA and NB vectors, rather than data, must be of equal length. Corresponding to the same quantity of measured sample time points.
-///
-/// @param[in]  NA list of sensor data point sets for pointer A
-/// @param[in]  NB list of sensor data point sets for fiducial B
-/// @param[in]  Atip location of tip of pointerA in pointer A body coordinates
-/// @param[in]  bodyAmarkerLEDs location of LED markers on pointer A in pointer A body coordinates
-/// @param[in]  bodyAmarkerLEDs location of LED markers on fiducial B in fiducial B body coordinates
+/// @param[in] dkList location of Atip in fiducial B body coordinates, n x 3 matrix of transposed vectors
 /// @param[in]  vertices list of vertices on mesh, corresponding to bone surface
 /// @param[in]  vertexTriangleNeighborIndex list of 1x6 vectors. First 3 Elements are indices into vertices list, Second 3 correspond to neighbors. -1 indicates not a neighbor. List of triangles on mesh, corresponding to bone surface.
-/// @param[out] dk location of Atip in fiducial B body coordinates, nx3 matrix of transposed vectors
+/// @param[in,out] terminationCriteria  Collects statistics and determines when algorithm should stop. C++ concept matches TerminationCriteria class.
 /// @param[out] ck location of CT mesh closest to sample points, nx3 matrix of transposed vectors
 /// @param[out] errork norm between ck and dk
 template<typename TerminationType = TerminationCriteria>
-void optimizedICP(
+void ICPwithSpatialIndex(
                   const Eigen::MatrixXd& dkList,
                   const std::vector<Eigen::Vector3d>& vertices,
                   const std::vector<Eigen::VectorXd>& vertexTriangleNeighborIndex,
@@ -406,7 +400,7 @@ void optimizedICP(
         
         if(debug) std::cout << "\n\nFreg before iteration " << i << ":\n\n" << Freg.matrix() << "\n\n";
         terminationCriteria.nextIteration();
-        optimizedICPStep(dkList,rtree,Freg,skList,ckList,errork);
+        ICPwithSpatialIndexStep(dkList,rtree,Freg,skList,ckList,errork);
         
         for(auto && err : errork){
             terminationCriteria(err);

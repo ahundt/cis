@@ -255,9 +255,9 @@ void generateOutputFilePA3_4(AlgorithmDataPA3_4 ad, std::string outputDataFolder
 	
     Eigen::MatrixXd dkMat = dkKnownMeshPointsBaseFrame(ad.sampleReadings.NA, ad.sampleReadings.NB, ad.bodyA.tip, ad.bodyA.markerLEDs, ad.bodyB.markerLEDs);
     if(!useSpatialIndex){ // original slower way
-        multiStepIcpPointMeshRegistration(dkMat, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,tc,Freg,skMat,ckMat,errork,debug);
+        ICPwithSimpleSearch(dkMat, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,tc,Freg,skMat,ckMat,errork,debug);
     } else { // new cool fast big data structure way
-        optimizedICP(dkMat, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,tc,Freg,skMat,ckMat,errork,debug);
+        ICPwithSpatialIndex(dkMat, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,tc,Freg,skMat,ckMat,errork,debug);
     }
     
 

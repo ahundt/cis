@@ -244,9 +244,11 @@ The available command line parameters and descriptions for the primary
       --threads                             run each source data file in a separate
                                             thread. May speed up execution
                                             dramatically.
-      --useSpatialIndex                     Experimental 2014-12-02: Use a spatial
-                                            index to store source data triangles
-                                            and speed up ICP.
+      --icpAlgorithm arg (=spatialIndex)    Options: spatialIndex, simpleSearch.
+                                            Selects the ICP algorithm version to
+                                            use. spatialIndex provides a
+                                            substantial performance boost for large
+                                            data sets.
       --meanErrorThreshold arg (=0.01)      stop ICP when mean error drops below
                                             this level
       --maxErrorThreshold arg (=0.10000000000000001)
@@ -315,6 +317,7 @@ The available command line parameters and descriptions for the primary
                                             combination
       --output2Path arg                     full path to data txt file, optional
                                             alternative to prefix+suffix name
+                                            combination
     
 
 Unit Test

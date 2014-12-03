@@ -258,7 +258,7 @@ void ICPwithSimpleSearch(
 
 /// perform ICPregistration on source data consisting of sensor data,
 /// prior known body data, and a triangle mesh. Uses a spatial index to accelerate
-/// nearest neigbor lookup of triangles.
+/// nearest neighbor lookup of triangles.
 ///
 /// @tparam boost::geometry::rtree data structure type configured with the triangle set
 ///

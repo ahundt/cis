@@ -708,7 +708,8 @@ PA 4
 
 Our metric for error is the norm between the sample points and the nearest points on the CT mesh. An ICP was run until
 the error was minimized below our error criteria. Our ICP algorithm produced low errors so we concluded that our
-transformation matrix, Freg, was a good representation of mapping points on the bone to points on the CT mesh.
+transformation matrix, Freg, was a good representation of mapping points on the bone to points on the CT mesh. In addition, 
+Our ICP also ran quickly so we concluded that our stopping criteria was a good choice for our program.
 
 
 Andrew and Alex spent approximately equal time on the assignment, with significant amounts of time spent pair

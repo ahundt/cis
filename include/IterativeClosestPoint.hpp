@@ -172,7 +172,7 @@ dkKnownMeshPointsBaseFrame(const std::vector<Eigen::MatrixXd>& NA,
     return dkList;
 }
 
-/// perform ICPregistration on source data consisting of sensor data,
+/// Perform one iteration of ICPregistration on source data consisting of sensor data,
 /// prior known body data, and a triangle mesh.
 ///
 /// @param[out] dkList location of Atip in fiducial B body coordinates, nx3 matrix of transposed vectors
@@ -219,6 +219,9 @@ void ICPwithSimpleSearchStep(
 
 /// perform ICPregistration on source data consisting of sensor data,
 /// prior known body data, and a triangle mesh. Uses brute force iteration.
+/// Runs many iterations and stops
+/// optimization based on the input terminationCriteria object, which also
+/// returns statistics of the execution by default.
 ///
 /// @param[in] dkList location of Atip in fiducial B body coordinates, n x 3 matrix of transposed vectors
 /// @param[in]  vertices list of vertices on mesh, corresponding to bone surface
@@ -257,7 +260,7 @@ void ICPwithSimpleSearch(
 
 
 
-/// perform ICPregistration on source data consisting of sensor data,
+/// Perform one iteration of ICPregistration on source data consisting of sensor data,
 /// prior known body data, and a triangle mesh. Uses a spatial index to accelerate
 /// nearest neighbor lookup of triangles.
 ///
@@ -345,7 +348,10 @@ void ICPwithSpatialIndexStep(
 
 
 /// perform ICPregistration on source data consisting of sensor data,
-/// prior known body data, and a triangle mesh. Uses a spatial index for accessing triangles.
+/// prior known body data, and a triangle mesh.  Uses a spatial index to accelerate
+/// nearest neighbor lookup of triangles. Runs many iterations and stops
+/// optimization based on the input terminationCriteria object, which also
+/// returns statistics of the execution by default.
 ///
 /// @param[in] dkList location of Atip in fiducial B body coordinates, n x 3 matrix of transposed vectors
 /// @param[in]  vertices list of vertices on mesh, corresponding to bone surface

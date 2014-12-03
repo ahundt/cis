@@ -60,8 +60,8 @@ PA4
 ---
 
 The purpose of PA4 was to build off the find closest points algorithm from PA3 and implement an iterative-closest
-point registration (ICP) algorithm.  The closest point on the triangular mesh to the points where the tip of the 
-pointer contacted the bone was found iteratively until the error threshold was reached.  In this way, the error
+point registration (ICP) algorithm. The closest point on the triangular mesh to the points where the tip of the 
+pointer contacted the bone was found iteratively until the error threshold was reached. In this way, the error
 between these points could be minimized.  
 
 
@@ -90,7 +90,7 @@ lecture notes pictured below.
 
 We then stack the polynomials to form the F Matrix, although this polynomial can be increased for higher
 precision or decreased for higher performance as needed. Once we have these polynomials stacked as a large
-matrix we solve the least squareds problem utilizing SVD against the ground truth data, as outlined on slide 43
+matrix we solve the least squares problem utilizing SVD against the ground truth data, as outlined on slide 43
 of the lecture notes pictured below.
 
 
@@ -167,10 +167,10 @@ below how this is implemented:
 
 .. image:: static/PA3_Eq4_new.png
 
-Where x and y are the two end points of the line segment, c is the point to be projected on the line segment, c* is the 
-projected point on the line segment, and alpha* is the ratio of normalized length from x to c*. If two of the three c* 
-projections lie on the same vertex, then the closest point on the triangle is that vertex. Otherwise, the closest point 
-will be the c* projection on the side whose value for alpha* satisfies the conditions of being between one and zero. 
+Where x and y are the two end points (or vertices) of the line segment, c is the point to be projected on the line segment,
+c* is the projected point on the line segment, and alpha* is the ratio of normalized length from x to c*. If two of the 
+three c* projections lie on the same vertex, then the closest point on the triangle is that vertex. Otherwise, the closest 
+point will be the c* projection on the side whose value for alpha* satisfies the conditions of being between one and zero. 
 Then the equation (from the Point Pairs lecture slides) below is implemented to find the closest point c*:
 
 .. image:: static/PA3_Eq5_new.png
@@ -262,7 +262,7 @@ Find Nearest Point
 
 Next a Find Nearest Point algorithm was created which used both the parser and hornRegistration algorithms
 mentioned above. First, each point of tracker data was parsed into Eigen vectors of (x,y,z) coordinates which 
-corresponded to the position of the trackers attached to the rigid bodies, A and B, in optical coordinates  Next, another 
+corresponded to the position of the trackers attached to the rigid bodies, A and B, in optical coordinates. Next, another 
 set of tracker data was parsed into Eigen vectors of (x,y,z) coordinates which corresponded to the position of the 
 trackers attached to the rigid bodies in their body coordinates. The transformation matrix from the body frame to the 
 optical tracker frame was then computed using the hornRegistration function described above. Then the coordinates tip of 
@@ -280,28 +280,31 @@ triangle was calculated by taking the norm between the points and the smallest e
 the mesh to the pointer tip A.
 
 
-A more efficient method would be to run the Find Nearest Point algorithm on only some of the triangles that passed initial 
-criteria instead of all of the triangles. This would be done by using a data structure such as a bounding box or some 
-type of hierarchical data structure.
-
-
 ICP
 ---
 
 The ICP algorithm continuously ran the Find Nearest point algorithm until the error criteria was reached. On the first
 iteration, the transformation from the CT mesh coordinates and the rigid body B coordinates was assumed to be the identity
 matrix. Then on subsequent iterations, a new estimate of the transformation was found using a hornRegistration from the
-rigid body B coordinates to the closest points found on the CT mesh found in the previous iteration.  Once the transformation
+rigid body B coordinates to the closest points found on the CT mesh found in the previous iteration. Once the transformation
 was found, the sample points were computed the same way as in the Find Nearest Point Algorithm and the steps were continued
-until new closest points on the mesh were found.  The error calculated in each iteration was compared to the error criteria
+until new closest points on the mesh were found. The error calculated in each iteration was compared to the error criteria
 and if the error calculated was below the criteria, then ICP algorithm was stopped and the new closest points and transformation
 were assumed to be a good estimate.
 
 
-More Efficient ICP 
-------------------
+Spatial Indexing
+----------------
 
-Need to discuss what we did to make our ICP algorithm run fast.  Either threads or data structure
+Additionally, an alternative ICP algorithm was implemented using the `Boost.Geometry Spatial Index library <http://www.boost.org/doc/libs/1_57_0/libs/geometry/doc/html/geometry/spatial_indexes/introduction.html>`_ , 
+which contains an r-tree implementation. The ideal mechanism to accelerate search is to insert each
+triangle into the index, then query the r-tree for the nearest triangle to a given point. This would substantially
+speed up all data access by reducing access time for an individual element from O(n) to O(log(n)).
+However, this data structure does not yet have triangle insertion implemented. Instead the bounding box of each 
+triangle is inserted into the index with a reference to the underlying triangle. From this, the nearest bounding
+boxes are queried and visited in order from nearest to furthest, and the underlying polygon distance is checked.
+As soon as a bounding box distance is reached that is entirely further away than the nearest polygon, the search
+is stopped and the ICP algorithm proceeds as normal, with an accelerated lookup of the closest point on the mesh.
 
 
 
@@ -344,8 +347,8 @@ Each function includes substantial doxygen documentation explaining its purpose 
 can be viewed inline with the source code, or via a generated html sphinx + doxygen website generated using CMake. 
 Here is a list of the most important functions used in the program is a brief description of each of them.
 
-PA1
-~~~
+PA 1
+~~~~
 
 **EigenMatrix()**         	   
 
@@ -398,8 +401,8 @@ Computes the pivot point position from tracking data using the SVDSolve(),
 registrationToFirstCloud(), and transformToRandMinusIandPMatrices() functions
 
 
-PA2
-~~~
+PA 2
+~~~~
 
 **CorrectDistortion()**
 
@@ -431,12 +434,20 @@ Uses measured positions of EM tracker points on the EM probe in the EM frame whe
 and returns points of the CT fiducial locations in EM frame.
 
 
-PA3
-~~~
+PA 3
+~~~~
 
-**icpPointMeshRegistration()**
+**ICPwithSimpleSearchStep()**
 
-Primary function implementing the first iteration of the math specific to the ICP of the system specified in PA3.
+Primary function implementing the first iteration of the simple search ICP algorithm.
+
+**ICPwithSpatialIndexStep()**
+
+Primary function implementing the first iteration of the spatial index ICP algorithm to increase efficiency.
+
+**dkKnownMeshPointsBaseFrame()**
+
+Finds the location of of Atip in fiducial body B coordinates (dk) using hornRegistration.
 
 **FindClosestPoint()**
 
@@ -459,8 +470,22 @@ Determines if two points are equal. Used by the function OutsideOfTriangle to de
 triangle lies on a vertex
 
 
-PA4
-~~~
+PA 4
+~~~~
+
+**ICPwithSimpleSearch()**
+
+ICP algorithm that iterates the simple search of the FindClosestPoint algorithm until an error threshold is reached.
+
+**ICPwithSpatialIndex()**
+
+ICP algorithm that iterates the spatial index of the FindClosestPoint algorithm until an error threshold is reached.
+The spatial index is used to increase efficiency of the ICP algorithm.
+
+**shouldTerminate()**
+
+Function implemented to see if the current iterations of the ICP algorithm is within our desired error threshold.
+
 
 
 Results and Discussion
@@ -476,7 +501,7 @@ basic functions and ensure they are running correctly.
 
 
 Point Cloud Registration
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 We have been able to ensure that point cloud to point cloud registration is working correctly by finding the
 transformation of one point cloud to another and then the opposite. Multiplying these two transformation
@@ -485,13 +510,13 @@ ensuring that we were within the given tolerance range. This shows the strength 
 special case exceptions for a solution, we concluded it was the best method of the one's taught in class.
 
 Calibration
------------
+~~~~~~~~~~~
 
 The position of the tip of the probe when calibrate by EM also gave us results well within our tolerance
 levels. Our results were less accurate when error was introduced, but not to an unreasonable degree.
 
 Finding the Closest Point on a Triangle
----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We have also been able to ensure that finding the closest point on a triangle algorithm is working correctly by assigning
 vertices to an arbitrary triangle and then testing points in space where we knew what the closest point on the triangle
@@ -521,43 +546,9 @@ implemented, our program was able to run the program of all debug and unknown da
 in debug mode. Adding threads and running in release mode made our program run even faster. A data structure was not
 needed for this assignment because we concluded that there was no problem with the speed of the program. For PA 4, we will
 re-evaluate this conclusion as the ICP will need to iterate multiple times, greatly increasing our runtime.
- 
-PA 4
-----
-
-
-Performance
-~~~~~~~~~~~
-
-We took several approaches to performance optimization. First, we ensured there are instructions for building and executing
-the code in release mode with high performance settings for fast execution. We also ensured all of our functions were
-implemented with high performance in mind, utilizing eigen C++ library functions and other cases where vectorization of
-data allows higher performance. Then, we implemented threading so that all data sets can be executed simultaneously, 
-which resulted in an approximately 8 fold speedup for computers with multiple processors. These performance criteria
-allow the application to execute all the data sets in 35.5 seconds on a 2014 Intel core i7 processor. This performance 
-was achieved with simple search, and should be adequate for the current needs and data sets.
-
-Spatial Indexing
-~~~~~~~~~~~~~~~~
-
-Additionally, an alternative ICP algorithm was implemented using the `Boost.Geometry Spatial Index library <http://www.boost.org/doc/libs/1_57_0/libs/geometry/doc/html/geometry/spatial_indexes/introduction.html>`_ , 
-which contains an r-tree implementation. The ideal mechanism to accelerate search is to insert each
-triangle into the index, then query the r-tree for the nearest triangle to a given point. This would substantially
-speed up all data access by reducing access time for an individual element from O(n) to O(log(n)).
-However, this data structure does not yet have triangle insertion implemented. Instead the bounding box of each 
-triangle is inserted into the index with a reference to the underlying triangle. From this, the nearest bounding
-boxes are queried and visited in order from nearest to furthest, and the underlying polygon distance is checked.
-As soon as a bounding box distance is reached that is entirely further away than the nearest polygon, the search
-is stopped and the ICP algorithm proceeds as normal, with an accelerated lookup of the closest point on the mesh.
-
-Currently there is a bug in the implementation of this function, and we suspect that the distance
-comparison is not done correctly. We suspect the mistake is due to the potential for overlapping bounding 
-boxes when one triangle is definitvely closer and thus returning polygons that are not the closest. However,
-the other performance optimizations performed on simple search mean results can be found in a reasonable amount
-of time for the current use case.
 
 Tabular Summary of PA 3 Unknown Data Results
---------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 =================   ===============   ===============   ===============
@@ -588,12 +579,49 @@ Point Number        Error in G Data   Error in H Data   Error in I Data
 =================   ===============   ===============   ===============
 
 The error in debug data sets is consistent with the error in the output files. On the unknown output, the overall error
-bounds seem reasonable when compared to the debug data sets.  We expect our algorithms are not the most substantial source
+bounds seem reasonable when compared to the debug data sets. We expect our algorithms are not the most substantial source
 of error in these results and instead are attributed to noise or other sources of error.
+ 
+
+PA 4
+----
+
+Performance
+~~~~~~~~~~~
+
+We took several approaches to performance optimization. First, we ensured there are instructions for building and executing
+the code in release mode with high performance settings for fast execution. We also ensured all of our functions were
+implemented with high performance in mind, utilizing the Eigen C++ library functions and other cases where vectorization of
+data allows higher performance. Then, we implemented threading so that all data sets can be executed simultaneously, 
+which resulted in an approximately 8 fold speed up for computers with multiple processors. These performance criteria
+allow the application to execute all the data sets in 35.5 seconds on a 2014 Intel core i7 processor. This performance 
+was achieved with simple search, and should be adequate for the current needs and data sets.
+
+Spatial Indexing
+~~~~~~~~~~~~~~~~
+
+Currently there is a bug in the implementation of this function, and we suspect that the distance
+comparison is not done correctly. We suspect the mistake is due to the potential for overlapping bounding 
+boxes when one triangle is definitively closer and thus returning polygons that are not the closest. However,
+the other performance optimizations performed on simple search mean results can be found in a reasonable amount
+of time for the current use case.
+
+Stopping Error Criteria
+~~~~~~~~~~~~~~~~~~~~~~~
+
+We implemented several different stopping criteria for our ICP algorithm. The first was a minimum iteration so 
+that the ICP had to run a minimum number of iterations before it could be stopped. The second was a mean error
+criteria so that the ICP would not stop iterating unless the mean error was sufficiently low. The third was a 
+max error criteria so that the ICP would not stop iterating unless the maximum error criteria was sufficiently 
+low. The next criteria was a change in error criteria so that the ICP would not stop iterating unless the 
+optimization no longer had an effect on reducing the error. The final criteria was a maximum iteration so that
+the ICP would not just keep running forever if the error never met any of the previous criteria. All of these
+error criteria were checked after each iteration by the shouldTerminate function to determine if the ICP should
+be stopped.
 
 
 Tabular Summary of PA 4 Results
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 =================   ===============   ===============   ===============
 File                Error Mean        Error Max         Error Variance
@@ -610,6 +638,14 @@ PA4-H-Unknown       0.00364877        0.0118835         7.24306e-06
 PA4-J-Unknown       0.0650882         0.337438          0.00308615 
 PA4-K-Unknown       0.0665567         0.259723          0.00288765
 =================   ===============   ===============   ===============
+
+The mean, max, and variance of the error found at the end of the ICP algorithm were low for all data sets. From this,
+we concluded that our final Freg found was a very reasonable transformation from the points on the bone to the points
+on the mesh.
+
+In the tabular summary above, it can be seen that the mean and max error is an order of magnitude higher in data sets 
+E, F, J, and K than in the rest of the data sets. This is due to the stopping criteria that we chose. An alternative 
+stopping criteria may give a more accurate final Freg.
 
 
 Error Propagation
@@ -635,12 +671,12 @@ structures that are known in advance that can be used to estimate and account fo
 Additionally, inaccurate sensors due to large random variation are an example of error which cannot be removed through 
 distortion calibration. 
 
-PA 3
-~~~~
+PA 3 and 4
+~~~~~~~~~~
 
-Possible error sources and propagation were due to simulated noise.  The early debug sets had the least amount of
+Possible error sources and propagation were due to simulated noise. The early debug sets had the least amount of
 simulated noise corresponding to very low error while the later debug sets and unknown sets had a greater simulated noise
-corresponding to a slightly larger error.  The simulated noise could have been attributed to a number of sources including
+corresponding to a slightly larger error. The simulated noise could have been attributed to a number of sources including
 Optical distortion, Optical Noise, Optical jiggle, CT distortion, or CT Noise.
 
 
@@ -663,9 +699,17 @@ particular algorithms we are using.
 PA 3
 ~~~~
 
-Our metric for error is the norm between the sample points and the nearest points on the CT mesh.  The norm was small in
-most cases so we concluded that our implementation of ICP registration was successful.  In PA 4, we will expand on our
-current ICP by iterating and setting an error bound to obtain more accurate results.
+Our metric for error is the norm between the sample points and the nearest points on the CT mesh. The norm was small in
+most cases so we concluded that our implementation of the first step of ICP registration was successful. In PA 4, we will 
+expand on our current ICP by iterating and setting an error bound to obtain more accurate results.
+
+PA 4
+~~~~
+
+Our metric for error is the norm between the sample points and the nearest points on the CT mesh. An ICP was run until
+the error was minimized below our error criteria. Our ICP algorithm produced low errors so we concluded that our
+transformation matrix, Freg, was a good representation of mapping points on the bone to points on the CT mesh.
+
 
 Andrew and Alex spent approximately equal time on the assignment, with significant amounts of time spent pair
 programming. Both contributed equally to the implementation and debugging of functions.

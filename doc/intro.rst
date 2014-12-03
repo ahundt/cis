@@ -86,7 +86,7 @@ polynomial for each point using the polynomial function outlined in slide 18 of 
 lecture notes pictured below.
 
 
-.. image:: static/bernstein_polynomial.png
+.. image:: static/bernstein_polynomial_clean.png
 
 We then stack the polynomials to form the F Matrix, although this polynomial can be increased for higher
 precision or decreased for higher performance as needed. Once we have these polynomials stacked as a large
@@ -147,33 +147,44 @@ Finding the Closest Point on a Triangle
 ---------------------------------------
  
 If the vertices of a triangle are know and there is a point in space, then the closest point that lies on the triangle to 
-the point in space can be found. This is done by using the equations (from the Point Pairs lecture slides) given below:
+the point in space can be found. This is done by using the equations given below:\[2]
 
-.. image:: static/PA3_Eq1.png
+.. image:: static/PA3_GraphicsApproach_Eq1.png
 
-.. image:: static/PA3_Eq2.png
+.. image:: static/PA3_GraphicsApproach_Eq2.png
 
-Where a is the point in space, p, q, and r are the vertices of the triangles, and c is the closest point that lies on the 
-triangle. If the following constraints (from the Point Pairs lecture slides) are true:
+.. image:: static/PA3_GraphicsApproach_Eq3.png
+
+.. image:: static/PA3_GraphicsApproach_Eq4.png
+
+Where P is the point in space, P1, P2, and P3 are the vertices of the triangles. Then the closest point on the triangle P'
+can be found using Barycentric coordinates listed below:\[2]
  
- .. image:: static/PA3_Constraint1.png
+.. image:: static/PA3_GraphicsApproach_Eq5.png
+
+.. image:: static/PA3_GraphicsApproach_Eq6.png
+
+.. image:: static/PA3_GraphicsApproach_Eq7.png
+
+.. image:: static/PA3_GraphicsApproach_Eq8.png
  
-Then the c is the closest point and lies within the triangle's boundaries. A 2x2 linear system can then be solved using
-an explicit least squares approach to find lambda and mu. If the closest point lies on the boundaries of the triangle, 
-then the point must be projected onto every side of the triangle. The equations (from the Point Pairs lecture slides)
-below how this is implemented:
+If alpha, beta, and gamma are all between zero and one, then the P' is the closest point and lies within the triangle's 
+boundaries. If not, the closest point lies on the boundaries of the triangle and the point P must be projected onto every 
+side of the triangle. The equations (from the Finding point-pairs lecture page 8) below how this is implemented:
 
-.. image:: static/PA3_Eq3_new.png
+.. image:: static/PA3_GraphicsApproach_Eq9.png
 
-.. image:: static/PA3_Eq4_new.png
+.. image:: static/PA3_GraphicsApproach_Eq10.png
 
-Where x and y are the two end points (or vertices) of the line segment, c is the point to be projected on the line segment,
-c* is the projected point on the line segment, and alpha* is the ratio of normalized length from x to c*. If two of the 
-three c* projections lie on the same vertex, then the closest point on the triangle is that vertex. Otherwise, the closest 
-point will be the c* projection on the side whose value for alpha* satisfies the conditions of being between one and zero. 
-Then the equation (from the Point Pairs lecture slides) below is implemented to find the closest point c*:
+Where X and Y are the two end points (or vertices) of the line segment, P is the point to be projected on the line segment,
+P* is the projected point on the line segment, and lambda* is the ratio of normalized length from X to P*. If two of the 
+three P* projections lie on the same vertex, then the closest point on the triangle is that vertex. Otherwise, the closest 
+point will be the P* projection on the side whose value for lambda* satisfies the conditions of being between one and zero. 
+Then the equation (from the Finding point-pairs lecture page 8) below is implemented to find the closest point P*:
 
-.. image:: static/PA3_Eq5_new.png
+.. image:: static/PA3_GraphicsApproach_Eq11.png
+
+* \[2] W. Heidrich, Journal of Graphics, GPU, and Game Tools,Volume 10, Issue 3, 2005.
 
 
 ICP
@@ -550,7 +561,6 @@ re-evaluate this conclusion as the ICP will need to iterate multiple times, grea
 Tabular Summary of PA 3 Unknown Data Results
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 =================   ===============   ===============   ===============
 Point Number        Error in G Data   Error in H Data   Error in I Data
 =================   ===============   ===============   ===============
@@ -615,10 +625,9 @@ criteria so that the ICP would not stop iterating unless the mean error was suff
 max error criteria so that the ICP would not stop iterating unless the maximum error criteria was sufficiently 
 low. The next criteria was a change in error criteria so that the ICP would not stop iterating unless the 
 optimization no longer had an effect on reducing the error. The final criteria was a maximum iteration so that
-the ICP would not just keep running forever if the error never met any of the previous criteria. All of these
-error criteria were checked after each iteration by the shouldTerminate function to determine if the ICP should
-be stopped.
-
+the ICP would not just keep running forever if the error never met any of the previous criteria. Each error
+criteria were checked after each iteration by the shouldTerminate function to determine if the ICP should be 
+stopped.
 
 Tabular Summary of PA 4 Results
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -639,13 +648,14 @@ PA4-J-Unknown       0.0650882         0.337438          0.00308615
 PA4-K-Unknown       0.0665567         0.259723          0.00288765
 =================   ===============   ===============   ===============
 
-The mean, max, and variance of the error found at the end of the ICP algorithm were low for all data sets. From this,
-we concluded that our final Freg found was a very reasonable transformation from the points on the bone to the points
-on the mesh.
+The mean, max, and variance of the errors found at the end of the ICP algorithm were low for all data sets. Also our
+error results from the debug data sets were similar to those of Dr. Taylor's output files. From these observations, 
+we concluded that our final Freg found was a very reasonable transformation from the points on the bone to the points 
+on the mesh and that we chose our error stopping criteria well.
 
 In the tabular summary above, it can be seen that the mean and max error is an order of magnitude higher in data sets 
-E, F, J, and K than in the rest of the data sets. This is due to the stopping criteria that we chose. An alternative 
-stopping criteria may give a more accurate final Freg.
+E, F, J, and K than in the rest of the data sets. This is due to error propagation in these data sets which are 
+discussed below. In the two debug sets E and F, our error results were still similar to Dr. Taylor's output files.
 
 
 Error Propagation
@@ -708,8 +718,9 @@ PA 4
 
 Our metric for error is the norm between the sample points and the nearest points on the CT mesh. An ICP was run until
 the error was minimized below our error criteria. Our ICP algorithm produced low errors so we concluded that our
-transformation matrix, Freg, was a good representation of mapping points on the bone to points on the CT mesh. In addition, 
-Our ICP also ran quickly so we concluded that our stopping criteria was a good choice for our program.
+transformation matrix, Freg, was a good representation of mapping points on the bone to points on the CT mesh. In addition
+to our low errors, our ICP also ran quickly so we concluded that our error bounds used as stopping criteria was a good 
+choices for our program.
 
 
 Andrew and Alex spent approximately equal time on the assignment, with significant amounts of time spent pair

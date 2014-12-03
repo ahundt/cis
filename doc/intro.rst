@@ -289,7 +289,6 @@ File name                       Description
 **hornRegistration.hpp**        Horn's method of Point Cloud to Point Cloud registration.
 **PivotCalibration.hpp**        Pivot Calibration.
 **PA2.hpp**                     **fiducialPointInEMFrame()** and **probeTipPointinCTFrame()** PA2 #4,6
-**PA3.hpp**                     Implements icp solving of specific PA3 system.
 **cisHW1test.cpp**              An extensive set of unit tests for the library relevant to PA1.
 **cisHW2test.cpp**              An extensive set of unit tests for the library relevant to PA2.
 **cisHW3test.cpp**              An extensive set of unit tests for the library relevant to PA3.
@@ -520,6 +519,25 @@ Point Number        Error in G Data   Error in H Data   Error in I Data
 The error in debug data sets is consistent with the error in the output files. On the unknown output, the overall error
 bounds seem reasonable when compared to the debug data sets.  We expect our algorithms are not the most substantial source
 of error in these results and instead are attributed to noise or other sources of error.
+
+
+Tabular Summary of PA 4 Results
+-------------------------------
+
+=================   ===============   ===============   ===============
+File                Error Mean        Error Max         Error Variance
+=================   ===============   ===============   ===============
+
+PA4-A-Debug         0.00197113        0.00717058        2.23062e-06 
+PA4-B-Debug         0.00186124        0.00787022        2.47282e-06
+PA4-C-Debug         0.00176908        0.0069919         2.21001e-06 
+PA4-D-Debug         0.00324727        0.0133826         6.58918e-06 
+PA4-E-Debug         0.0668846         0.275337          0.0031848 
+PA4-F-Debug         0.0593784         0.256141          0.00257083 
+PA4-G-Unknown       0.00332878        0.0149228         7.39938e-06 
+PA4-H-Unknown       0.00364877        0.0118835         7.24306e-06 
+PA4-J-Unknown       0.0650882         0.337438          0.00308615 
+PA4-K-Unknown       0.0665567         0.259723          0.00288765
 
 
 Error Propagation

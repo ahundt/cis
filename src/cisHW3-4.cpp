@@ -80,7 +80,7 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
     ("maxErrorThreshold"                    ,po::value<double>()->default_value(tcp.maxErrorThreshold)       ,"stop ICP when max error drops below this level")
     ("minVarianceInMeanErrorBetweenIterations"                   ,po::value<double>()->default_value(tcp.minVarianceInMeanErrorBetweenIterations)       ,"stop ICP when mean error no longer varies between iterations")
     ("minIterationCount"                   ,po::value<int>()->default_value(tcp.minIterationCount)       ,"Do not stop ICP unless this many iterations have run")
-    ("maxIterationCount"                    ,po::value<int>()->default_value(tcp.maxIterationCount)       ,"Stop ICP when the maximum iteration count threshold is reached")
+    ("maxIterationCount"                    ,po::value<int>()->default_value(tcp.maxIterationCount)       ,"Stop ICP when the maximum iteration count threshold is reached, superceded by minIterationCount")
     
     ;
 
@@ -187,6 +187,9 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
 	po::readOption(vmap, "minVarianceInMeanErrorBetweenIterations"               ,tcp.minVarianceInMeanErrorBetweenIterations        ,optional);
 	po::readOption(vmap, "minIterationCount"               ,tcp.minIterationCount        ,optional);
 	po::readOption(vmap, "maxIterationCount"               ,tcp.maxIterationCount        ,optional);
+    
+    // min iteration count supercedes max
+    tcp.maxIterationCount = std::max(tcp.minIterationCount,tcp.maxIterationCount);
 	
     // enable threads if specified
     pclp.threads = vmap.count("threads");

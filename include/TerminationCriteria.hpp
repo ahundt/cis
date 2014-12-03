@@ -77,12 +77,13 @@ struct TerminationCriteria {
 	void PrintIterationStats(){
         if(m_tcp.trackProgressEveryNIterations) {
             std::cout << "\n"
-                  <<  "iter: " << acc::count(*m_iterationMeanAcc)                      << "/" << m_tcp.maxIterationCount
+                  <<  "iter: "        << acc::count(*m_iterationMeanAcc)              << "/" << m_tcp.maxIterationCount
 				  << " Error"
-                  << " mean: "      << acc::mean(*m_acc)                            << "/" << m_tcp.meanErrorThreshold
-                  << " max: "       << acc::extract_result< acc::tag::max >(*m_acc) << "/" << m_tcp.maxErrorThreshold
-                  << " rVarOfMean: "  << acc::rolling_variance(*m_iterationMeanAcc) << "/" << m_tcp.minVarianceInMeanErrorBetweenIterations
-                  << " File: "            << description                                  << "\n";
+                  << " mean: "        << acc::mean(*m_acc)                            << "/" << m_tcp.meanErrorThreshold
+                  << " max: "         << acc::extract_result< acc::tag::max >(*m_acc) << "/" << m_tcp.maxErrorThreshold
+                  << " var: "         << acc::variance(*m_acc)
+                  << " rVarOfMean: "  << acc::rolling_variance(*m_iterationMeanAcc)   << "/" << m_tcp.minVarianceInMeanErrorBetweenIterations
+                  << " File: "        << description                                  << "\n";
         }
 		
 	}

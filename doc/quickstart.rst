@@ -132,6 +132,13 @@ The following is an example of how to run the main cisHW1-2 executable, cisHW3-4
 
 
 
+The following is an example of how to run the main cisHW3-4 executable.
+
+.. code-block:: bash
+    
+    ./cisHW3-4 --dataFolderPath /path/to/cis/data/PA3-5/ --threads --minIterationCount 500
+
+
 Command Line Format
 ~~~~~~~~~~~~~~~~~~~
 
@@ -222,7 +229,7 @@ The available command line parameters and descriptions for the primary
 **cisHW3-4** executable file are below.
 
 .. code-block:: bash
-
+    
     ./cisHW3-4
     
     General Options:
@@ -235,7 +242,24 @@ The available command line parameters and descriptions for the primary
     
     Algorithm Options:
       --threads                             run each source data file in a separate
-                                            thread
+                                            thread. May speed up execution
+                                            dramatically.
+      --useSpatialIndex                     Experimental 2014-12-02: Use a spatial
+                                            index to store source data triangles
+                                            and speed up ICP.
+      --meanErrorThreshold arg (=0.01)      stop ICP when mean error drops below
+                                            this level
+      --maxErrorThreshold arg (=0.10000000000000001)
+                                            stop ICP when max error drops below
+                                            this level
+      --minVarianceInMeanErrorBetweenIterations arg (=1e-10)
+                                            stop ICP when mean error no longer
+                                            varies between iterations
+      --minIterationCount arg (=10)         Do not stop ICP unless this many
+                                            iterations have run
+      --maxIterationCount arg (=300)        Stop ICP when the maximum iteration
+                                            count threshold is reached, superceded
+                                            by minIterationCount
     
     Data Options:
       --pa3                                 set automatic programming assignment 3
@@ -253,7 +277,7 @@ The available command line parameters and descriptions for the primary
       --dataFilenamePrefix arg              constant prefix of data filename path.
                                             Specify this multiple times to run on
                                             many data sources at once
-      --dataFilenameProblemPrefix arg (=Problem3)
+      --dataFilenameProblemPrefix arg (=Problem4)
                                             constant prefix of data typically
                                             starting with "Problem" filename path.
                                             Specify this multiple times to run on
@@ -262,7 +286,7 @@ The available command line parameters and descriptions for the primary
       --suffixOutput arg (=-Output.txt)     suffix of data filename path
       --suffixSample arg (=-SampleReadingsTest.txt)
                                             suffix of data filename path
-      --suffixMesh arg (=Mesh.sur)          suffix of data filename path
+      --suffixMesh arg (=MeshFile.sur)      suffix of data filename path
       --suffixBodyA arg (=-BodyA.txt)       suffix of data filename path
       --suffixBodyB arg (=-BodyB.txt)       suffix of data filename path
       --AnswerPath arg                      full path to data txt file, optional
@@ -291,7 +315,6 @@ The available command line parameters and descriptions for the primary
                                             combination
       --output2Path arg                     full path to data txt file, optional
                                             alternative to prefix+suffix name
-                                            combination
     
 
 Unit Test

@@ -26,7 +26,6 @@
 #include "parsePA3_4.hpp"
 #include "DistortionCalibration.hpp"
 #include "IterativeClosestPoint.hpp"
-#include "PA3.hpp"
 
 namespace po = boost::program_options;
 
@@ -70,10 +69,20 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
     ("debugParser","display debug information for data file parser")
     ;
 
+    
+    TerminationCriteriaParams tcp; // default termination criteria params
 
     po::options_description algorithmOptions("Algorithm Options");
     algorithmOptions.add_options()
-    ("threads","run each source data file in a separate thread");
+    ("threads","run each source data file in a separate thread. May speed up execution dramatically.")
+    ("useSpatialIndex","Experimental 2014-12-02: Use a spatial index to store source data triangles and speed up ICP.")
+    ("meanErrorThreshold"                   ,po::value<double>()->default_value(tcp.meanErrorThreshold)       ,"stop ICP when mean error drops below this level")
+    ("maxErrorThreshold"                    ,po::value<double>()->default_value(tcp.maxErrorThreshold)       ,"stop ICP when max error drops below this level")
+    ("minVarianceInMeanErrorBetweenIterations"                   ,po::value<double>()->default_value(tcp.minVarianceInMeanErrorBetweenIterations)       ,"stop ICP when mean error no longer varies between iterations")
+    ("minIterationCount"                   ,po::value<int>()->default_value(tcp.minIterationCount)       ,"Do not stop ICP unless this many iterations have run")
+    ("maxIterationCount"                    ,po::value<int>()->default_value(tcp.maxIterationCount)       ,"Stop ICP when the maximum iteration count threshold is reached")
+    
+    ;
 
 
     // create algorithm command line options
@@ -171,8 +180,17 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
 	po::readOption(vmap, "suffixBodyA"                     ,dataFileNameSuffix_BodyAPath       ,optional);
 	po::readOption(vmap, "suffixBodyB"                     ,dataFileNameSuffix_BodyBPath       ,optional);
     
+
+    /// @todo consider allowing these values to be specified separately for each data source
+	po::readOption(vmap, "meanErrorThreshold"              ,tcp.meanErrorThreshold       ,optional);
+	po::readOption(vmap, "maxErrorThreshold"               ,tcp.maxErrorThreshold        ,optional);
+	po::readOption(vmap, "minVarianceInMeanErrorBetweenIterations"               ,tcp.minVarianceInMeanErrorBetweenIterations        ,optional);
+	po::readOption(vmap, "minIterationCount"               ,tcp.minIterationCount        ,optional);
+	po::readOption(vmap, "maxIterationCount"               ,tcp.maxIterationCount        ,optional);
+	
     // enable threads if specified
     pclp.threads = vmap.count("threads");
+    pclp.useSpatialIndex = vmap.count("useSpatialIndex");
     
     if (vmap.count("pa3")) {
         dataFilenamePrefixList = PA3DataFilePrefixes();
@@ -202,6 +220,7 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
 	// from the default paths and the defualt prefix/suffix combos
     for(auto&& prefix : dataFilenamePrefixList){
         DataSourcePA3_4 dataSource;
+		dataSource.terminationCriteriaParams = tcp;
         dataSource.filenamePrefix = prefix;
         dataSource.filenameProblemPrefix = dataFilenameProblemPrefix;
         assemblePathIfFullPathNotSupplied(dataFolderPath,dataSource.filenameProblemPrefix       ,dataFileNameSuffix_BodyAPath   ,dataSource.BodyA            ,required);
@@ -221,18 +240,18 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
 
 
 /// run the PA3 algorithm and create then write the output file
-void generateOutputFilePA3_4(AlgorithmDataPA3_4 ad, std::string outputDataFolderPath, std::string dataFilenamePrefix, bool debug = false){
+void generateOutputFilePA3_4(AlgorithmDataPA3_4 ad, std::string outputDataFolderPath, std::string dataFilenamePrefix, bool useSpatialIndex = false, TerminationCriteriaParams tcp = TerminationCriteriaParams(), bool debug = false){
     
     Eigen::MatrixXd skMat;
     Eigen::MatrixXd ckMat;
 	
     std::vector<double> errork;
     Eigen::Affine3d Freg;
-    TerminationCriteria tc;
+    TerminationCriteria tc(tcp);
     tc.description = dataFilenamePrefix;
 	
     Eigen::MatrixXd dkMat = dkKnownMeshPointsBaseFrame(ad.sampleReadings.NA, ad.sampleReadings.NB, ad.bodyA.tip, ad.bodyA.markerLEDs, ad.bodyB.markerLEDs);
-    if(true){ // original slower way
+    if(!useSpatialIndex){ // original slower way
         multiStepIcpPointMeshRegistration(dkMat, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,tc,Freg,skMat,ckMat,errork,debug);
     } else { // new cool fast big data structure way
         optimizedICP(dkMat, ad.mesh.vertices, ad.mesh.vertexTriangleNeighborIndex,tc,Freg,skMat,ckMat,errork,debug);
@@ -278,9 +297,9 @@ int main(int argc,char**argv) {
 
         if(pclp.threads) {
             // run all data sources in separate threads to speed up execution
-            th.push_back(std::thread(generateOutputFilePA3_4,ad, pclp.outputDataFolderPath, dataSource.filenamePrefix,pclp.debug));
+            th.push_back(std::thread(generateOutputFilePA3_4,ad, pclp.outputDataFolderPath, dataSource.filenamePrefix,pclp.useSpatialIndex,dataSource.terminationCriteriaParams,pclp.debug));
         } else {
-            generateOutputFilePA3_4(ad, pclp.outputDataFolderPath, dataSource.filenamePrefix,pclp.debug);
+            generateOutputFilePA3_4(ad, pclp.outputDataFolderPath, dataSource.filenamePrefix,pclp.useSpatialIndex,dataSource.terminationCriteriaParams,pclp.debug);
         }
     }
     

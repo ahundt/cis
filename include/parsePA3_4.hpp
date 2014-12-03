@@ -2,6 +2,7 @@
 #define _PARSE_CSV_CIS_POINTCLOUD_HPP_
 
 #include "parse.hpp"
+#include "TerminationCriteria.hpp"
 #include <Eigen/StdVector>
 
 struct CisMesh {
@@ -214,12 +215,15 @@ struct DataSourcePA3_4 {
 	std::string Answer        ;
 	std::string Output        ;
 	std::string Mesh          ;
+    
+    TerminationCriteriaParams terminationCriteriaParams;
 	
 };
 
 struct ParsedCommandLineCommandsPA3_4 {
     bool                    debug;
     bool                    debugParser;
+    bool                    useSpatialIndex;
     bool                    threads;
     std::string             outputDataFolderPath;
     std::vector<DataSourcePA3_4> dataSources;

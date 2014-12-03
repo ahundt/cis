@@ -9,6 +9,7 @@
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
 #include <boost/geometry/algorithms/correct.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 
 #include <boost/geometry/index/rtree.hpp>
@@ -283,8 +284,8 @@ void ICPwithSpatialIndexStep(
     skList.resize(dkList.rows(),3);
     
     for (int i=0; i<dkList.rows(); ++i){
-        double errorMin=std::numeric_limits<double>::max();
-        Eigen::Vector3d ckMin;
+        double minErrorAKAdistanceToClosestTriangle=std::numeric_limits<double>::max();
+        Eigen::Vector3d ckClosestPointOnMesh;
         Eigen::Vector3d dk_i(dkList.block<1,3>(i,0).transpose());
         
         Eigen::Vector3d sk(Freg*dk_i);
@@ -303,35 +304,36 @@ void ICPwithSpatialIndexStep(
             std::vector<cis::value> result_n;
             rtree.query(bgi::nearest(sk, querySize), std::back_inserter(result_n));
             
-            double prevDistance=std::numeric_limits<double>::max();
-            for(int i = 0; i < result_n.size(); ++i){
+            // results should be listed in order from closest box to furthest box,
+            // but the boxes can overlap so untl the closest point on the nearest triangle
+            // is closer than boxes later in the list, there may be closer triangle points
+            // than the current one.
+            for(auto&& result : result_n){
                 /// @todo may need to compare errorTemp to the distance from the point to the box instead of to the polygon.
-                Eigen::Vector3d ckTemp = FindClosestPoint(sk, result_n[i].second.outer()[0], result_n[i].second.outer()[1], result_n[i].second.outer()[2]);
-                double errorTemp = (sk-ckTemp).norm();
+                Eigen::Vector3d ckClosestPointOnCurrentTriangle = FindClosestPoint(sk, result.second.outer()[0], result.second.outer()[1], result.second.outer()[2]);
+                double distanceToCurrentBox = bg::distance(sk,result.first);
+                double distanceToCurrentTriangle = bg::distance(sk,ckClosestPointOnCurrentTriangle);
+                
                 
                 // leave the loop if the distance to the box is larger than the distance to the polygon
-                double distance = bg::distance(sk,result_n[i].first);
-                if( errorTemp > prevDistance || distance ==0){
-                    closestFound = true;
-                    break;
-                }
+                if( minErrorAKAdistanceToClosestTriangle < distanceToCurrentBox || distanceToCurrentTriangle == 0) closestFound = true;
                 
                 
-                if (errorTemp < errorMin){
+                if (distanceToCurrentTriangle < minErrorAKAdistanceToClosestTriangle){
                     // put dk (qk)  into A put ck into B
-                    ckMin = ckTemp;
-                    errorMin = errorTemp;
+                    ckClosestPointOnMesh = ckClosestPointOnCurrentTriangle;
+                    minErrorAKAdistanceToClosestTriangle = distanceToCurrentTriangle;
                 }
                 
-                prevDistance = distance;
             }
             
             // increase the query size and rerun it if we didn't find the closest point for certain
             querySize *=2;
         }
         
-        ckList.block<1,3>(i,0) = ckMin.transpose();
-        errork.push_back(errorMin);
+        ckList.block<1,3>(i,0) = ckClosestPointOnMesh.transpose();
+        BOOST_VERIFY(!boost::math::isnan(minErrorAKAdistanceToClosestTriangle));
+        errork.push_back(minErrorAKAdistanceToClosestTriangle);
     }
     
     Freg = hornRegistration(dkList,ckList);
@@ -399,7 +401,7 @@ void ICPwithSpatialIndex(
     for(int i = 0; !terminationCriteria.shouldTerminate(); i++){
         
         if(debug) std::cout << "\n\nFreg before iteration " << i << ":\n\n" << Freg.matrix() << "\n\n";
-        terminationCriteria.nextIteration();
+        if(i) terminationCriteria.nextIteration();
         ICPwithSpatialIndexStep(dkList,rtree,Freg,skList,ckList,errork);
         
         for(auto && err : errork){

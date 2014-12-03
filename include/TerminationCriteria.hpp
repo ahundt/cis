@@ -70,6 +70,7 @@ struct TerminationCriteria {
     ///
     /// @param error the amount of error found in the data point
     void operator()(double error){
+        BOOST_VERIFY(!boost::math::isnan(error));
         (*m_acc)(error);
     }
     
@@ -114,7 +115,9 @@ struct TerminationCriteria {
     
     /// resets accumulated statistics, not termination criteria
     void nextIteration(){
-       (*m_iterationMeanAcc)(acc::mean(*m_acc));
+       double meanErrorForIteration = acc::mean(*m_acc);
+       BOOST_VERIFY(!boost::math::isnan(meanErrorForIteration));
+       (*m_iterationMeanAcc)(meanErrorForIteration);
 	   if((acc::count(*m_iterationMeanAcc) % m_tcp.trackProgressEveryNIterations == 0)) PrintIterationStats();
        m_acc.reset(new accumulator_type(acc::tag::rolling_window::window_size = m_tcp.minIterationCount));
     }

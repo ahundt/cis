@@ -487,6 +487,39 @@ in debug mode. Adding threads and running in release mode made our program run e
 needed for this assignment because we concluded that there was no problem with the speed of the program. For PA 4, we will
 revaluate this conclusion as the ICP will need to iterate multiple times, greatly increasing our runtime.
  
+PA 4
+----
+
+
+Performance
+~~~~~~~~~~~
+
+We took several approaches to performance optimization. First, we ensured there are instructions for building and executing
+the code in release mode with high performance settings for fast execution. We also ensured all of our functions were
+implemented with high performance in mind, utilizing eigen C++ library functions and other cases where vectorization of
+data allows higher performance. Then, we implemented threading so that all data sets can be executed simultaneously, 
+which resulted in an approximately 8 fold speedup for computers with multiple processors. These performance criteria
+allow the application to execute all the data sets in 35.5 seconds on a 2014 Intel core i7 processor. This performance 
+was achieved with simple search, and should be adequate for the current needs and data sets.
+
+Spatial Indexing
+~~~~~~~~~~~~~~~~
+
+Additionally, an alternative ICP algorithm was implemented using the `Boost.Geometry Spatial Index library <http://www.boost.org/doc/libs/1_57_0/libs/geometry/doc/html/geometry/spatial_indexes/introduction.html>`_ , 
+which contains an r-tree implementation. The ideal mechanism to accelerate search is to insert each
+triangle into the index, then query the r-tree for the nearest triangle to a given point. This would substantially
+speed up all data access by reducing access time for an individual element from O(n) to O(log(n)).
+However, this data structure does not yet have triangle insertion implemented. Instead the bounding box of each 
+triangle is inserted into the index with a reference to the underlying triangle. From this, the nearest bounding
+boxes are queried and visited in order from nearest to furthest, and the underlying polygon distance is checked.
+As soon as a bounding box distance is reached that is entirely further away than the nearest polygon, the search
+is stopped and the ICP algorithm proceeds as normal, with an accelerated lookup of the closest point on the mesh.
+
+Currently there is a bug in the implementation of this function, and we suspect that the distance
+comparison is not done correctly. We suspect the mistake is due to the potential for overlapping bounding 
+boxes when one triangle is definitvely closer and thus returning polygons that are not the closest. However,
+the other performance optimizations performed on simple search mean results can be found in a reasonable amount
+of time for the current use case.
 
 Tabular Summary of PA 3 Unknown Data Results
 --------------------------------------------
@@ -541,6 +574,7 @@ PA4-G-Unknown       0.00332878        0.0149228         7.39938e-06
 PA4-H-Unknown       0.00364877        0.0118835         7.24306e-06 
 PA4-J-Unknown       0.0650882         0.337438          0.00308615 
 PA4-K-Unknown       0.0665567         0.259723          0.00288765
+=================   ===============   ===============   ===============
 
 
 Error Propagation

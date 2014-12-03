@@ -339,7 +339,7 @@ void ICPwithSpatialIndexStep(
 
 
 /// perform ICPregistration on source data consisting of sensor data,
-/// prior known body data, and a triangle mesh. Uses a spatial index for iteration.
+/// prior known body data, and a triangle mesh. Uses a spatial index for accessing triangles.
 ///
 /// @param[in] dkList location of Atip in fiducial B body coordinates, n x 3 matrix of transposed vectors
 /// @param[in]  vertices list of vertices on mesh, corresponding to bone surface

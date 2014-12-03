@@ -604,17 +604,9 @@ the code in release mode with high performance settings for fast execution. We a
 implemented with high performance in mind, utilizing the Eigen C++ library functions and other cases where vectorization of
 data allows higher performance. Then, we implemented threading so that all data sets can be executed simultaneously, 
 which resulted in an approximately 8 fold speed up for computers with multiple processors. These performance criteria
-allow the application to execute all the data sets in 35.5 seconds on a 2014 Intel core i7 processor. This performance 
-was achieved with simple search, and should be adequate for the current needs and data sets.
-
-Spatial Indexing
-~~~~~~~~~~~~~~~~
-
-Currently there is a bug in the implementation of this function, and we suspect that the distance
-comparison is not done correctly. We suspect the mistake is due to the potential for overlapping bounding 
-boxes when one triangle is definitively closer and thus returning polygons that are not the closest. However,
-the other performance optimizations performed on simple search mean results can be found in a reasonable amount
-of time for the current use case.
+allow the application to execute all the data sets in 35.5 seconds on a 2014 Intel Core i7 processor at 2.5 Ghz. This performance 
+was achieved with simple search. Spatial Indexing provides a substantial additional performance boost on top of optimized 
+simple search, executing all the data sets in 2.41s on a 2014 Intel Core i7 processor at 2.5 Ghz.
 
 Stopping Error Criteria
 ~~~~~~~~~~~~~~~~~~~~~~~

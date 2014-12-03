@@ -75,7 +75,7 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
     po::options_description algorithmOptions("Algorithm Options");
     algorithmOptions.add_options()
     ("threads","run each source data file in a separate thread. May speed up execution dramatically.")
-    ("useSpatialIndex","Experimental 2014-12-02: Use a spatial index to store source data triangles and speed up ICP.")
+    ("icpAlgorithm"                         ,po::value<std::string>()->default_value("spatialIndex"         ),"Options: spatialIndex, simpleSearch. Selects the ICP algorithm version to use. spatialIndex provides a substantial performance boost for large data sets. ")
     ("meanErrorThreshold"                   ,po::value<double>()->default_value(tcp.meanErrorThreshold)       ,"stop ICP when mean error drops below this level")
     ("maxErrorThreshold"                    ,po::value<double>()->default_value(tcp.maxErrorThreshold)       ,"stop ICP when max error drops below this level")
     ("minVarianceInMeanErrorBetweenIterations"                   ,po::value<double>()->default_value(tcp.minVarianceInMeanErrorBetweenIterations)       ,"stop ICP when mean error no longer varies between iterations")
@@ -166,7 +166,7 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
     DataSourcePA3_4 datasource;
 
     std::vector<std::string> dataFilenamePrefixList;
-	std::string dataFilenameProblemPrefix;
+	std::string dataFilenameProblemPrefix, icpAlgorithm;
 
     // load up parameter values from the variable map
     po::readOption(vmap, "dataFolderPath"                  ,dataFolderPath                     ,optional);
@@ -193,7 +193,10 @@ bool readCommandLine(int argc, char* argv[], ParsedCommandLineCommandsPA3_4 & pc
 	
     // enable threads if specified
     pclp.threads = vmap.count("threads");
-    pclp.useSpatialIndex = vmap.count("useSpatialIndex");
+    
+    // enable spatialIndex if selected
+	po::readOption(vmap, "icpAlgorithm"                     ,icpAlgorithm       ,optional);
+    pclp.useSpatialIndex = (icpAlgorithm == "spatialIndex");
     
     if (vmap.count("pa3")) {
         dataFilenamePrefixList = PA3DataFilePrefixes();

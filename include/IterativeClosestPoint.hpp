@@ -270,6 +270,7 @@ void ICPwithSimpleSearch(
 /// @param[out] ck location of CT mesh closest to sample points, nx3 matrix of transposed vectors
 /// @param[out] errork norm between ck and dk
 /// @param[out] errork norm between ck and dk
+/// @param[in]  initialQuerySize is the number of boxes that will initially be selected in spatialIndex. Affects algorithm performance.
 template<typename RTREE>
 void ICPwithSpatialIndexStep(
                       const Eigen::MatrixXd& dkList,
@@ -277,7 +278,8 @@ void ICPwithSpatialIndexStep(
                       Eigen::Affine3d& Freg,
                       Eigen::MatrixXd& skList,
                       Eigen::MatrixXd& ckList,
-                              std::vector<double>& errork){
+                      std::vector<double>& errork,
+                      const std::size_t initialQuerySize = 4){
     
     errork.clear();
     ckList.resize(dkList.rows(),3);
@@ -293,8 +295,9 @@ void ICPwithSpatialIndexStep(
         
         // starting query size will affect performance
         /// @todo consider making querySize a parameter
-        int querySize = 4;
+        
         bool closestFound = false;
+        std::size_t querySize = initialQuerySize;
         while(!closestFound){
             // If the distance to the next box was greater than to the nearest triangle
             // or the distance to the triangle was equal to 0
@@ -309,14 +312,10 @@ void ICPwithSpatialIndexStep(
             // is closer than boxes later in the list, there may be closer triangle points
             // than the current one.
             for(auto&& result : result_n){
-                /// @todo may need to compare errorTemp to the distance from the point to the box instead of to the polygon.
+                /// @todo Eliminate redundantly checking first querySize boxes in result_n on subsequent iterations of while(!closestFound == false).
                 Eigen::Vector3d ckClosestPointOnCurrentTriangle = FindClosestPoint(sk, result.second.outer()[0], result.second.outer()[1], result.second.outer()[2]);
                 double distanceToCurrentBox = bg::distance(sk,result.first);
                 double distanceToCurrentTriangle = bg::distance(sk,ckClosestPointOnCurrentTriangle);
-                
-                
-                // leave the loop if the distance to the box is larger than the distance to the polygon
-                if( minErrorAKAdistanceToClosestTriangle < distanceToCurrentBox || distanceToCurrentTriangle == 0) closestFound = true;
                 
                 
                 if (distanceToCurrentTriangle < minErrorAKAdistanceToClosestTriangle){
@@ -325,6 +324,11 @@ void ICPwithSpatialIndexStep(
                     minErrorAKAdistanceToClosestTriangle = distanceToCurrentTriangle;
                 }
                 
+                // leave the loop if the distance to the box is larger than the distance to the polygon
+                if( minErrorAKAdistanceToClosestTriangle < distanceToCurrentBox || distanceToCurrentTriangle == 0) {
+                    closestFound = true;
+                    break;
+                }
             }
             
             // increase the query size and rerun it if we didn't find the closest point for certain

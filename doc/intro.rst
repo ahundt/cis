@@ -16,11 +16,13 @@ Andrew Hundt and Alex Strickland Computer Integrated Surgery 600.445 Coursework 
 Introduction
 ============
 
+
+
 PA1
 ---
  
 The purpose of PA1 was to develop an algorithm for a 3D point set to 3D point set registration and a pivot
-calibration. The problem involved a stereotactic navigation system and an electromagnetic positional tracking
+calibration. The problem involved a stereo tactic navigation system and an electromagnetic positional tracking
 device. Tracking markers were placed on objects so the optical tracking device and an electromagnetic tracking
 device could measure the 3D positions of objects in space relative to measuring base units. These objects were
 then registered so that they could be related in the same coordinate frames. Pivot calibration posts were placed
@@ -31,27 +33,36 @@ system.
 
 .. image:: static/CIS_PA1_AssignmentPicture.png
 
+
 PA2
 ---
 
 In addition to all of the steps outlined in PA1, the core purpose of PA2 was to develop an algorithm for
-distortion correction and to implement it for use with the stereotactic navigation system of PA1. In addition to
+distortion correction and to implement it for use with the stereo tactic navigation system of PA1. In addition to
 distortion correction, we performed registration of the device coordinate frames to prior CT coordinate frames.
+
 
 PA3
 ---
 
-The purpose of PA3 was to develop an iterative-closest point (ICP) registration algorithm. The problem
-involved a 3D triangular surface mesh of a bone found in CT coordinates and two rigid bodies. One rigid body
-is rigidly attached to the bone and one to be used as a pointer. LED markers were attached to the two rigid
-bodies so that the coordinates could be determined in optical coordinates. An ICP registration was implemented
-so that a the closest point on the triangular mesh could be found to a number of points where the tip of the
-pointer contacted the bone. The diagram below from the assignment document gives a visual description of the
-system.
+The purpose of PA3 was to develop the find closest point step of an iterative-closest point registration 
+algorithm. The problem involved a 3D triangular surface mesh of a bone found in CT coordinates and two rigid 
+bodies. One rigid body is rigidly attached to the bone and one to be used as a pointer. LED markers were attached
+to the two rigid bodies so that the coordinates could be determined in optical coordinates. The closest point on 
+the triangular mesh to a number of points where the tip of the pointer contacted the bone was found using our find
+closest point algorithm. The diagram below from the assignment document gives a visual description of the system.
 
 
 .. image:: static/PA3_Problem_Drawing.png
 
+
+PA4
+---
+
+The purpose of PA4 was to build off the find closest points algorithm from PA3 and implement an iterative-closest
+point registration (ICP) algorithm.  The closest point on the triangular mesh to the points where the tip of the 
+pointer contacted the bone was found iteratively until the error threshold was reached.  In this way, the error
+between these points could be minimized.  
 
 
 Mathematical Approach
@@ -62,7 +73,7 @@ Distortion Correction
 ---------------------
 
 A number of distortion correction methods are available to correct for inaccuracies among various sensor
-coordinate systems and the real physical dimensions of the world. We seleced Bernstein polynomials for our
+coordinate systems and the real physical dimensions of the world. We selected Bernstein polynomials for our
 implementation due to their numerical stability and accuracy for the specific electromagnetic distortion problem
 we encounter. The basic idea in this case is to construct a 3D polynomial representing the spatial flexing
 caused by distortions in measurements.
@@ -90,12 +101,11 @@ matrix of a distorted point set to generate the final corrected and undistorted 
 stacked matrix is a more efficient alternative to the loop of sums from the slides.
 
 
-
-Tradeoffs
-~~~~~~~~~
+Trade-offs
+~~~~~~~~~~
 
 One of the particular advantages of Bernstein polynomials is the ability to select the degree of the polynomial.
-The polynomial degree presents an interesting tradeoff, because a higher degree polynomial allows more precise
+The polynomial degree presents an interesting trade off, because a higher degree polynomial allows more precise
 representation of distortions and lower error. This benefit comes at the cost of an exponential increase in
 computation time for each additional polynomial degree.
 
@@ -133,7 +143,6 @@ probe and the probe tip could be approximated using the SVD matrices and the tra
  * \[1] Horn, Closed-form solution of absolute orientation using unit quaternions, Optical Society of America (1987)
 
  
- 
 Finding the Closest Point on a Triangle
 ---------------------------------------
  
@@ -154,29 +163,34 @@ an explicit least squares approach to find lambda and mu. If the closest point l
 then the point must be projected onto every side of the triangle. The equations (from the Point Pairs lecture slides)
 below how this is implemented:
 
-.. image:: static/PA3_Eq3.png
+.. image:: static/PA3_Eq3_new.png
 
-.. image:: static/PA3_Eq4.png
+.. image:: static/PA3_Eq4_new.png
 
-Where p and q are the two end points of the line segment, c is the point to be projected on the line segment, c* is the 
-projected point on the line segment, and lambda* is the ratio of normalized length from p to c*. If two of the three c* 
-projections lie on the same vertice, then the closest point on the triangle is that vertice. Otherwise, the closest point 
-will be the c* projection on the side whose value for lambda* satisfies the conditions of being between one and zero. 
+Where x and y are the two end points of the line segment, c is the point to be projected on the line segment, c* is the 
+projected point on the line segment, and alpha* is the ratio of normalized length from x to c*. If two of the three c* 
+projections lie on the same vertex, then the closest point on the triangle is that vertex. Otherwise, the closest point 
+will be the c* projection on the side whose value for alpha* satisfies the conditions of being between one and zero. 
 Then the equation (from the Point Pairs lecture slides) below is implemented to find the closest point c*:
 
-.. image:: static/PA3_Eq5.png
+.. image:: static/PA3_Eq5_new.png
+
 
 ICP
 ---
-The ICP approach for this programming assignment was very simple. For every triangle in the mesh, the find the closest
-point method was implemented. Once closest point was found, the error between the two points was computed by taking the
-norm. Then the triangle, whose pointed produced the smallest error, was said to be the closest point on the mesh. 
 
+For every point on the bone where the probe tip was placed, the find the closest point method was implemented for every 
+triangle on the mesh. Once the closest point on the mesh was found, the error between the two points was computed by taking 
+the norm. Then the point on the triangle with the smallest error was said to be the closest point on the mesh. Next, a new
+transformation between the points on the bone and the point on the mesh is found using the Point Cloud Registration method.
+Then the process is repeated using new points from the new transformation to minimize the error between the points on the 
+bone and the points on the mesh.
 
  
  
 Algorithmic Approach:
 =====================
+
 
 Parsing
 -------
@@ -187,6 +201,7 @@ aspects of our algorithms. The first step was to write parser code that could in
 parser needed to interpret which data set was being entered, the number of frames in each data set, and which
 markers were being tracked in the data set. The parser would store the data as Eigen matrices to be easily used
 for our algorithms.
+
 
 Transforms
 ----------
@@ -235,17 +250,17 @@ their measurement can be corrected.
 Once this is done, an the same Fmatrix calculated above can be calculated for this new set of points. Then the c
 calibration coefficient matrix was multiplied by the Fmatrix to find the undistorted points in the new coordinate system.
 Once the data was undistorted, we were able to run a new pivot calibration with the undistorted points to see how well
-our undistortion works. The next step was to use the distortion matrix to find CT fiducials in the EM frame. The new data
+our undistortion works. The next step was to use the distortion matrix to find CT fiducial in the EM frame. The new data
 was scaled by the same scaling function as above and put into a new Fmatrix. In this way, a new Fmatrix could be found
 and the measured points could be undistorted. Then these values were used with known values of points measured in the CT
 frame to find a transformation matrix Freg that would take you from the EM frame to the CT frame. Finally the tip of the
 EM probe could be measured in the CT frame.
 
  
-ICP Registration
-----------------
+Find Nearest Point
+------------------
 
-Next an ICP Registration algorithm was created which used both the parser and hornRegistration algorithms
+Next a Find Nearest Point algorithm was created which used both the parser and hornRegistration algorithms
 mentioned above. First, each point of tracker data was parsed into Eigen vectors of (x,y,z) coordinates which 
 corresponded to the position of the trackers attached to the rigid bodies, A and B, in optical coordinates  Next, another 
 set of tracker data was parsed into Eigen vectors of (x,y,z) coordinates which corresponded to the position of the 
@@ -260,14 +275,34 @@ to the rigid body B coordinates was assumed to be the identity matrix. Once this
 found by multiply the transformation from CT mesh coordinates to the rigid body B coordinates by the tip of the pointer A
 in rigid body A coordinates. Now these sample points were used to which points on the CT mesh they were closest to with
 the given transformation. The simplest FindNearestPoint function was implemented in which the the nearest point to the
-sample points on the CT mesh was calulated for every triangle in the mesh. The error between the two points for each
+sample points on the CT mesh was calculated for every triangle in the mesh. The error between the two points for each
 triangle was calculated by taking the norm between the points and the smallest error corresponded to the nearest point on
 the mesh to the pointer tip A.
 
 
-A more efficient method would be to run the FindNearestPoint function on only some of the triangles that passed initial 
+A more efficient method would be to run the Find Nearest Point algorithm on only some of the triangles that passed initial 
 criteria instead of all of the triangles. This would be done by using a data structure such as a bounding box or some 
 type of hierarchical data structure.
+
+
+ICP
+---
+
+The ICP algorithm continuously ran the Find Nearest point algorithm until the error criteria was reached. On the first
+iteration, the transformation from the CT mesh coordinates and the rigid body B coordinates was assumed to be the identity
+matrix. Then on subsequent iterations, a new estimate of the transformation was found using a hornRegistration from the
+rigid body B coordinates to the closest points found on the CT mesh found in the previous iteration.  Once the transformation
+was found, the sample points were computed the same way as in the Find Nearest Point Algorithm and the steps were continued
+until new closest points on the mesh were found.  The error calculated in each iteration was compared to the error criteria
+and if the error calculated was below the criteria, then ICP algorithm was stopped and the new closest points and transformation
+were assumed to be a good estimate.
+
+
+More Efficient ICP 
+------------------
+
+Need to discuss what we did to make our ICP algorithm run fast.  Either threads or data structure
+
 
 
 Structure of the Program
@@ -373,7 +408,7 @@ Bernstein Polynomials are utilized to perform the correction.
 
 **BernsteinPolynomial()**
 
-Find the solution to the Berstein polynomial when at varying degrees and points depending on the input.
+Find the solution to the Bernstein polynomial when at varying degrees and points depending on the input.
 
 **Fmatrix()**
 
@@ -383,7 +418,7 @@ and a distortion calibration can be done using the matrix.
 **ScaleToUnitBox()**
 
 Calculates maximum and minimum values in the X,Y, and z coordinates of a point cloud and then normalizes the 
-value of every single opint.
+value of every single point.
 
 **probeTipPointinCTF()**
 
@@ -401,17 +436,17 @@ PA3
 
 **icpPointMeshRegistration()**
 
-Primary function implementing the math specific to the system specified in PA3.
+Primary function implementing the first iteration of the math specific to the ICP of the system specified in PA3.
 
 **FindClosestPoint()**
 
 Finds the closest point on the triangle to a point in space. If the closest point lies with in triangle, then the
-function finds the nearest point internally. Else if the closest point lies on an edge or vertice, the function
+function finds the nearest point internally. Else if the closest point lies on an edge or vertex, the function
 OutsideOfTriangle() is called to find the nearest point.
 
 **OutsideOfTriangle()**
 
-Finds the closest point on the triangle to a point in space if the closest point lies on an edge or vertice
+Finds the closest point on the triangle to a point in space if the closest point lies on an edge or vertex
 
 **ProjectOnSegment()**
 
@@ -421,7 +456,7 @@ where the nearest point is to each side of the triangle.
 **PointEqualityCheck()**
 
 Determines if two points are equal. Used by the function OutsideOfTriangle to determine if the nearest point on the
-triangle lies on a vertice
+triangle lies on a vertex
 
 
 PA4
@@ -480,12 +515,12 @@ cisHW1-2.cpp or the function definitions in PA2.hpp.
 PA 3
 ----
 
-Our initial algorithm passed our unit tests and gave us similar errors to the output data files. We concluded that our we
-were able to successfully implement the first iteration of an ICP registration. Although the simlpest linear method was
+Our initial algorithm passed our unit tests and gave us similar errors to the output data files. We concluded that we
+were able to successfully implement the first iteration of an ICP registration. Although the simplest linear method was
 implemented, our program was able to run the program of all debug and unknown data sets in less than thirty seconds even
 in debug mode. Adding threads and running in release mode made our program run even faster. A data structure was not
 needed for this assignment because we concluded that there was no problem with the speed of the program. For PA 4, we will
-revaluate this conclusion as the ICP will need to iterate multiple times, greatly increasing our runtime.
+re-evaluate this conclusion as the ICP will need to iterate multiple times, greatly increasing our runtime.
  
 PA 4
 ----
@@ -591,7 +626,6 @@ Error sources and propagation can come from a variety of sources, including EM d
 We were able to account for the EM distortion through our distortion calibration functions. It is expected that some
 amount of EM Noise, distortion, and jiggle will be propagated throughout the system that we are unable to account for.
 
-
 One example of how error can propagate is if both the optical tracker and EM tracker are off with a common distortion
 component, it is possible for this information to cause the Bernstein curve to misestimate the actual curve, and
 consequently cause the registration between the CT scan and the other sensors to have a higher error. In this way errors
@@ -635,6 +669,7 @@ current ICP by iterating and setting an error bound to obtain more accurate resu
 
 Andrew and Alex spent approximately equal time on the assignment, with significant amounts of time spent pair
 programming. Both contributed equally to the implementation and debugging of functions.
+
 
 
 Additional Information

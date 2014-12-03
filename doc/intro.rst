@@ -101,8 +101,8 @@ matrix of a distorted point set to generate the final corrected and undistorted 
 stacked matrix is a more efficient alternative to the loop of sums from the slides.
 
 
-Trade-offs
-~~~~~~~~~~
+Tradeoffs
+~~~~~~~~~
 
 One of the particular advantages of Bernstein polynomials is the ability to select the degree of the polynomial.
 The polynomial degree presents an interesting trade off, because a higher degree polynomial allows more precise
@@ -307,15 +307,19 @@ were assumed to be a good estimate.
 Spatial Indexing
 ----------------
 
-Additionally, an alternative ICP algorithm was implemented using the `Boost.Geometry Spatial Index library <http://www.boost.org/doc/libs/1_57_0/libs/geometry/doc/html/geometry/spatial_indexes/introduction.html>`_ , 
-which contains an r-tree implementation. The ideal mechanism to accelerate search is to insert each
-triangle into the index, then query the r-tree for the nearest triangle to a given point. This would substantially
-speed up all data access by reducing access time for an individual element from O(n) to O(log(n)).
-However, this data structure does not yet have triangle insertion implemented. Instead the bounding box of each 
-triangle is inserted into the index with a reference to the underlying triangle. From this, the nearest bounding
-boxes are queried and visited in order from nearest to furthest, and the underlying polygon distance is checked.
-As soon as a bounding box distance is reached that is entirely further away than the nearest polygon, the search
-is stopped and the ICP algorithm proceeds as normal, with an accelerated lookup of the closest point on the mesh.
+Additionally, an alternative ICP algorithm was implemented using the `Boost.Geometry Spatial Index library <http://www.boost.org/doc/libs/1_57_0/libs/geometry/doc/html/geometry/spatial_indexes/introduction.html>`_ , which contains
+an r-tree implementation. The preferred mechanism to accelerate search using a SpatialIndex is to insert each triangle into
+the index, then query the r-tree for the nearest triangle to a given point. This substantially speed up all data access by
+reducing access time for an individual element from O(n) to O(M log_M(n)), where M is the number of entries in a node.
+
+However, this data structure does not yet have direct polygon insertion implemented. Instead the minimum bounding rectangle,
+or bounding box, of each triangle is inserted into the index with a reference to the underlying triangle. From this, the
+nearest bounding boxes are queried and visited in order from nearest to furthest, and the underlying polygon distance is
+checked. As soon as a bounding box distance is reached that is entirely further away than the nearest polygon, the search is
+stopped and the ICP algorithm proceeds as normal. This is necessary because the bounding boxes of different triangles can
+overlap, returning results that are near to but not the actual closest triangle to the point. ultimately this is a
+substantially accelerated lookup of the closest point on the mesh.
+
 
 
 
@@ -335,7 +339,6 @@ File name                       Description
 **IterativeClosestPoint.hpp**   Algorithm for finding ICP registration.
 **hornRegistration.hpp**        Horn's method of Point Cloud to Point Cloud registration.
 **DistortionCalibration.hpp**   Bernstein Polynomial method of distortion correction.
-**hornRegistration.hpp**        Horn's method of Point Cloud to Point Cloud registration.
 **PivotCalibration.hpp**        Pivot Calibration.
 **PA2.hpp**                     **fiducialPointInEMFrame()** and **probeTipPointinCTFrame()** PA2 #4,6
 **cisHW1test.cpp**              An extensive set of unit tests for the library relevant to PA1.
@@ -493,9 +496,10 @@ ICP algorithm that iterates the simple search of the FindClosestPoint algorithm 
 ICP algorithm that iterates the spatial index of the FindClosestPoint algorithm until an error threshold is reached.
 The spatial index is used to increase efficiency of the ICP algorithm.
 
-**shouldTerminate()**
+**TerminationCriteria**
 
-Function implemented to see if the current iterations of the ICP algorithm is within our desired error threshold.
+TerminationCriteria is a C++ Class implemented to evaluate if the current iterations of the ICP algorithm is within 
+our desired error threshold, and to collect statistics on the error as ICP progresses.
 
 
 
@@ -610,16 +614,16 @@ simple search, executing all the data sets in 2.41s on a 2014 Intel Core i7 proc
 
 Stopping Error Criteria
 ~~~~~~~~~~~~~~~~~~~~~~~
+We implemented several different stopping criteria for our ICP algorithm. The first was a minimum iteration so that the
+ICP had to run a minimum number of iterations before it could be stopped. The second was a mean error criteria so that the
+ICP would not stop iterating unless the mean error was sufficiently low. The third was a max error criteria so that the
+ICP would not stop iterating unless the maximum error criteria was sufficiently low. The next criteria computes a rolling
+variance in the mean error at each iteration. Effectively, this allows the algorithm to stop correctly for a variety of
+data sets when error improvements at each iteration have diminished, regarless of what ideal minimum is possible. This
+criteria produced the best results for stopping correctly across a variety of data sets. The final criteria was a maximum
+iteration so that the ICP would not just keep running forever if the error never met any of the previous criteria. Each
+error criteria is checked after each iteration by the TerminationCriteria object to determine if the ICP should be stopped.
 
-We implemented several different stopping criteria for our ICP algorithm. The first was a minimum iteration so 
-that the ICP had to run a minimum number of iterations before it could be stopped. The second was a mean error
-criteria so that the ICP would not stop iterating unless the mean error was sufficiently low. The third was a 
-max error criteria so that the ICP would not stop iterating unless the maximum error criteria was sufficiently 
-low. The next criteria was a change in error criteria so that the ICP would not stop iterating unless the 
-optimization no longer had an effect on reducing the error. The final criteria was a maximum iteration so that
-the ICP would not just keep running forever if the error never met any of the previous criteria. Each error
-criteria were checked after each iteration by the shouldTerminate function to determine if the ICP should be 
-stopped.
 
 Tabular Summary of PA 4 Results
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -627,7 +631,6 @@ Tabular Summary of PA 4 Results
 =================   ===============   ===============   ===============
 File                Error Mean        Error Max         Error Variance
 =================   ===============   ===============   ===============
-
 PA4-A-Debug         0.00197113        0.00717058        2.23062e-06 
 PA4-B-Debug         0.00186124        0.00787022        2.47282e-06
 PA4-C-Debug         0.00176908        0.0069919         2.21001e-06 

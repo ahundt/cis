@@ -83,10 +83,10 @@ basis_project (
   # --------------------------------------------------------------------------
   # meta-data
   NAME             "CIS"
-  VERSION          "0.0.0"
+  VERSION          "4.0.0"
   AUTHORS          "Andrew Hundt and Alex Strickland"
                    #<author>
-  DESCRIPTION      "Andrew Hundt and Alex Strickland Computer Integrated Surgery 600.445 Coursework Repository"
+  DESCRIPTION      "Andrew Hundt and Alex Strickland Johns Hopkins Computer Integrated Surgery 600.445 Coursework Repository"
   # Note: VENDOR will also be part of the default installation path
   VENDOR           "Andrew Hundt and Alex Strickland"
                    #<vendor>

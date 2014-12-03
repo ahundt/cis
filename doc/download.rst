@@ -17,12 +17,11 @@ Either clone the Git repository:
 
 .. code-block:: bash
     
-    git clone https://github.com/schuhschuh/cis.git
+    git clone https://github.com/ahundt/cis.git
 
-or download a pre-packaged ``.tar.gz`` of the latest BASIS release:
+or download a pre-packaged ``.zip`` of the latest CIS release:
 
-- `Download CIS v1.0.0 as .tar.gz <https://github.com/schuhschuh/cis/archive/v1.0.0.tar.gz>`__
-- `Download CIS v1.0.0 as .zip    <https://github.com/schuhschuh/cis/archive/v1.0.0.zip>`__
+- `Download CIS v1.0.0 as .zip    <https://github.com/ahundt/cis/archive/master.zip>`__
 
 .. seealso:: The :doc:`Quick Start Guide <quickstart>` can help you get up and running.
 
@@ -52,4 +51,4 @@ Documentation
  
 .. only:: latex
     
-    `BASIS Manual <http://opensource.schuhschuh.com/cis/>`__: Online version of this manual
+    `CIS Manual <https://github.com/ahundt/cis/raw/master/doc/CIS_Software_Manual.pdf>`__: Online version of this manual

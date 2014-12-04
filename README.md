@@ -3,15 +3,19 @@ Introduction
 
 This software contains Andrew Hundt and Alex Strickland's implementation of the Programming Assignments (PA) for [Computer Integrated Surgery](http://www.cs.jhu.edu/cista/445/) aka CIS1 at Johns Hopkins University 2014, taught by Dr Russell Taylor. This readme is organizes information about the course for future reference.
 
-Important assignment divisions
-------------------------------
+Assignment Groupings:
 
-- **HW1**
-  - computer integrated surgical device proposal document
-- **PA1-2** and **HW2-3** 
-  - point cloud to point cloud transforms, distortion correction
-- **PA3-4** and **HW4**
-  - Iterative Closest Point, matching sensor point clouds to a mesh
+**HW1**
+
+Computer integrated surgical device proposal document
+
+**PA1-2** and **HW2-3** 
+
+Point cloud to point cloud transforms, distortion correction
+ 
+**PA3-4** and **HW4**
+
+Iterative Closest Point, matching sensor point clouds to a mesh
 
 Getting Started
 ---------------
